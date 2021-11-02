@@ -1,0 +1,7 @@
+.compile galah_dr4_3d_bin_subgrids_compute_sme_spectrum_index
+resolve_all,/continue_on_error
+.r interpmarcs2012
+.r sme_nlte
+resolve_all,/continue_on_error
+save,file="galah_dr4_3d_bin_subgrids_compute_sme_spectrum_index.sav",/routines
+exit
