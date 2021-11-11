@@ -22,6 +22,7 @@ import pickle
 import time
 import matplotlib.pyplot as plt
 import scipy.optimize as op
+import sys
 
 # The Cannon
 import thecannon as tc # see https://github.com/andycasey/AnniesLasso for more details
@@ -49,11 +50,11 @@ try:
     grids = Table.read('../../spectrum_grids/galah_dr4_model_trainingset_gridpoints.fits')
     teff_logg_feh_name = str(int(grids['teff_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][grid_index])
 
-    training_set = Table.read('training_input/5750_4.50_0.00/galah_dr4_cannon_trainingset_5750_4.50_0.00_incl_vsini.fits')
-    masks = Table.read('training_input/5750_4.50_0.00/5750_4.50_0.00_masks.fits')
+    training_set = Table.read('training_input/'+teff_logg_feh_name+'/galah_dr4_cannon_trainingset_'+teff_logg_feh_name+'_incl_vsini.fits')
+    masks = Table.read('training_input/'+teff_logg_feh_name+'/'+teff_logg_feh_name+'_masks.fits')
 
     wavelength_file = 'training_input/galah_dr4_3dbin_thecannon_wavelength_array.pickle'
-    flux_ivar_file = 'training_input/5750_4.50_0.00/galah_dr4_cannon_trainingset_5750_4.50_0.00_incl_vsini_flux_ivar.pickle'
+    flux_ivar_file = 'training_input/'+teff_logg_feh_name+'/galah_dr4_cannon_trainingset_'+teff_logg_feh_name+'_incl_vsini_flux_ivar.pickle'
 
     flux_ivar_file_opener = open(flux_ivar_file,'rb')
     training_set_flux,training_set_ivar = pickle.load(flux_ivar_file_opener)
