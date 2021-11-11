@@ -3,7 +3,7 @@
 
 # # This is the part of the code, where we train The Cannon
 
-# In[ ]:
+# In[1]:
 
 
 # Compatibility with Python 3
@@ -19,7 +19,9 @@ except:
 import numpy as np
 from astropy.table import Table
 import pickle
+import time
 import matplotlib.pyplot as plt
+import scipy.optimize as op
 
 # The Cannon
 import thecannon as tc # see https://github.com/andycasey/AnniesLasso for more details
@@ -28,14 +30,19 @@ import thecannon as tc # see https://github.com/andycasey/AnniesLasso for more d
 # What do we have to do for the training?
 # Let's follow the description from https://annieslasso.readthedocs.io/en/latest/guide.html
 
-# In[ ]:
+# In[2]:
 
 
 # choose one grid_index
-grid_index = 1931
+try:
+    grid_index = int(sys.argv[1])
+    print('Using Grid index ',grid_index)
+except:
+    grid_index = 1931
+    print('Using default grid index ',grid_index)
 
 
-# In[ ]:
+# In[3]:
 
 
 try:
@@ -61,7 +68,7 @@ except:
     raise ValueError('There are only '+str(len(grids))+' entries within the grid')
 
 
-# In[ ]:
+# In[4]:
 
 
 labels = tuple(training_set.keys()[2:-1])
@@ -76,30 +83,30 @@ labels = tuple(training_set.keys()[2:-1])
 #     'c_fe', 
 #     'n_fe', 
 #     'o_fe', 
-#     #'na_fe', 
-#     #'mg_fe', 
-#     #'al_fe', 
-#     #'si_fe', 
-#     #'k_fe', 
-#     #'ca_fe', 
-#     #'sc_fe', 
-#     #'ti_fe', 
-#     #'v_fe', 
-#     #'cr_fe', 
-#     #'mn_fe', 
-#     #'co_fe', 
-#     #'ni_fe', 
-#     #'cu_fe', 
+#     'na_fe', 
+#     'mg_fe', 
+#     'al_fe', 
+#     'si_fe', 
+#     'k_fe', 
+#     'ca_fe', 
+#     'sc_fe', 
+#     'ti_fe', 
+#     'v_fe', 
+#     'cr_fe', 
+#     'mn_fe', 
+#     'co_fe', 
+#     'ni_fe', 
+#     'cu_fe', 
 #     #'zn_fe', 
 #     #'rb_fe', 
 #     #'sr_fe', 
-#     #'y_fe', 
+#     'y_fe', 
 #     #'zr_fe', 
 #     #'mo_fe', 
 #     #'ru_fe', 
-#     #'ba_fe', 
+#     'ba_fe', 
 #     #'la_fe', 
-#     #'ce_fe', 
+#     'ce_fe', 
 #     #'nd_fe', 
 #     #'sm_fe', 
 #     #'eu_fe'
@@ -109,7 +116,7 @@ print('Labels to be fitted: ',len(labels))
 print(labels)
 
 
-# In[ ]:
+# In[8]:
 
 
 order = 2
@@ -124,7 +131,7 @@ except:
     print('models/'+model_file+'.model')
 
 
-# In[ ]:
+# In[6]:
 
 
 # Convert training set labels into The Cannon readible format
@@ -133,7 +140,7 @@ for label in labels:
     training_set_labels[label] = training_set[label]
 
 
-# In[ ]:
+# In[7]:
 
 
 model = tc.CannonModel(
@@ -146,7 +153,7 @@ model = tc.CannonModel(
 
 # Apply censoring
 for label in enumerate(labels):
-    if label[1] not in ['vsini']:
+    if label[1] not in ['teff','logg','fe_h','vmic','vsini']:
         model.censors[label[1]] = masks[label[1]]
 
 
@@ -164,7 +171,7 @@ if not model.is_trained:
 model.write('models/'+model_file+'.model')
 
 
-# In[ ]:
+# In[16]:
 
 
 # Now let's plot some of the coefficients to get an idea, which pixels the model considers interesting.
@@ -335,10 +342,4 @@ ax.invert_yaxis()
 
 plt.tight_layout()
 plt.savefig('diagnostic_plots/'+model_file+'_tefflogg.png')
-
-
-# In[ ]:
-
-
-
 
