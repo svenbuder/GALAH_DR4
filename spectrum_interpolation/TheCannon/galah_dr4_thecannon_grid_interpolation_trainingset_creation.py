@@ -20,6 +20,7 @@ from scipy.io import readsav
 from scipy.ndimage.filters import convolve
 import matplotlib.pyplot as plt
 from pathlib import Path
+import sys
 
 
 # In[ ]:
@@ -448,6 +449,8 @@ grid_masks = Table()
 
 percentage_used = []
 
+Path('gradient_spectra/'+teff_logg_feh_name).mkdir(parents=True, exist_ok=True)
+
 for label_index, label in enumerate(labels):
     print(label, training_set_vsini0[label][2+label_index]-training_set_vsini0[label][0])
     
@@ -517,7 +520,6 @@ for label_index, label in enumerate(labels):
             else:
                 ax.legend()
     plt.tight_layout()
-    # Save, if we are looking at the Sun!
     plt.savefig('gradient_spectra/'+teff_logg_feh_name+'/gradient_spectrum_'+teff_logg_feh_name+'_'+label+'.png',dpi=200,bbox_inches='tight')
     if grid_index in [1931]:
         plt.savefig('../../galah_dr4_paper/figures/gradient_spectrum_'+teff_logg_feh_name+'_'+label+'.png',dpi=200,bbox_inches='tight')
@@ -551,7 +553,6 @@ if grid_index in [1931]:
 # In[ ]:
 
 
-Path('gradient_spectra/'+teff_logg_feh_name).mkdir(parents=True, exist_ok=True)
 Path('training_input/'+teff_logg_feh_name).mkdir(parents=True, exist_ok=True)
 
 gradient_spectra_up.write('gradient_spectra/'+teff_logg_feh_name+'/'+teff_logg_feh_name+'_gradient_spectra_up.fits',overwrite=True)
