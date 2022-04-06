@@ -31,7 +31,7 @@ import time
 grids = Table.read('../spectrum_grids/galah_dr4_model_trainingset_gridpoints.fits')
 
 
-# In[4]:
+# In[6]:
 
 
 # choose one grid_index
@@ -39,29 +39,7 @@ try:
     grid_index = int(sys.argv[1])
     print('Using Grid index ',grid_index)
 except:
-    # Done:
-    """
-    1259,
-    1832,
-    1931,1932
-    2013,2014,2015
-    
-    currently: 1930
-    
-    next: 
-    
-    1834,
-    1844,1845,1846,
-    1918,1919,1920,
-    2001,2002,2003,
-    
-    to be calculated
-    1933
-    
-    """
     grid_index = 1931 # 5750_4.50_0.00
-    #grid_index = 1259 # 4250_1.50_-0.50
-    #grid_index = 1919 # 5750_4.00_0.00
     
     print('Using default grid index ',grid_index)
 
@@ -84,14 +62,14 @@ try:
 
     spectrum_flux_change_threshold_max = 0.07
     spectrum_flux_change_threshold_min = 0.005
-    percentage_thresshold = 50
+    percentage_threshold = 25
 
     print(
         'Element,',
         'dFlux,',
         '> '+str(spectrum_flux_change_threshold_max)+'?',
         '(dFlux > '+str(spectrum_flux_change_threshold_min)+')/%',
-        '> '+str(percentage_thresshold)+'%?'
+        '> '+str(percentage_threshold)+'%?'
     )
 
     # For the test, we will only rely on the main GALAH wavelength range from deSilva et al. (2015)
@@ -113,7 +91,7 @@ try:
 
         # Test 2: At how many pixels does the spectrum actually change more than the minimum threshold *spectrum_flux_change_threshold_min*
         percentage_above_threshold = np.round(100*len(np.where(np.max([np.abs(gradient_spectra_up[label.lower()+'_fe'][in_main_galah_wavelength_range]),np.abs(gradient_spectra_down[label.lower()+'_fe'][in_main_galah_wavelength_range])],axis=0) >= spectrum_flux_change_threshold_min)[0])/len(gradient_spectra_up['wave'][in_main_galah_wavelength_range]))
-        test2 = percentage_above_threshold >= percentage_thresshold
+        test2 = percentage_above_threshold >= percentage_threshold
 
         print(
             (test1 | test2),
@@ -131,4 +109,10 @@ try:
     
 except:
     print('Could not recommend labels')
+
+
+# In[ ]:
+
+
+
 
