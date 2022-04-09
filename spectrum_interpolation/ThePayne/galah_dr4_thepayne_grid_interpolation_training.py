@@ -15,7 +15,7 @@ except:
 
 # Basic Tools
 import numpy as np
-from astropy.table import Table,vstack
+from astropy.table import Table
 import pickle
 import time
 import matplotlib.pyplot as plt
@@ -53,7 +53,7 @@ if torch.cuda.is_available():
 # That's how we do it:
 
 
-# In[3]:
+# In[5]:
 
 
 # choose one grid_index
@@ -66,63 +66,33 @@ except:
     print('Using default grid index ',grid_index)
 
 
-# In[4]:
+# In[6]:
 
 
-grids = Table.read('../../spectrum_grids/galah_dr4_model_trainingset_gridpoints.fits')
+try:
+    grids = Table.read('../../spectrum_grids/galah_dr4_model_trainingset_gridpoints.fits')
+    teff_logg_feh_name = str(int(grids['teff_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][grid_index])
 
-teff_logg_feh_name = str(int(grids['teff_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][grid_index])
+    training_set = Table.read('../training_input/'+teff_logg_feh_name+'/galah_dr4_trainingset_'+teff_logg_feh_name+'_incl_vsini.fits')
+    masks = Table.read('../training_input/'+teff_logg_feh_name+'/'+teff_logg_feh_name+'_masks.fits')
 
-# Let's save our default 7 models
-seven_grids = np.array([
-    str(int(grids['teff_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][grid_index]),
-    str(int(grids['teff_low_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][grid_index]),
-    str(int(grids['teff_high_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][grid_index]),
-    str(int(grids['teff_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_low_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][grid_index]),
-    str(int(grids['teff_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_high_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][grid_index]),
-    str(int(grids['teff_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_low_subgrid'][grid_index]),
-    str(int(grids['teff_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_high_subgrid'][grid_index])   
-])
+    wavelength_file = '../training_input/galah_dr4_3dbin_wavelength_array.pickle'
+    flux_ivar_file = '../training_input/'+teff_logg_feh_name+'/galah_dr4_trainingset_'+teff_logg_feh_name+'_incl_vsini_flux_ivar.pickle'
 
-# Not all of the default models have to exist (e.g. for logg == 5.0)
-# In that case, replace them with the middle grid to give more weight to it.
-
-for seven_grid_index in range(len(seven_grids)):
-    try:
-        training_set = Table.read('../training_input/'+seven_grids[seven_grid_index]+'/galah_dr4_trainingset_'+seven_grids[seven_grid_index]+'_incl_vsini.fits')
-    except:
-        print('No grid available for '+seven_grids[seven_grid_index]+', replacing with '+str(int(grids['teff_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][grid_index]))
-        seven_grids[seven_grid_index] = str(int(grids['teff_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][grid_index])
-
-print(seven_grids)
-
-training_labels = []
-training_set_flux = []
-
-wavelength_file = '../training_input/galah_dr4_3dbin_wavelength_array.pickle'
-wavelength_file_opener = open(wavelength_file,'rb')
-wavelength_array = pickle.load(wavelength_file_opener)
-wavelength_file_opener.close()
-
-for seven_teff_logg_feh_name in seven_grids:
-    training_set_one = Table.read('../training_input/'+seven_teff_logg_feh_name+'/galah_dr4_trainingset_'+seven_teff_logg_feh_name+'_incl_vsini.fits')
-    
-    labels = tuple(training_set.keys()[2:-1])
-
-    training_labels.append(np.array([training_set_one[label] for label in labels]).T)
-
-    masks = Table.read('../training_input/'+seven_teff_logg_feh_name+'/'+seven_teff_logg_feh_name+'_masks.fits')
-    
-    flux_ivar_file = '../training_input/'+seven_teff_logg_feh_name+'/galah_dr4_trainingset_'+seven_teff_logg_feh_name+'_incl_vsini_flux_ivar.pickle'
     flux_ivar_file_opener = open(flux_ivar_file,'rb')
-    training_set_flux.append(pickle.load(flux_ivar_file_opener))
+    training_set_flux = pickle.load(flux_ivar_file_opener)
     flux_ivar_file_opener.close()
+    wavelength_file_opener = open(wavelength_file,'rb')
+    wavelength_array = pickle.load(wavelength_file_opener)
+    wavelength_file_opener.close()
 
-training_labels = np.concatenate((training_labels))
-training_set_flux = np.concatenate((training_set_flux))
+    print('Succesfully read in all information needed for grid index '+str(grid_index)+' corresponding to '+teff_logg_feh_name)
+
+except:
+    raise ValueError('There are only '+str(len(grids))+' entries within the grid')
 
 
-# In[5]:
+# In[7]:
 
 
 labels = tuple(training_set.keys()[2:-1])
@@ -130,17 +100,19 @@ labels = tuple(training_set.keys()[2:-1])
 print('Labels to be fitted: ',len(labels))
 print(labels)
 
+training_labels = np.array([training_set[label] for label in labels]).T
 
-# In[6]:
+
+# In[8]:
 
 
-model_file = 'galah_dr4_thepayne_model_extra6_'+teff_logg_feh_name+'_'+str(len(labels))+'labels'
+model_file = 'galah_dr4_thepayne_model_'+teff_logg_feh_name+'_'+str(len(labels))+'labels'
 
 print('Will create The Payne model to be stored at ')
 print('models/'+model_file+'.model')
 
 
-# In[37]:
+# In[9]:
 
 
 from sklearn.model_selection import train_test_split
@@ -163,12 +135,12 @@ training.neural_net(
     num_steps=1e4,
     batch_size=128,#np.min([256,np.int(np.shape(training_labels)[1]/2.)]), 
     num_pixel=np.shape(training_set_flux[0])[0],
-    training_loss_name = 'loss_functions/'+model_file+'_loss.npz',
+    training_loss_name = 'models/'+model_file+'_loss.npz',
     payne_model_name = 'models/'+model_file+'.npz'
     )
 
 
-# In[7]:
+# In[12]:
 
 
 tmp = np.load('loss_functions/'+model_file+'_loss.npz') # the output array also stores the training and validation loss
@@ -183,12 +155,9 @@ plt.yscale('log')
 #plt.ylim([5,100])
 plt.xlabel("Step", size=20)
 plt.ylabel("Loss", size=20)
-plt.savefig('loss_functions/'+model_file+'_loss.png',dpi=200,bbox_inches='tight')
-plt.show()
-plt.close()
 
 
-# In[8]:
+# In[13]:
 
 
 tmp = np.load('models/'+model_file+'.npz')
@@ -206,13 +175,13 @@ NN_coeffs = (w_array_0, w_array_1, w_array_2, b_array_0, b_array_1, b_array_2, x
 
 # # For validation purposes, we can recreate some training spectra
 
-# In[9]:
+# In[16]:
 
 
-plot_validation = True
+plot_validation = False
 
 
-# In[10]:
+# In[18]:
 
 
 def load_dr3_lines(mode_dr3_path = '../../spectrum_analysis/spectrum_masks/important_lines'):
@@ -356,11 +325,11 @@ def plot_validation_spectra(index):
         'vmic='+str(np.round(training_labels[index,3],decimals=2))+'km/s, '+
         'vsini='+str(np.round(training_labels[index,4],decimals=1))+'km/s'
     )
-    f.savefig('validation_spectra/ThePayne_Spectrum_Grid'+str(grid_index)+'_'+str(index)+'.pdf',bbox_inches='tight')
+    f.savefig('validation_spectra_one/ThePayne_Spectrum_Grid'+str(grid_index)+'_'+str(index)+'.pdf',bbox_inches='tight')
     plt.close()
 
 
-# In[11]:
+# In[19]:
 
 
 if plot_validation:
@@ -376,10 +345,4 @@ if plot_validation:
 
     for index in np.arange(50,1700,50):
         plot_validation_spectra(index)
-
-
-# In[ ]:
-
-
-
 
