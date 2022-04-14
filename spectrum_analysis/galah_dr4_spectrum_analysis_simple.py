@@ -38,6 +38,7 @@ from astropy.io import fits
 import astropy.constants as c
 import logging
 import time
+import os
 import copy
 import sys
 from pathlib import Path
@@ -254,6 +255,7 @@ else:
 #     sobject_id = 140111002601214 # M67
 #     sobject_id = 140111002601221 # M67
 #     sobject_id = 140111002601257 # M67
+    sobject_id = 131217003901003
     
     # not available sobject_id = 140308003401188 # 18 Sco
 #     sobject_id = 140708005801203 # bet Hyi
@@ -289,7 +291,10 @@ print('Using The Cannon or The Payne?',use_cannon_or_payne)
 
 debug = False
 
-working_directory = '/Users/svenbuder/GALAH_DR4/'
+if os.path.exists('/avatar'):
+    working_directory = '/avatar/buder/GALAH_DR4/'
+except:
+    working_directory = '/Users/svenbuder/GALAH_DR4/'
 spectra_directory = working_directory+'observations/'
 
 if use_cannon_or_payne == 'cannon':
@@ -301,12 +306,6 @@ if use_cannon_or_payne == 'payne':
 
 
 # # Get observation and initial parameters
-
-# In[ ]:
-
-
-print('ToDo: What do we do if not LSF is reported?')
-
 
 # In[ ]:
 
