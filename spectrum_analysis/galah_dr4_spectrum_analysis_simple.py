@@ -59,6 +59,12 @@ import corner
 # In[ ]:
 
 
+start_time = time.time()
+
+
+# In[ ]:
+
+
 def hist2d_bin_colored(X,Y,Z,X_label='X\_label',Y_label='Y\_label',Z_label='Z\_label',bins=30,bin_function='median',ax=None,minimum_bin_entries = 5,**kwargs):
     """
     INPUT:
@@ -185,14 +191,6 @@ for each in description.keys():
 # In[ ]:
 
 
-print("To Do:")
-print("Better isochrone set and interpolation routine from Sanjib")
-print("Implement some mechanism that checks the ph_qual flag for chi2 and only uses A?")
-
-
-# In[ ]:
-
-
 if sys.argv[1] != '-f':
     sobject_id = int(sys.argv[1])
     
@@ -214,6 +212,9 @@ if sys.argv[1] != '-f':
 
         if 'P' in setup:
             use_photoastrometry = True
+            print("To Do:")
+            print("Better isochrone set and interpolation routine from Sanjib")
+            print("Implement some mechanism that checks the ph_qual flag for chi2 and only uses A?")
         else:
             use_photoastrometry = False
 
@@ -275,6 +276,31 @@ else:
     # sobject_id = 171102005001013 # G112-43 from Nissen et al. (2010)
     ## ^ Use 171102005001013 to implement optimisation of RV fit (and CDELT1?) and normalisation
     
+    sobject_id = 140114003701268 # Arcturus twin CEMP according to Cotar et al. (2019)
+    sobject_id = 160527001601331 # Arcturus twin CEMP according to Cotar et al. (2019)
+#     sobject_id = 160723002001090 # 1258 a bite more [Fe/H] poor than Arcturus twin CEMP according to Cotar et al. (2019)
+    sobject_id = 170118003801288 # Arcturus twin CEMP according to Cotar et al. (2019)
+    sobject_id = 170130002101165 # Arcturus twin CEMP according to Cotar et al. (2019)
+    sobject_id = 170508003301030 # Pipeline failed! Arcturus twin CEMP according to Cotar et al. (2019)
+    sobject_id = 170614002601199 # Arcturus twin CEMP according to Cotar et al. (2019)
+    
+    sobject_id = 131217003301039 # Arcturus twin in APOGEE with CNO
+    sobject_id = 131217003301059 # What's going on with that CCD1? And what about CCD3 wavelength solution beyond 6700 / Arcturus twin in APOGEE with CNO
+    sobject_id = 140117002101137 # Arcturus twin in APOGEE with CNO
+    sobject_id = 140118002001294 # Arcturus twin in APOGEE with CNO
+    sobject_id = 140314005201085 # Arcturus twin in APOGEE with CNO
+    sobject_id = 140314005201136 # Arcturus twin in APOGEE with CNO
+    sobject_id = 140314005201308 # Arcturus twin in APOGEE with CNO
+    sobject_id = 140314002601397 # Wavelength solution CCD2? / Arcturus twin in APOGEE with CNO
+#     sobject_id = 150107003201395 # Arcturus twin in APOGEE with CNO
+#     sobject_id = 150427003301082 # Arcturus twin in APOGEE with CNO
+#     sobject_id = 160419003601111 # Arcturus twin in APOGEE with CNO
+#     sobject_id = 170614002601342 # Need to copy SPECTRUM / Arcturus twin in APOGEE with CNO
+#     sobject_id = 171102004501003 # Need to copy SPECTRUM / Arcturus twin in APOGEE with CNO
+    
+    sobject_id = 131216001601132 # Solar Twin in APOGEE DR17 with CNO
+    sobject_id = 140118003001383 # Test case for switch from 29 to 28 model_labels
+    
     use_spectroscopy = True
     use_photoastrometry = False
     use_asteroseismology = False
@@ -293,7 +319,7 @@ debug = False
 
 if os.path.exists('/avatar'):
     working_directory = '/avatar/buder/GALAH_DR4/'
-except:
+else:
     working_directory = '/Users/svenbuder/GALAH_DR4/'
 spectra_directory = working_directory+'observations/'
 
@@ -306,6 +332,12 @@ if use_cannon_or_payne == 'payne':
 
 
 # # Get observation and initial parameters
+
+# In[ ]:
+
+
+flag_sp = int(0)
+
 
 # In[ ]:
 
@@ -519,6 +551,7 @@ def exchange_with_reliable_galah_dr3_values(spectrum):
 
                     spectrum['init_'+element.lower()+'_fe'] = galah_dr3_entry[element+'_fe']
 
+    galah_dr3 = 0
 exchange_with_reliable_galah_dr3_values(spectrum)
 
 
@@ -837,54 +870,6 @@ if use_photoastrometry | use_asteroseismology:
 # In[ ]:
 
 
-grids = Table.read('../spectrum_grids/galah_dr4_model_trainingset_gridpoints.fits')
-grid_index_tree = cKDTree(np.c_[grids['teff_subgrid'],grids['logg_subgrid'],grids['fe_h_subgrid']])
-default_model_index = grid_index_tree.query([spectrum['init_teff']*1000,spectrum['init_logg'],spectrum['init_fe_h']],k=1)[1]
-default_model_teff_logg_feh = str(int(grids['teff_subgrid'][default_model_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][default_model_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][default_model_index])
-print(default_model_index,default_model_teff_logg_feh)
-
-if use_cannon_or_payne == 'cannon':
-    # Load CANNON Models
-    #cannon_models = Table.read(cannon_model_directory+'Cannon_subgrid.fits')
-    #cannon_index_tree = cKDTree(np.c_[cannon_models['teff'],cannon_models['logg'],cannon_models['fe_h']])
-
-    default_model_name = '../spectrum_interpolation/TheCannon/models/galah_dr4_thecannon_model_'+default_model_teff_logg_feh+'_order2_36labels.model'
-    default_model = tc.CannonModel.read(default_model_name)
-
-if use_cannon_or_payne == 'payne':
-    
-    #default_model_name = '../spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_'+default_model_teff_logg_feh+'_36labels.npz'
-
-    try:
-        default_model_name = '../spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_'+default_model_teff_logg_feh+'_36labels.npz'
-        tmp = np.load(default_model_name)
-        print('Using extra6 '+default_model_teff_logg_feh)
-    except:
-        try:
-            default_model_name = '../spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_'+default_model_teff_logg_feh+'_36labels.npz'
-            tmp = np.load(default_model_name)
-            print('Using single '+default_model_teff_logg_feh)
-        except:
-            default_model_name = '../spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_5750_4.50_0.00_36labels.npz'
-            default_model_teff_logg_feh = '5750_4.50_0.00'
-            print('Changed default model to '+default_model_teff_logg_feh)
-
-    tmp = np.load(default_model_name)
-    w_array_0 = tmp["w_array_0"]
-    w_array_1 = tmp["w_array_1"]
-    w_array_2 = tmp["w_array_2"]
-    b_array_0 = tmp["b_array_0"]
-    b_array_1 = tmp["b_array_1"]
-    b_array_2 = tmp["b_array_2"]
-    x_min = tmp["x_min"]
-    x_max = tmp["x_max"]
-    tmp.close()
-    default_model = (w_array_0, w_array_1, w_array_2, b_array_0, b_array_1, b_array_2, x_min, x_max)
-
-
-# In[ ]:
-
-
 # Load Spectrum masks
 masks = Table.read('spectrum_masks/solar_spectrum_mask.fits')
 
@@ -892,18 +877,6 @@ wavelength_file = '../spectrum_interpolation/training_input/galah_dr4_3dbin_wave
 wavelength_file_opener = open(wavelength_file,'rb')
 default_model_wave = pickle.load(wavelength_file_opener)
 wavelength_file_opener.close()
-
-
-# In[ ]:
-
-
-model_labels = np.loadtxt('../spectrum_interpolation/gradient_spectra/'+default_model_teff_logg_feh+'/recommended_fit_labels_'+default_model_teff_logg_feh+'.txt',usecols=(0,),dtype=str)
-
-initial_model_parameters = [
-    spectrum['init_'+label] for label in model_labels
-]
-
-print(model_labels)
 
 
 # 
@@ -1615,45 +1588,45 @@ def plot_observation_and_model(model_parameters, model_labels, spectrum, masks, 
 # In[ ]:
 
 
-def calculate_default_degrading_wavelength_grid(default_model_wave, default_model_flux, synth_res=300000.):
+def calculate_default_degrading_wavelength_grid(default_model_wave, synth_res=300000.):
     initial_l = dict()
     
     for ccd in [1,2,3,4]:
 
         wave_model_ccd = (default_model_wave > (3+ccd)*1000) & (default_model_wave < (4+ccd)*1000)
 
-        synth = np.array([default_model_wave[wave_model_ccd],default_model_flux[wave_model_ccd]]).T
+        synth = np.array(default_model_wave[wave_model_ccd]).T
 
-        l_original=synth[:,0]
+        l_original=synth
         #check if the shape of the synthetic spectrum is correct
-        if synth.shape[1]!=2: logging.error('Syntehtic spectrum must have shape m x 2.')
+        #if synth.shape[1]!=2: logging.error('Syntehtic spectrum must have shape m x 2.')
 
         #check if the resolving power is high enough
-        sigma_synth=synth[:,0]/synth_res
+        sigma_synth=synth/synth_res
         if max(sigma_synth)>=min(spectrum['lsf_ccd'+str(ccd)])*0.95: logging.error('Resolving power of the synthetic spectrum must be higher.')
 
         #check if wavelength calibration of the synthetic spectrum is linear:
-        if not (synth[:,0][1]-synth[:,0][0])==(synth[:,0][-1]-synth[:,0][-2]):
+        if not (synth[1]-synth[0])==(synth[-1]-synth[-2]):
             logging.error('Synthetic spectrum must have linear (equidistant) sampling.')		
 
         #current sampling:
-        sampl=synth[:,0][1]-synth[:,0][0]
+        sampl=synth[1]-synth[0]
         galah_sampl=spectrum['cdelt_ccd'+str(ccd)]
 
         #original sigma
         s_original=sigma_synth
 
         #required sigma (resample the resolution map into the wavelength range of the synthetic spectrum)
-        s_out=np.interp(synth[:,0], spectrum['crval_ccd'+str(ccd)]+spectrum['cdelt_ccd'+str(ccd)]*np.arange(len(spectrum['counts_ccd'+str(ccd)])), spectrum['lsf_ccd'+str(ccd)])
+        s_out=np.interp(synth, spectrum['crval_ccd'+str(ccd)]+spectrum['cdelt_ccd'+str(ccd)]*np.arange(len(spectrum['counts_ccd'+str(ccd)])), spectrum['lsf_ccd'+str(ccd)])
         
         #the sigma of the kernel is:
         s=np.sqrt(s_out**2-s_original**2)
         
         #fit it with the polynomial, so we have a function instead of sampled values:
-        map_fit=np.poly1d(np.polyfit(synth[:,0], s, deg=6))
+        map_fit=np.poly1d(np.polyfit(synth, s, deg=6))
 
         #create an array with new sampling. The first point is the same as in the spectrum:
-        l_new=[synth[:,0][0]]
+        l_new=[synth[0]]
 
         #oversampling. If synthetic spectrum sampling is much finer than the size of the kernel, the code would work, but would return badly sampled spectrum. this is because from here on the needed sampling is measured in units of sigma.
         oversample=galah_sampl/sampl*10.0
@@ -1662,21 +1635,14 @@ def calculate_default_degrading_wavelength_grid(default_model_wave, default_mode
         min_sampl=max(s_original)/sampl/sampl*oversample
         
         #keep adding samples until end of the wavelength range is reached
-        while l_new[-1]<synth[:,0][-1]+sampl:
+        while l_new[-1]<synth[-1]+sampl:
             # THIS IS THE BOTTLENECK OF THE COMPUTATION
             l_new.append(l_new[-1]+map_fit(l_new[-1])/sampl/min_sampl)
 
         initial_l['ccd'+str(ccd)] = np.array(l_new)
     return(initial_l)
 
-if use_cannon_or_payne == 'cannon':
-    default_model_flux = default_model.__call__(initial_model_parameters)
-    default_model_wave = default_model._dispersion
-if use_cannon_or_payne == 'payne':
-    
-    default_model_wave, default_model_flux, s2_model = create_synthetic_spectrum(initial_model_parameters, model_labels, default_model, default_model_name, debug, use_cannon_or_payne)
-    
-initial_l = calculate_default_degrading_wavelength_grid(default_model_wave,default_model_flux)
+initial_l = calculate_default_degrading_wavelength_grid(default_model_wave)
 
 
 # In[ ]:
@@ -1769,6 +1735,89 @@ def synth_resolution_degradation(l, res_map, res_b, synth, synth_res=300000.0, r
 # In[ ]:
 
 
+grids = Table.read('../spectrum_grids/galah_dr4_model_trainingset_gridpoints.fits')
+grid_index_tree = cKDTree(np.c_[grids['teff_subgrid'],grids['logg_subgrid'],grids['fe_h_subgrid']])
+
+def identify_best_model(
+    teff, logg, fe_h,
+    use_cannon_or_payne
+    ):
+    """
+    This function identifies which interpolation model to use,
+    based on a given combination of teff, logg, fe_h,
+    and the option of cannon or payne
+    """
+    
+    # First query which subgrid fits best
+    default_model_index = grid_index_tree.query([teff*1000,logg,fe_h],k=1)[1]
+    # identify teff_logg_fe_h name of best subgrid
+    default_model_teff_logg_feh = str(int(grids['teff_subgrid'][default_model_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][default_model_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][default_model_index])
+    print(default_model_index,default_model_teff_logg_feh)
+    
+    if use_cannon_or_payne == 'cannon':
+        # Load CANNON Models
+        #cannon_models = Table.read(cannon_model_directory+'Cannon_subgrid.fits')
+        #cannon_index_tree = cKDTree(np.c_[cannon_models['teff'],cannon_models['logg'],cannon_models['fe_h']])
+
+        default_model_name = '../spectrum_interpolation/TheCannon/models/galah_dr4_thecannon_model_'+default_model_teff_logg_feh+'_order2_36labels.model'
+        default_model = tc.CannonModel.read(default_model_name)
+
+    if use_cannon_or_payne == 'payne':
+        #default_model_name = '../spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_'+default_model_teff_logg_feh+'_36labels.npz'
+
+        try:
+            default_model_name = '../spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_'+default_model_teff_logg_feh+'_36labels.npz'
+            tmp = np.load(default_model_name)
+            print('Using extra6 '+default_model_teff_logg_feh)
+        except:
+            try:
+                default_model_name = '../spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_'+default_model_teff_logg_feh+'_36labels.npz'
+                tmp = np.load(default_model_name)
+                print('Using single '+default_model_teff_logg_feh)
+            except:
+                raise ValueError('No reliable model available!')
+                #default_model_name = '../spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_5750_4.50_0.00_36labels.npz'
+                #default_model_teff_logg_feh = '5750_4.50_0.00'
+                #print('Changed default model to '+default_model_teff_logg_feh)
+
+        tmp = np.load(default_model_name)
+        w_array_0 = tmp["w_array_0"]
+        w_array_1 = tmp["w_array_1"]
+        w_array_2 = tmp["w_array_2"]
+        b_array_0 = tmp["b_array_0"]
+        b_array_1 = tmp["b_array_1"]
+        b_array_2 = tmp["b_array_2"]
+        x_min = tmp["x_min"]
+        x_max = tmp["x_max"]
+        tmp.close()
+        default_model = (w_array_0, w_array_1, w_array_2, b_array_0, b_array_1, b_array_2, x_min, x_max)
+
+        model_labels = np.loadtxt('../spectrum_interpolation/gradient_spectra/'+default_model_teff_logg_feh+'/recommended_fit_labels_'+default_model_teff_logg_feh+'.txt',usecols=(0,),dtype=str)
+        print('Fitting the following labels:')
+        print(model_labels)
+        
+    return(default_model_index, default_model_teff_logg_feh,default_model_name,default_model,model_labels)
+
+
+# ## Initial Fit
+
+# In[ ]:
+
+
+# Setup initial model interpolation and parameters
+
+(default_model_index, default_model_teff_logg_feh,default_model_name,default_model,model_labels) = identify_best_model(spectrum['init_teff'],spectrum['init_logg'],spectrum['init_fe_h'],use_cannon_or_payne)
+
+initial_model_parameters = [
+    spectrum['init_'+label] for label in model_labels
+]
+
+
+# In[ ]:
+
+
+# Find pixels that should be initially masked
+
 kwargs={'loss':'linear',"max_nfev":1e8,'xtol':1e-4}
 
 (wave_init,data_init,data_sigma2_init,model_init,model_sigma2_init) = match_observation_and_model(initial_model_parameters, model_labels, spectrum, masks, default_model, default_model_name, True, False)
@@ -1776,17 +1825,27 @@ kwargs={'loss':'linear',"max_nfev":1e8,'xtol':1e-4}
 sigma2_init = data_sigma2_init + model_sigma2_init
 
 unmasked = (
-        (~((np.abs(data_init-model_init)/np.sqrt(sigma2_init) > 2) & (np.abs(data_init-model_init) > 0.2))) & 
+        (~((np.abs(data_init-model_init)/np.sqrt(sigma2_init) > 5) & (np.abs(data_init-model_init) > 0.2))) & 
         (~np.any(np.array([((wave_init >= mask_beginning) & (wave_init <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0))
     )
 print('Initial Nr. Wavelength Points: '+str(len(np.where(unmasked==True)[0]))+' ('+str(int(np.round(100*len(np.where(unmasked==True)[0])/len(unmasked))))+'%)')
 
+
+# In[ ]:
+
+
 def get_flux_only(wave_init,*model_parameters):
-    
+    """
+    This will be used as interpolation routine to give back a synthetic flux based on the curve_fit parameters
+    """
     (wave,data,data_sigma2,model,model_sigma2) = match_observation_and_model(model_parameters, model_labels, spectrum, masks, default_model, default_model_name, True, False)
 
     return(model[unmasked])
-    
+
+
+# In[ ]:
+
+
 model_parameters_iter1, covariances_iter1 = curve_fit(get_flux_only,wave_init[unmasked],
                        data_init[unmasked],
                        p0 = initial_model_parameters,
@@ -1795,15 +1854,64 @@ model_parameters_iter1, covariances_iter1 = curve_fit(get_flux_only,wave_init[un
                        #bounds = ([3,-1,-4,0.1,0.5,-2,-1],[8,6,1,4.0,25,5,1])#,**kwargs
                       )
 
+
+# In[ ]:
+
+
+# Update model interpolation and parameters to be fitted
+try:
+    (default_model_index, default_model_teff_logg_feh,default_model_name,default_model,model_labels_iter1) = identify_best_model(
+        model_parameters_iter1[model_labels=='teff'][0],
+        model_parameters_iter1[model_labels=='logg'][0],
+        model_parameters_iter1[model_labels=='fe_h'][0],
+        use_cannon_or_payne
+    )
+    # It may happen, that we cannot fit all [X/Fe] anymore (or actually more).
+    # Let's check this and update the values if necessary
+    same_model_labels = True
+    if len(model_labels) == len(model_labels_iter1):
+        for label_index, label in enumerate(model_labels_iter1):
+            if model_labels[label_index] != label:
+                same_model_labels = False
+    else:
+        same_model_labels = False
+    if same_model_labels:
+        print('Model_labels are the same! Continuing with same model_parameters')
+    else:
+        print('Model_labels changed! Updating model_parameters')
+        model_parameters_new = []
+        # Match old labels if possible, otherwise add [X/Fe] = 0
+        for label in model_labels_iter1:
+            if label in model_labels:
+                model_parameters_new.append(model_parameters_iter1[model_labels==label][0])
+            else:
+                model_parameters_new.append(0) # If label not available for any [X/Fe], set it to 0
+        
+        model_parameters_iter1 = np.array(model_parameters_new)
+        model_labels = model_labels_iter1
+except:
+    print('Could not update model_index, continuing with '+str(default_model_index)+': '+default_model_teff_logg_feh)
+    flag_sp += 1
+
+
+# In[ ]:
+
+
+# Update pixels to be masked
+
 (wave_iter1,data_iter1,data_sigma2_iter1,model_iter1,model_sigma2_iter1) = match_observation_and_model(model_parameters_iter1, model_labels, spectrum, masks, default_model, default_model_name, True, False)
 
 sigma2_iter1 = data_sigma2_iter1 + model_sigma2_iter1
 
 unmasked = (
-        (~((np.abs(data_iter1-model_iter1)/np.sqrt(sigma2_iter1) > 2) & (np.abs(data_iter1-model_iter1) > 0.1))) & 
+        (~((np.abs(data_iter1-model_iter1)/np.sqrt(sigma2_iter1) > 5) & (np.abs(data_iter1-model_iter1) > 0.2))) & 
         (~np.any(np.array([((wave_iter1 >= mask_beginning) & (wave_iter1 <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0))
     )
 print('Iteration 1 Nr. Wavelength Points: '+str(len(np.where(unmasked==True)[0]))+' ('+str(int(np.round(100*len(np.where(unmasked==True)[0])/len(unmasked))))+'%)')
+
+
+# In[ ]:
+
 
 model_parameters_optimised, covariances_optimised = curve_fit(get_flux_only,wave_iter1[unmasked],
                        data_iter1[unmasked],
@@ -1812,9 +1920,10 @@ model_parameters_optimised, covariances_optimised = curve_fit(get_flux_only,wave
                        absolute_sigma=True,
                        #bounds = ([3,-1,-4,0.1,0.5,-2],[8,6,1,4.0,25,5])#,**kwargs
                       )
-
 (wave_optimized,data_optimized,data_sigma2_optimized,model_optimized,model_sigma2_optimized) = match_observation_and_model(model_parameters_optimised, model_labels, spectrum, masks, default_model, default_model_name, True, False)
 
+
+# # Save results + diagnostic plots
 
 # In[ ]:
 
@@ -1961,17 +2070,34 @@ output = Table()
 file_directory = working_directory+'/analysis_products/fitting_output/'+str(spectrum['sobject_id'])[:6]+'/'
 Path(file_directory).mkdir(parents=True, exist_ok=True)
 
-for label in ['sobject_id','tmass_id','gaia_edr3_source_id']:
+for label in ['sobject_id']:
     col = Table.Column(
         name=label,
         data = [spectrum[label]],
         description=description[label],
         unit=units[label])
     output.add_column(col)
+for label in ['tmass_id']:
+    col = Table.Column(
+        name=label,
+        data = [str(spectrum[label])],
+        description=description[label],
+        unit=units[label])
+    output.add_column(col)
+for label in ['gaia_edr3_source_id']:
+    col = Table.Column(
+        name=label,
+        data = [int(spectrum[label])],
+        description=description[label],
+        unit=units[label])
+    output.add_column(col)
 
+# flag_sp:
+# flag_sp == 1: could not use correct interpolation model
+    
 col = Table.Column(
     name='flag_sp',
-    data = [int(0)],
+    data = [int(flag_sp)],
     description=description['flag_sp'],
     unit='')
 output.add_column(col)
@@ -2048,7 +2174,7 @@ for label in model_interpolation_labels:
 
             # Replace the particular value for [X/Fe] or [Fe/H] with the lowest value of the training routine
             model_parameters_low_xfe = np.array(model_parameters_optimised)
-            model_parameters_low_xfe[label_index] = x_min[(label == model_interpolation_labels)][0]
+            model_parameters_low_xfe[label_index] = (default_model[-2])[(label == model_interpolation_labels)][0]
 
             # Create the spectrum with lowest [X/Fe] or [Fe/H]
             (wave_low_xfe,data_low_xfe,data_sigma2_low_xfe,model_low_xfe,model_sigma2_low_xfe) = match_observation_and_model(
@@ -2118,6 +2244,13 @@ Path(file_directory).mkdir(parents=True, exist_ok=True)
 fig.savefig(file_directory+str(spectrum['sobject_id'])+'_stellar_parameter_spectrum_comparison_'+use_cannon_or_payne+'.pdf',overwrite=True,bbox_inches='tight')
 plt.show()
 plt.close()
+
+
+# In[ ]:
+
+
+end_time = time.time() - start_time
+print('Duration: '+str(np.round(end_time,decimals=1)))
 
 
 # In[ ]:
