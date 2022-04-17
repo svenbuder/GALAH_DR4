@@ -300,6 +300,7 @@ else:
     
     sobject_id = 131216001601132 # Solar Twin in APOGEE DR17 with CNO
     sobject_id = 140118003001383 # Test case for switch from 29 to 28 model_labels
+    sobject_id = 140707003101341 # Test case for bad normalisation in CCD3 -> Check if another iteration needed or raise flag_sp because best_fit model is not same as previous...
     
     use_spectroscopy = True
     use_photoastrometry = False
