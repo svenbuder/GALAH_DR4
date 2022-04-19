@@ -240,22 +240,7 @@ else:
 #     sobject_id = 170906001601098 # Solar twin
     # sobject_id = 170906001601197 # Solar twin
     # sobject_id = 170906001601280 # Solar twin
-    sobject_id = 140111002601011 # M67
-    sobject_id = 140111002601034 # M67
-    sobject_id = 140111002601037 # M67
-    sobject_id = 140111002601042 # M67
-    sobject_id = 140111002601046 # M67
-#     sobject_id = 140111002601049 # M67
-#     sobject_id = 140111002601076 # M67
-#     sobject_id = 140111002601086 # M67
-#     sobject_id = 140111002601139 # M67
-#     sobject_id = 140111002601140 # M67
-#     sobject_id = 140111002601148 # M67
-#     sobject_id = 140111002601152 # M67
-#     sobject_id = 140111002601170 # M67
-#     sobject_id = 140111002601214 # M67
-#     sobject_id = 140111002601221 # M67
-#     sobject_id = 140111002601257 # M67
+    sobject_id = 140111002601011 # M67 with resolution maps missing
     sobject_id = 131217003901003
     
     # not available sobject_id = 140308003401188 # 18 Sco
@@ -274,7 +259,8 @@ else:
     #sobject_id = 140111004101214
 #     sobject_id = 170205005901355 # HD 121004 from Nissen et al. (2010)
     # sobject_id = 171102005001013 # G112-43 from Nissen et al. (2010)
-    ## ^ Use 171102005001013 to implement optimisation of RV fit (and CDELT1?) and normalisation
+    ## ^ Use 171102005001013 to implement optimisation of RV fit (and CDELT1?) and 
+    ## optimalisation of normalisation
     
     sobject_id = 140114003701268 # Arcturus twin CEMP according to Cotar et al. (2019)
     sobject_id = 160527001601331 # Arcturus twin CEMP according to Cotar et al. (2019)
@@ -301,6 +287,10 @@ else:
     sobject_id = 131216001601132 # Solar Twin in APOGEE DR17 with CNO
     sobject_id = 140118003001383 # Test case for switch from 29 to 28 model_labels
     sobject_id = 140707003101341 # Test case for bad normalisation in CCD3 -> Check if another iteration needed or raise flag_sp because best_fit model is not same as previous...
+    sobject_id = 140207004301201 # M67 High-Res
+    sobject_id = 140810002201339 # Binary!
+    sobject_id = 170112002101011 # Use for outlier optimisation for normalisation!
+    sobject_id = 181221001601377 # Test Case for not having CCD4
     
     use_spectroscopy = True
     use_photoastrometry = False
@@ -444,75 +434,83 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
         
     dr60 = 0
     
+    spectrum['available_ccds'] = []
+    
     for ccd in [1,2,3,4]:
-
-        if ccd != 1:
-            fits_file = fits.open(spectra_directory+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+str(ccd)+'.fits')
-
-        spectrum['crval_ccd'+str(ccd)] = fits_file[0].header['CRVAL1']
-        spectrum['cdelt_ccd'+str(ccd)] = fits_file[0].header['CDELT1']
-
-        spectrum['counts_ccd'+str(ccd)]   = fits_file[0].data
-        spectrum['counts_unc_ccd'+str(ccd)] = fits_file[0].data * fits_file[2].data
-
-        spectrum['sky_ccd'+str(ccd)]   = fits_file[3].data
-        spectrum['telluric_ccd'+str(ccd)]   = fits_file[4].data
-
-        spectrum['lsf_b_ccd'+str(ccd)] = fits_file[0].header['B']
-        spectrum['lsf_ccd'+str(ccd)]   = fits_file[7].data
         
-        if np.shape(spectrum['lsf_ccd'+str(ccd)])[0] == 1:
-            
-            if dr60==0:
-                dr60 = Table.read('../auxiliary_information/dr6.0.fits')
-            
-            # find all spectra are
-            # a) observed with same FIBRE (*pivot*) and
-            # b) observed with the same PLATE (*plate*) 
-            # c) have a measured LSF in the particular CCD
-            # d) have the same resolution setup (low- or high-res)
-            if spectrum['resolution'] != 'high-res':
-                same_fibre_plate_ccd_and_has_res_profile = np.where(
-                    (
-                        (int(str(spectrum['sobject_id'])[-3:]) == dr60['pivot']) & 
-                        (spectrum['plate'] == dr60['plate']) &
-                        (dr60['res'][:,ccd-1] > 0) & 
-                        (dr60['reduction_flags'] < 262144)
-                    )==True)[0]
-            else:
-                same_fibre_plate_ccd_and_has_res_profile = np.where(
-                    (
-                        (int(str(spectrum['sobject_id'])[-3:]) == dr60['pivot']) & 
-                        (spectrum['plate'] == dr60['plate']) &
-                        (dr60['res'][:,ccd-1] > 0) & 
-                        (dr60['reduction_flags'] >= 262144)
-                    )==True)[0]
+        try:
 
-            # Difference between observing runs == abs(sobject_id - all possible sobject_ids)
-            sobject_id_differences = np.abs(spectrum['sobject_id'] - dr60['sobject_id'][same_fibre_plate_ccd_and_has_res_profile])
-            # Now find the closest observing run
-            closest_valid_sobject_id_index = np.argmin(sobject_id_differences)
-            closest_valid_sobject_id = dr60['sobject_id'][same_fibre_plate_ccd_and_has_res_profile][closest_valid_sobject_id_index]
-            
-            lsf_replacement_fits_file = fits.open(spectra_directory+str(closest_valid_sobject_id)[:6]+'/spectra/com/'+str(closest_valid_sobject_id)+str(ccd)+'.fits')
-            spectrum['lsf_b_ccd'+str(ccd)] = lsf_replacement_fits_file[0].header['B']
-            spectrum['lsf_ccd'+str(ccd)]   = lsf_replacement_fits_file[7].data
-            lsf_replacement_fits_file.close()
-            
-            print('No LSF reported for CCD'+str(ccd)+'. Replaced LSF and LSF-B for CCD '+str(ccd)+' with profile from '+str(closest_valid_sobject_id))
-            
-        fits_file.close()
+            if ccd != 1:
+                fits_file = fits.open(spectra_directory+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+str(ccd)+'.fits')
 
-        if (ccd == 4) & neglect_ir_beginning:
-            wave_ccd4 = spectrum['crval_ccd4'] + spectrum['cdelt_ccd4'] * np.arange(len(spectrum['counts_ccd4']))
-            bad_ir = wave_ccd4 > 7680
-                        
-            spectrum['crval_ccd4'] = wave_ccd4[bad_ir][0]
-            spectrum['counts_ccd4'] = spectrum['counts_ccd4'][bad_ir]
-            spectrum['counts_unc_ccd4'] = spectrum['counts_unc_ccd4'][bad_ir]
-            spectrum['lsf_ccd4'] = spectrum['lsf_ccd4'][bad_ir]
+            spectrum['crval_ccd'+str(ccd)] = fits_file[0].header['CRVAL1']
+            spectrum['cdelt_ccd'+str(ccd)] = fits_file[0].header['CDELT1']
 
+            spectrum['counts_ccd'+str(ccd)]   = fits_file[0].data
+            spectrum['counts_unc_ccd'+str(ccd)] = fits_file[0].data * fits_file[2].data
+
+            spectrum['sky_ccd'+str(ccd)]   = fits_file[3].data
+            spectrum['telluric_ccd'+str(ccd)]   = fits_file[4].data
+
+            spectrum['lsf_b_ccd'+str(ccd)] = fits_file[0].header['B']
+            spectrum['lsf_ccd'+str(ccd)]   = fits_file[7].data
+
+            if np.shape(spectrum['lsf_ccd'+str(ccd)])[0] == 1:
+
+                if dr60==0:
+                    dr60 = Table.read('../auxiliary_information/dr6.0.fits')
+
+                # find all spectra are
+                # a) observed with same FIBRE (*pivot*) and
+                # b) observed with the same PLATE (*plate*) 
+                # c) have a measured LSF in the particular CCD
+                # d) have the same resolution setup (low- or high-res)
+                if spectrum['resolution'] != 'high-res':
+                    same_fibre_plate_ccd_and_has_res_profile = np.where(
+                        (
+                            (int(str(spectrum['sobject_id'])[-3:]) == dr60['pivot']) & 
+                            (spectrum['plate'] == dr60['plate']) &
+                            (dr60['res'][:,ccd-1] > 0) & 
+                            (dr60['reduction_flags'] < 262144)
+                        )==True)[0]
+                else:
+                    same_fibre_plate_ccd_and_has_res_profile = np.where(
+                        (
+                            (int(str(spectrum['sobject_id'])[-3:]) == dr60['pivot']) & 
+                            (spectrum['plate'] == dr60['plate']) &
+                            (dr60['res'][:,ccd-1] > 0) & 
+                            (dr60['reduction_flags'] >= 262144)
+                        )==True)[0]
+
+                # Difference between observing runs == abs(sobject_id - all possible sobject_ids)
+                sobject_id_differences = np.abs(spectrum['sobject_id'] - dr60['sobject_id'][same_fibre_plate_ccd_and_has_res_profile])
+                # Now find the closest observing run
+                closest_valid_sobject_id_index = np.argmin(sobject_id_differences)
+                closest_valid_sobject_id = dr60['sobject_id'][same_fibre_plate_ccd_and_has_res_profile][closest_valid_sobject_id_index]
+
+                lsf_replacement_fits_file = fits.open(spectra_directory+str(closest_valid_sobject_id)[:6]+'/spectra/com/'+str(closest_valid_sobject_id)+str(ccd)+'.fits')
+                spectrum['lsf_b_ccd'+str(ccd)] = lsf_replacement_fits_file[0].header['B']
+                spectrum['lsf_ccd'+str(ccd)]   = lsf_replacement_fits_file[7].data
+                lsf_replacement_fits_file.close()
+
+                print('No LSF reported for CCD'+str(ccd)+'. Replaced LSF and LSF-B for CCD '+str(ccd)+' with profile from '+str(closest_valid_sobject_id))
+
+            fits_file.close()
+
+            if (ccd == 4) & neglect_ir_beginning:
+                wave_ccd4 = spectrum['crval_ccd4'] + spectrum['cdelt_ccd4'] * np.arange(len(spectrum['counts_ccd4']))
+                bad_ir = wave_ccd4 > 7680
+
+                spectrum['crval_ccd4'] = wave_ccd4[bad_ir][0]
+                spectrum['counts_ccd4'] = spectrum['counts_ccd4'][bad_ir]
+                spectrum['counts_unc_ccd4'] = spectrum['counts_unc_ccd4'][bad_ir]
+                spectrum['lsf_ccd4'] = spectrum['lsf_ccd4'][bad_ir]
+
+            spectrum['available_ccds'].append(ccd)
+        except:
+            pass
     dr60 = 0
+        
     return(spectrum)
 
 spectrum = get_reduction_products(sobject_id)
@@ -1488,7 +1486,7 @@ def match_observation_and_model(model_parameters, model_labels, spectrum, masks,
     
     # at the moment, let's assume cdelt and crval are correct
     
-    for ccd in [1,2,3,4]:
+    for ccd in spectrum['available_ccds']:
         
         if 'cdelt'+str(ccd) in model_labels:
             cdelt['ccd'+str(ccd)] = model_parameters[model_labels=='cdelt'+str(ccd)][0]
@@ -1539,11 +1537,11 @@ def match_observation_and_model(model_parameters, model_labels, spectrum, masks,
             
     # prepare input for likelihood (we will combine sigma2 and s2 later):
     # -0.5 * sum((data-model))**2/sigma) + log(sigma)
-    wave = np.concatenate([spectrum['wave_ccd'+str(ccd)] for ccd in [1,2,3,4]])
-    data = np.concatenate([spectrum['flux_obs_ccd'+str(ccd)] for ccd in [1,2,3,4]])
-    sigma2 = np.concatenate([spectrum['flux_obs_unc_ccd'+str(ccd)] for ccd in [1,2,3,4]])**2
-    model = np.concatenate([spectrum['flux_model_ccd'+str(ccd)] for ccd in [1,2,3,4]])
-    s2 = np.concatenate([spectrum['s2_model_ccd'+str(ccd)] for ccd in [1,2,3,4]])
+    wave = np.concatenate([spectrum['wave_ccd'+str(ccd)] for ccd in spectrum['available_ccds']])
+    data = np.concatenate([spectrum['flux_obs_ccd'+str(ccd)] for ccd in spectrum['available_ccds']])
+    sigma2 = np.concatenate([spectrum['flux_obs_unc_ccd'+str(ccd)] for ccd in spectrum['available_ccds']])**2
+    model = np.concatenate([spectrum['flux_model_ccd'+str(ccd)] for ccd in spectrum['available_ccds']])
+    s2 = np.concatenate([spectrum['s2_model_ccd'+str(ccd)] for ccd in spectrum['available_ccds']])
 
     return(wave,data,sigma2,model,s2)
 
@@ -1555,9 +1553,9 @@ def plot_observation_and_model(model_parameters, model_labels, spectrum, masks, 
     
     wave,data,sigma2,model,s2 = match_observation_and_model(model_parameters, model_labels, spectrum, masks, default_model=None, default_model_name=None, reuse_initial_res_wave_grid=reuse_initial_res_wave_grid, debug=debug)
     
-    f, gs = plt.subplots(4,1,figsize=(15,10),sharey=True)
+    f, gs = plt.subplots(len(spectrum['available_ccds']),1,figsize=(15,2.5*(len(spectrum['available_ccds']))),sharey=True)
     
-    for ccd in [1,2,3,4]:
+    for ccd in spectrum['available_ccds']:
         ax = gs[ccd-1]
         ax.fill_between(
             spectrum['wave_ccd'+str(ccd)],
@@ -1576,7 +1574,7 @@ def plot_observation_and_model(model_parameters, model_labels, spectrum, masks, 
                     maski += 1
                 else:
                     ax.axvspan(mask_beginning,mask_end,color='C0',alpha=0.1)
-        if ccd == 4:
+        if ccd == spectrum['available_ccds'][-1]:
             ax.set_xlabel('Wavelength [$\mathrm{\AA}$]')
         ax.set_ylabel('Flux [norm.]')
         ax.set_ylim(-0.2,1.2)
@@ -1592,7 +1590,7 @@ def plot_observation_and_model(model_parameters, model_labels, spectrum, masks, 
 def calculate_default_degrading_wavelength_grid(default_model_wave, synth_res=300000.):
     initial_l = dict()
     
-    for ccd in [1,2,3,4]:
+    for ccd in spectrum['available_ccds']:
 
         wave_model_ccd = (default_model_wave > (3+ccd)*1000) & (default_model_wave < (4+ccd)*1000)
 
@@ -2011,52 +2009,52 @@ def plot_spectrum(wave,flux,flux_uncertainty,title_text):
         ax = gs[subplot]
         ax.set_xlim(subplot_wavelengths[subplot,0],subplot_wavelengths[subplot,1])
         
-        # if only 1 spectrum
-        if flux_array_indices == 1:
-            ax.plot(wave[in_subplot_wavelength_range],flux[in_subplot_wavelength_range],lw=0.5);
-        else:
-            for index in range(flux_array_indices):
-                if index == 0:
-                    ax.plot(wave[in_subplot_wavelength_range],flux[0,in_subplot_wavelength_range],lw=0.5,c='k',label='data');
-                    ax.plot(wave[in_subplot_wavelength_range],1.05 + flux_uncertainty[in_subplot_wavelength_range],lw=0.5,c='C3',label='scatter');
-                if index == 1:
-                    ax.plot(wave[in_subplot_wavelength_range],flux[index,in_subplot_wavelength_range],lw=0.5,c='C0',label='model (initial)');
-                if index == 2:
-                    ax.plot(wave[in_subplot_wavelength_range],flux[index,in_subplot_wavelength_range],lw=0.5,c='r',label='model (optimised)');
-                    ax.plot(wave[in_subplot_wavelength_range],1.05 + np.abs(flux[0,in_subplot_wavelength_range]-flux[index,in_subplot_wavelength_range]),lw=0.5,c='C4',label='residuals');
-            if subplot == nr_subplots-1:
-                ax.legend(ncol=2,loc='lower right',fontsize=6)
-                
-        maski = 0
-        for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end']):
-            if (mask_beginning > wave[in_subplot_wavelength_range][0]) & (mask_end < wave[in_subplot_wavelength_range][-1]):
-                if maski == 0:
-                    ax.axvspan(mask_beginning,mask_end,color='C0',alpha=0.1,label='Mask')
-                    maski += 1
-                else:
-                    ax.axvspan(mask_beginning,mask_end,color='C0',alpha=0.1)
-        each_index = 0 
-        for each_element in important_lines:
-            if (each_element[0] > subplot_wavelengths[subplot,0]) & (each_element[0] < subplot_wavelengths[subplot,1]):
-            
-                offset = -0.05+0.1*(each_index%3)
-                each_index+=1
-                ax.axvline(each_element[0],lw=0.2,ls='dashed',c='r')
-                if each_element[1] in ['Li','C','O']:
-                    ax.text(each_element[0],offset,each_element[1],fontsize=10,ha='center',color='pink')
-                elif each_element[1] in ['Mg','Si','Ca','Ti','Ti2']:
-                    ax.text(each_element[0],offset,each_element[1],fontsize=10,ha='center',color='b')
-                elif each_element[1] in ['Na','Al','K']:
-                    ax.text(each_element[0],offset,each_element[1],fontsize=10,ha='center',color='orange')
-                elif each_element[1] in ['Sc','V', 'Cr','Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn']:
-                    ax.text(each_element[0],offset,each_element[1],fontsize=10,ha='center',color='brown')
-                elif each_element[1] in ['Rb', 'Sr', 'Y', 'Zr', 'Ba', 'La', 'Ce','Mo','Ru', 'Nd', 'Sm','Eu']:
-                    ax.text(each_element[0],offset,each_element[1],fontsize=10,ha='center',color='purple')
+        if len(wave[in_subplot_wavelength_range]) > 0:
+            # if only 1 spectrum
+            if flux_array_indices == 1:
+                ax.plot(wave[in_subplot_wavelength_range],flux[in_subplot_wavelength_range],lw=0.5);
+            else:
+                for index in range(flux_array_indices):
+                    if index == 0:
+                        ax.plot(wave[in_subplot_wavelength_range],flux[0,in_subplot_wavelength_range],lw=0.5,c='k',label='data');
+                        ax.plot(wave[in_subplot_wavelength_range],1.05 + flux_uncertainty[in_subplot_wavelength_range],lw=0.5,c='C3',label='scatter');
+                    if index == 1:
+                        ax.plot(wave[in_subplot_wavelength_range],flux[index,in_subplot_wavelength_range],lw=0.5,c='C0',label='model (initial)');
+                    if index == 2:
+                        ax.plot(wave[in_subplot_wavelength_range],flux[index,in_subplot_wavelength_range],lw=0.5,c='r',label='model (optimised)');
+                        ax.plot(wave[in_subplot_wavelength_range],1.05 + np.abs(flux[0,in_subplot_wavelength_range]-flux[index,in_subplot_wavelength_range]),lw=0.5,c='C4',label='residuals');
+                if subplot == nr_subplots-1:
+                    ax.legend(ncol=2,loc='lower right',fontsize=6)
+
+            maski = 0
+            for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end']):
+                if (mask_beginning > wave[in_subplot_wavelength_range][0]) & (mask_end < wave[in_subplot_wavelength_range][-1]):
+                    if maski == 0:
+                        ax.axvspan(mask_beginning,mask_end,color='C0',alpha=0.1,label='Mask')
+                        maski += 1
+                    else:
+                        ax.axvspan(mask_beginning,mask_end,color='C0',alpha=0.1)
+            each_index = 0 
+            for each_element in important_lines:
+                if (each_element[0] > subplot_wavelengths[subplot,0]) & (each_element[0] < subplot_wavelengths[subplot,1]):
+
+                    offset = -0.05+0.1*(each_index%3)
+                    each_index+=1
+                    ax.axvline(each_element[0],lw=0.2,ls='dashed',c='r')
+                    if each_element[1] in ['Li','C','O']:
+                        ax.text(each_element[0],offset,each_element[1],fontsize=10,ha='center',color='pink')
+                    elif each_element[1] in ['Mg','Si','Ca','Ti','Ti2']:
+                        ax.text(each_element[0],offset,each_element[1],fontsize=10,ha='center',color='b')
+                    elif each_element[1] in ['Na','Al','K']:
+                        ax.text(each_element[0],offset,each_element[1],fontsize=10,ha='center',color='orange')
+                    elif each_element[1] in ['Sc','V', 'Cr','Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn']:
+                        ax.text(each_element[0],offset,each_element[1],fontsize=10,ha='center',color='brown')
+                    elif each_element[1] in ['Rb', 'Sr', 'Y', 'Zr', 'Ba', 'La', 'Ce','Mo','Ru', 'Nd', 'Sm','Eu']:
+                        ax.text(each_element[0],offset,each_element[1],fontsize=10,ha='center',color='purple')
         ax.set_ylim(-0.1,1.2)
-#         if subplot == 11:
-#             ax.set_xlabel(r'Wavelength / $\mathrm{\AA}$')
-#         ax.axhline(1.05,lw=0.5,color='k')
-#         ax.set_ylabel('Flux / norm.')
+        if subplot == nr_subplots-1:
+            ax.set_xlabel(r'Wavelength / $\mathrm{\AA}$')
+        ax.set_ylabel('Flux / norm.')
     f.suptitle(title_text)
     plt.tight_layout(h_pad=0)
     
@@ -2095,7 +2093,10 @@ for label in ['gaia_edr3_source_id']:
 
 # flag_sp:
 # flag_sp == 1: could not use correct interpolation model
-    
+# flag_sp == 2: not all CCDs available
+if len(spectrum['available_ccds']) != 4:
+    flag_sp += 2
+
 col = Table.Column(
     name='flag_sp',
     data = [int(flag_sp)],
