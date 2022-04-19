@@ -291,6 +291,7 @@ else:
     sobject_id = 140810002201339 # Binary!
     sobject_id = 170112002101011 # Use for outlier optimisation for normalisation!
     sobject_id = 181221001601377 # Test Case for not having CCD4
+    sobject_id = 140113002901206 # Reduction pipeline outside of feasible range
     
     use_spectroscopy = True
     use_photoastrometry = False
@@ -381,24 +382,42 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
         # TEFF
         spectrum['init_teff'] = 0.001*fits_file[0].header['TEFF_R']
         if spectrum['init_teff'] < 3:
-            raise ValueError('TEFF < 3000')
+            spectrum['init_teff'] = 3.1
+            print('Reduction pipeline TEFF < 3000')
         if spectrum['init_teff'] > 8:
-            raise ValueError('TEFF > 8000')
+            spectrum['init_teff'] = 7.75
+            print('Reduction pipeline TEFF > 8000')
         
         # LOGG
         spectrum['init_logg'] = fits_file[0].header['LOGG_R']
         if spectrum['init_logg'] < -0.5:
-            raise ValueError('LOGG < -0.5')
+            spectrum['init_logg'] = 0.0
+            print('Reduction pipeline LOGG < -0.5')
         if spectrum['init_logg'] > 5.5:
-            raise ValueError('LOGG > 5.5')
+            spectrum['init_logg'] = 4.95
+            print('Reduction pipeline LOGG > 5.5')
             
         # FE_H
         spectrum['init_fe_h'] = fits_file[0].header['FE_H_R']
         if spectrum['init_fe_h'] < -4.0:
-            raise ValueError('LOGG < -4.0')
+            spectrum['init_fe_h'] = -3.9
+            print('Reduction pipeline LOGG < -4.0')
         if spectrum['init_fe_h'] > 1.0:
-            raise ValueError('LOGG > 1.0')
+            spectrum['init_fe_h'] = .75
+            print('Reduction pipeline LOGG > 1.0')
         
+        # VMIC
+        spectrum['init_vmic'] = fits_file[0].header['VMIC_R']
+        if spectrum['init_vmic'] < 0.5:
+            spectrum['init_vmic'] = 0.5
+            print('Reduction pipeline VMIC < 0.5')
+        
+        # VBROAD
+        spectrum['init_vsini'] = fits_file[0].header['VBROAD_R']
+        if spectrum['init_vsini'] < 0:
+            spectrum['init_vsini'] = 0
+            print('Reduction pipeline VSINI < 0')
+
         for element in ['Li','C','N','O','Na','Mg','Al','Si','K','Ca','Sc','Ti','V','Cr','Mn','Co','Ni','Cu','Zn','Rb','Sr','Y','Zr','Mo','Ru','Ba','La','Ce','Nd','Sm','Eu']:
             spectrum['init_'+element.lower()+'_fe'] = 0.0
 
@@ -406,15 +425,11 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
         for each_alpha in ['c','o','mg','si','ca','ti']:
             spectrum['init_'+each_alpha+'_fe'] = fits_file[0].header['A_FE_R']
             if spectrum['init_'+each_alpha+'_fe'] < -1.0:
-                raise ValueError('['+each_alpha+'/Fe] < -1.0')
+                spectrum['init_'+each_alpha+'_fe'] = -0.75
+                print('Reduction pipeline ['+each_alpha+'/Fe] < -1.0')
             if spectrum['init_'+each_alpha+'_fe'] > 1.0:
-                raise ValueError('['+each_alpha+'/Fe] > 1.0')
-            
-        # VMIC
-        spectrum['init_vmic'] = fits_file[0].header['VMIC_R']
-        
-        # VBROAD
-        spectrum['init_vsini'] = fits_file[0].header['VBROAD_R']
+                spectrum['init_'+each_alpha+'_fe'] = 0.75
+                print('Reduction pipeline ['+each_alpha+'/Fe] > 1.0')
 
     else:
         raise ValueError('Reduction parameters not trustworthy!')
@@ -434,6 +449,8 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
         
     dr60 = 0
     
+    # This is a test if the CCD is actually available. For 181221001601377, CCD4 is missing for example.
+    # We therefore implement a keyword 'available_ccds' to trigger only to loop over the available CCDs
     spectrum['available_ccds'] = []
     
     for ccd in [1,2,3,4]:
@@ -527,7 +544,8 @@ def exchange_with_reliable_galah_dr3_values(spectrum):
         print('Found match in GALAH+ DR3')
         galah_dr3_entry = galah_dr3[galah_dr3_match[0]]
 
-        if galah_dr3_entry['flag_sp'] == 0:
+        if galah_dr3_entry['flag_sp'] < 8:
+            print('flag_sp from GALAH+ DR3 is '+str(galah_dr3_entry['flag_sp']))
             print('Replacing initial value for Teff, logg, vmic, vsini with GALAH+ DR3 ones.')
             print('Teff IRAF 6.0: ',"{:.2f}".format(1000.*spectrum['init_teff']), 'GALAH+ DR3: ',"{:.2f}".format(galah_dr3_entry['teff']))
             spectrum['init_teff'] = 0.001*galah_dr3_entry['teff']
