@@ -308,7 +308,7 @@ else:
     
     sobject_id = 140610005001020 # star with strange low [Fe/H] or too high logg
 
-    sobject_id = 181223003501088 # cool giant with CCD4 missing
+    sobject_id = 181223003501088 # cool giant with CCD4 missing - test case which needs larger maxfev
     
 #     sobject_id = 210115002201239 # VESTA
     
@@ -1865,7 +1865,8 @@ initial_model_parameters = [
 
 # Find pixels that should be initially masked
 
-kwargs={'loss':'linear',"max_nfev":1e8,'xtol':1e-4}
+# kwargs={'loss':'linear',"max_nfev":1e8,'xtol':1e-4}
+kwargs={'maxfev':10000,'xtol':1e-4}
 
 (wave_init,data_init,data_sigma2_init,model_init,model_sigma2_init) = match_observation_and_model(initial_model_parameters, model_labels, spectrum, masks, default_model, default_model_name, True, False)
 
@@ -1899,6 +1900,7 @@ model_parameters_iter1, covariances_iter1 = curve_fit(get_flux_only,wave_init[un
                        sigma=np.sqrt(data_sigma2_init[unmasked]),
                        absolute_sigma=True,
                        #bounds = ([3,-1,-4,0.1,0.5,-2,-1],[8,6,1,4.0,25,5,1])#,**kwargs
+                       **kwargs
                       )
 
 
@@ -1965,7 +1967,8 @@ model_parameters_optimised, covariances_optimised = curve_fit(get_flux_only,wave
                        p0 = model_parameters_iter1,
                        sigma=np.sqrt(data_sigma2_iter1[unmasked]),
                        absolute_sigma=True,
-                       #bounds = ([3,-1,-4,0.1,0.5,-2],[8,6,1,4.0,25,5])#,**kwargs
+                       #bounds = ([3,-1,-4,0.1,0.5,-2],[8,6,1,4.0,25,5])#,
+                       **kwargs
                       )
 (wave_optimized,data_optimized,data_sigma2_optimized,model_optimized,model_sigma2_optimized) = match_observation_and_model(model_parameters_optimised, model_labels, spectrum, masks, default_model, default_model_name, True, False)
 
