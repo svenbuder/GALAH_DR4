@@ -617,6 +617,19 @@ grid_masks.write('training_input/'+teff_logg_feh_name+'/'+teff_logg_feh_name+'_m
 # In[ ]:
 
 
+# Prepare the full trainingset (including vsini sampled from vsini_values)
+
+full_trainingset = Table()
+for label in training_set_vsini0.keys()[:6]:
+    full_trainingset[label] = np.concatenate((np.array([training_set_vsini0[label] for vsini in vsini_values])))
+full_trainingset['vsini'] = np.concatenate((np.array([vsini*np.ones(len(training_set_vsini0['spectrum_index'])) for vsini in vsini_values])))
+for label in training_set_vsini0.keys()[6:]:
+    full_trainingset[label] = np.concatenate((np.array([training_set_vsini0[label] for vsini in vsini_values])))
+
+
+# In[ ]:
+
+
 # Prepare the wavelength array, if not yet available
 
 wavelength_array = np.concatenate(([null_spectrum_broad['wave_null_ccd'+str(ccd)] for ccd in [1,2,3,4]]))
@@ -625,12 +638,6 @@ if not os.path.isfile(wavelength_file):
     wavelength_file_opener = open(wavelength_file,'wb')
     pickle.dump((wavelength_array),wavelength_file_opener)
     wavelength_file_opener.close()
-
-
-# In[ ]:
-
-
-full_trainingset[0]
 
 
 # In[ ]:
@@ -702,15 +709,6 @@ print(index,time.time()-now,time.time()-start)
 
 # In[ ]:
 
-
-# Prepare the full trainingset (including vsini sampled from vsini_values)
-
-full_trainingset = Table()
-for label in training_set_vsini0.keys()[:6]:
-    full_trainingset[label] = np.concatenate((np.array([training_set_vsini0[label] for vsini in vsini_values])))
-full_trainingset['vsini'] = np.concatenate((np.array([vsini*np.ones(len(training_set_vsini0['spectrum_index'])) for vsini in vsini_values])))
-for label in training_set_vsini0.keys()[6:]:
-    full_trainingset[label] = np.concatenate((np.array([training_set_vsini0[label] for vsini in vsini_values])))
 
 (full_trainingset[spectra_available]).write('training_input/'+teff_logg_feh_name+'/galah_dr4_trainingset_'+teff_logg_feh_name+'_incl_vsini.fits',overwrite=True)
 
