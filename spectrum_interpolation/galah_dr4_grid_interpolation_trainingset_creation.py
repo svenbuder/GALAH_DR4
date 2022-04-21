@@ -3,7 +3,7 @@
 
 # # galah_dr4_grid_interpolation_trainingset_creation
 
-# In[52]:
+# In[ ]:
 
 
 try:
@@ -24,14 +24,14 @@ import sys
 import time
 
 
-# In[53]:
+# In[ ]:
 
 
 # Read in all available grids
 grids = Table.read('../spectrum_grids/galah_dr4_model_trainingset_gridpoints.fits')
 
 
-# In[54]:
+# In[ ]:
 
 
 # choose one grid_index
@@ -39,9 +39,52 @@ try:
     grid_index = int(sys.argv[1])
     print('Using Grid index ',grid_index)
 except:
-    #grid_index = 1931 # 5750_4.50_0.00
+    # Done:
+    """
+    1137,
+    1247,
+    1258,1259,1260,
+    1271,
+    1368,
+    1832,1833,1834,
+    1930,1931,1932,
+    1997,
+    2000,
+    2013,2014,2015
+    
+    currently: 1844
+    
+    next:
+    1499,
+    1511, # 4750_3.00_-0.25
+    1819,
+    1820,1821,1822, # 5500_3.50_X -0.25..0.00..0.25
+    1831,
+    1832,1833,1834, # 5500_4.00_X -0.25..0.00..0.25
+    1843,
+    1844,1845,1846, # 5500_4.50_X -0.25..0.00..0.25
+    1905,
+    1906,1907,1908, # 5750..3.50X -0.25..0.00..0.25
+    1917,
+    1918,1919,1920, # 5750_4.00_X -0.25..0.00..0.25
+    1929,
+    1930,1931,1932, # 5750_4.50_X -0.25..0.00..0.25
+    1933,1934,
+    1935,1936,1937,
+    1988,
+    1989,1990,1991, # 6000..3.50X -0.25..0.00..0.25
+    2000,
+    2001,2002,2003, # 6000_4.00_X -0.25..0.00..0.25
+    2012,
+    2013,2014,2015, # 6000_4.50_X -0.25..0.00..0.25
+    2078,
+    2079
+    
+    """
+    #grid_index = 2000 # 5750_4.50_0.00
     #grid_index = 1259 # 4250_1.50_-0.50
-    grid_index = 1919 # 5750_4.00_0.00
+    #grid_index = 1919 # 5750_4.00_0.00
+    grid_index = 1234
     
     print('Using default grid index ',grid_index)
 
@@ -56,7 +99,7 @@ except:
 
 # ### Below we define how to broaden a spectrum with a certain vsini value
 
-# In[55]:
+# In[ ]:
 
 
 def integrate_flux(mu, inten, deltav, vsini, vrt, osamp=1):
@@ -302,7 +345,7 @@ def integrate_flux(mu, inten, deltav, vsini, vrt, osamp=1):
     return flux
 
 
-# In[56]:
+# In[ ]:
 
 
 def broaden_spectrum(wint_seg, sint_seg, wave_seg, cmod_seg, vsini=0, vmac=0, debug=False):
@@ -346,7 +389,7 @@ def broaden_spectrum(wint_seg, sint_seg, wave_seg, cmod_seg, vsini=0, vmac=0, de
     return(wave_equi,y_seg/c_seg)
 
 
-# In[57]:
+# In[ ]:
 
 
 vsini_values = np.array([1.5, 3.0, 6.0, 9.0, 12.0, 24.0]) # km/s
@@ -354,7 +397,7 @@ vsini_values = np.array([1.5, 3.0, 6.0, 9.0, 12.0, 24.0]) # km/s
 
 # # Gradient Spectra and Masks
 
-# In[58]:
+# In[ ]:
 
 
 null_spectrum_broad = dict()
@@ -370,14 +413,14 @@ for ccd in [1,2,3,4]:
 print('The synthetic spectra come with keywords ',null_spectrum.dtype.names)
 
 
-# In[59]:
+# In[ ]:
 
 
 labels = np.array(training_set_vsini0.keys()[2:-1])
 labels
 
 
-# In[60]:
+# In[ ]:
 
 
 fancy_labels = []
@@ -399,7 +442,7 @@ for label in labels:
 print(fancy_labels)
 
 
-# In[61]:
+# In[ ]:
 
 
 gradient_spectra_up = Table()
@@ -411,7 +454,7 @@ gradient_spectra_down['wave'] = np.concatenate(([null_spectrum_broad['wave_null_
 gradient_spectra_down['median'] = np.concatenate(([null_spectrum_broad['spectrum_null_ccd'+str(ccd)] for ccd in [1,2,3,4]]))
 
 
-# In[62]:
+# In[ ]:
 
 
 for label_index, label in enumerate(labels):
@@ -451,7 +494,7 @@ for label_index, label in enumerate(labels):
     gradient_spectra_down[label] = np.concatenate((gradient_down))
 
 
-# In[63]:
+# In[ ]:
 
 
 grid_masks = Table()
@@ -536,7 +579,7 @@ for label_index, label in enumerate(labels):
     plt.close()
 
 
-# In[64]:
+# In[ ]:
 
 
 if grid_index in [1931]:
@@ -559,7 +602,7 @@ if grid_index in [1931]:
     np.savetxt('../galah_dr4_paper/tables/mask_percentage_1931.tex',np.array(table_text),fmt='%s')
 
 
-# In[65]:
+# In[ ]:
 
 
 Path('training_input/'+teff_logg_feh_name).mkdir(parents=True, exist_ok=True)
@@ -571,21 +614,7 @@ grid_masks.write('training_input/'+teff_logg_feh_name+'/'+teff_logg_feh_name+'_m
 
 # # Trainingset flux and ivar at different vsini values
 
-# In[66]:
-
-
-# Prepare the full trainingset (including vsini sampled from vsini_values)
-
-full_trainingset = Table()
-for label in training_set_vsini0.keys()[:6]:
-    full_trainingset[label] = np.concatenate((np.array([training_set_vsini0[label] for vsini in vsini_values])))
-full_trainingset['vsini'] = np.concatenate((np.array([vsini*np.ones(len(training_set_vsini0['spectrum_index'])) for vsini in vsini_values])))
-for label in training_set_vsini0.keys()[6:]:
-    full_trainingset[label] = np.concatenate((np.array([training_set_vsini0[label] for vsini in vsini_values])))
-full_trainingset.write('training_input/'+teff_logg_feh_name+'/galah_dr4_trainingset_'+teff_logg_feh_name+'_incl_vsini.fits',overwrite=True)
-
-
-# In[67]:
+# In[ ]:
 
 
 # Prepare the wavelength array, if not yet available
@@ -598,13 +627,13 @@ if not os.path.isfile(wavelength_file):
     wavelength_file_opener.close()
 
 
-# In[68]:
+# In[ ]:
 
 
 full_trainingset[0]
 
 
-# In[69]:
+# In[ ]:
 
 
 def prepare_normalised_spectra(spectrum_index, vsini):
@@ -612,28 +641,35 @@ def prepare_normalised_spectra(spectrum_index, vsini):
     normalised_flux_for_index = []
     #normalised_ivar_for_index = []
     
-    for ccd in [1,2,3,4]:
-        
-        try:
-            synthetic_spectrum = readsav(synthesis_files+'/galah_dr4_trainingset_'+teff_logg_feh_name+'_'+str(spectrum_index)+'_'+str(ccd)+'.out').results[0]
-        except:
-            synthetic_spectrum = readsav(synthesis_files+'/galah_dr4_cannon_trainingset_'+teff_logg_feh_name+'_'+str(spectrum_index)+'_'+str(ccd)+'.out').results[0]
-        
-        wave_broadened,flux_broadened = broaden_spectrum(
-            synthetic_spectrum.wint,
-            synthetic_spectrum.sint,
-            synthetic_spectrum.wave,
-            synthetic_spectrum.cmod,
-            vsini=vsini)
-        
-        normalised_flux_for_index.append(flux_broadened)
-        
-    normalised_flux_for_index = np.concatenate((normalised_flux_for_index))
+    spectrum_available = True
+    
+    try:
+        for ccd in [1,2,3,4]:
 
-    return(normalised_flux_for_index)
+            try:
+                synthetic_spectrum = readsav(synthesis_files+'/galah_dr4_trainingset_'+teff_logg_feh_name+'_'+str(spectrum_index)+'_'+str(ccd)+'.out').results[0]
+            except:
+                synthetic_spectrum = readsav(synthesis_files+'/galah_dr4_cannon_trainingset_'+teff_logg_feh_name+'_'+str(spectrum_index)+'_'+str(ccd)+'.out').results[0]
+
+            wave_broadened,flux_broadened = broaden_spectrum(
+                synthetic_spectrum.wint,
+                synthetic_spectrum.sint,
+                synthetic_spectrum.wave,
+                synthetic_spectrum.cmod,
+                vsini=vsini)
+
+            normalised_flux_for_index.append(flux_broadened)
+
+        normalised_flux_for_index = np.concatenate((normalised_flux_for_index))
+
+    except:
+        normalised_flux_for_index = 0
+        spectrum_available = False
+        
+    return(normalised_flux_for_index, spectrum_available)
 
 
-# In[70]:
+# In[ ]:
 
 
 def populate_normalised_flux_and_ivar_matrix(index):
@@ -641,33 +677,63 @@ def populate_normalised_flux_and_ivar_matrix(index):
     vsini = full_trainingset['vsini'][index]
     spectrum_index = full_trainingset['spectrum_index'][index]
     
-    normalised_flux_for_index = prepare_normalised_spectra(spectrum_index,vsini=vsini)
-    return(normalised_flux_for_index)
+    normalised_flux_for_index, spectrum_available = prepare_normalised_spectra(spectrum_index,vsini=vsini)
+    return(normalised_flux_for_index, spectrum_available)
     
 normalized_flux = np.ones((np.shape(full_trainingset)[0],np.shape(wavelength_array)[0]))
+spectra_available = np.ones(np.shape(full_trainingset)[0],dtype=bool)
 
 start = time.time()
 now = time.time()
 
 for index in range(len(full_trainingset)):
-    normalised_flux_for_index = populate_normalised_flux_and_ivar_matrix(index)
-    normalized_flux[index] = normalised_flux_for_index
+    normalised_flux_for_index,spectrum_available = populate_normalised_flux_and_ivar_matrix(index)
+    if spectrum_available:
+        normalized_flux[index] = normalised_flux_for_index
+    else:
+        spectra_available[index] = spectrum_available
     
-    print(index,time.time()-now,time.time()-start)
+    print(index,spectrum_available,time.time()-now,time.time()-start)
     now = time.time()
     
 now = time.time()
 print(index,time.time()-now,time.time()-start)
 
 
-# In[71]:
+# In[ ]:
+
+
+# Prepare the full trainingset (including vsini sampled from vsini_values)
+
+full_trainingset = Table()
+for label in training_set_vsini0.keys()[:6]:
+    full_trainingset[label] = np.concatenate((np.array([training_set_vsini0[label] for vsini in vsini_values])))
+full_trainingset['vsini'] = np.concatenate((np.array([vsini*np.ones(len(training_set_vsini0['spectrum_index'])) for vsini in vsini_values])))
+for label in training_set_vsini0.keys()[6:]:
+    full_trainingset[label] = np.concatenate((np.array([training_set_vsini0[label] for vsini in vsini_values])))
+
+(full_trainingset[spectra_available]).write('training_input/'+teff_logg_feh_name+'/galah_dr4_trainingset_'+teff_logg_feh_name+'_incl_vsini.fits',overwrite=True)
+
+
+# In[ ]:
 
 
 flux_ivar_file = 'training_input/'+teff_logg_feh_name+'/galah_dr4_trainingset_'+teff_logg_feh_name+'_incl_vsini_flux_ivar.pickle'
 
 flux_ivar_file_opener = open(flux_ivar_file,'wb')
-pickle.dump((normalized_flux),flux_ivar_file_opener)
+pickle.dump((normalized_flux[spectra_available]),flux_ivar_file_opener)
 flux_ivar_file_opener.close()
+
+
+# In[ ]:
+
+
+try:
+    import os
+    os.system('rm -rf /avatar/buder/GALAH_DR4/spectrum_grids/3d_bin_subgrids/'+teff_logg_feh_name)
+    print('Removed /avatar/buder/GALAH_DR4/spectrum_grids/3d_bin_subgrids/'+teff_logg_feh_name)
+except:
+    print('Could not remove /avatar/buder/GALAH_DR4/spectrum_grids/3d_bin_subgrids/'+teff_logg_feh_name)
 
 
 # In[ ]:
