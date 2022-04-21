@@ -27,6 +27,7 @@
 try:
     get_ipython().run_line_magic('matplotlib', 'inline')
     get_ipython().run_line_magic('config', "InlineBackend.figure_format='retina'")
+    get_ipython().run_line_magic('config', 'Completer.use_jedi = False')
 except:
     pass
 
@@ -292,6 +293,24 @@ else:
     sobject_id = 170112002101011 # Use for outlier optimisation for normalisation!
     sobject_id = 181221001601377 # Test Case for not having CCD4
     sobject_id = 140113002901206 # Reduction pipeline outside of feasible range
+    sobject_id = 150603003301185 # cov_errors infinity? --> uob <= 0.00
+    sobject_id = 150603003801147 # cov_errors infinity? --> uob <= 0.00
+    sobject_id = 150603004801145 # cov_errors infinity? --> uob <= 0.00
+    sobject_id = 150603004801273 # cov_errors infinity? --> uob <= 0.00
+
+    # sobject_id = 160531003601263 # MS according to Skiff2009
+    
+    sobject_id = 140316003301356 # 
+    
+    sobject_id = 160531004101359 # strong CNO
+    
+    sobject_id = 150603003301185
+    
+    sobject_id = 140610005001020 # star with strange low [Fe/H] or too high logg
+
+    sobject_id = 181223003501088 # cool giant with CCD4 missing
+    
+#     sobject_id = 210115002201239 # VESTA
     
     use_spectroscopy = True
     use_photoastrometry = False
@@ -365,6 +384,8 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
 
     spectrum['galah_id'] = fits_file[0].header['GALAH_ID']
     spectrum['tmass_id'] = fits_file[0].header['2MASS_ID']
+    if sobject_id == 210115002201239:
+        spectrum['tmass_id'] = 'VESTA'
     try:
         spectrum['gaia_edr3_source_id'] = int(fits_file[0].header['GAIA_ID'])
     except:
@@ -464,7 +485,14 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
             spectrum['cdelt_ccd'+str(ccd)] = fits_file[0].header['CDELT1']
 
             spectrum['counts_ccd'+str(ccd)]   = fits_file[0].data
-            spectrum['counts_unc_ccd'+str(ccd)] = fits_file[0].data * fits_file[2].data
+            counts_relative_uncertainty = fits_file[2].data
+
+            bad_counts_unc = np.where(~(counts_relative_uncertainty > 0) == True)[0]
+            if len(bad_counts_unc) > 0:
+                print('Relative counts uncertainties <= 0 detected for '+str(len(bad_counts_unc))+' pixels in CCD'+str(ccd)+', setting to 0.1 (SNR~10)')
+                counts_relative_uncertainty[bad_counts_unc] = 0.1
+
+            spectrum['counts_unc_ccd'+str(ccd)] = counts_relative_uncertainty * fits_file[0].data
 
             spectrum['sky_ccd'+str(ccd)]   = fits_file[3].data
             spectrum['telluric_ccd'+str(ccd)]   = fits_file[4].data
@@ -472,6 +500,11 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
             spectrum['lsf_b_ccd'+str(ccd)] = fits_file[0].header['B']
             spectrum['lsf_ccd'+str(ccd)]   = fits_file[7].data
 
+            spectrum['available_ccds'].append(ccd)
+        except:
+            pass
+
+        if ccd in spectrum['available_ccds']:
             if np.shape(spectrum['lsf_ccd'+str(ccd)])[0] == 1:
 
                 if dr60==0:
@@ -512,20 +545,17 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
 
                 print('No LSF reported for CCD'+str(ccd)+'. Replaced LSF and LSF-B for CCD '+str(ccd)+' with profile from '+str(closest_valid_sobject_id))
 
-            fits_file.close()
+        fits_file.close()
 
-            if (ccd == 4) & neglect_ir_beginning:
-                wave_ccd4 = spectrum['crval_ccd4'] + spectrum['cdelt_ccd4'] * np.arange(len(spectrum['counts_ccd4']))
-                bad_ir = wave_ccd4 > 7680
+        if (ccd == 4) & (ccd in spectrum['available_ccds']) & neglect_ir_beginning:
+            wave_ccd4 = spectrum['crval_ccd4'] + spectrum['cdelt_ccd4'] * np.arange(len(spectrum['counts_ccd4']))
+            bad_ir = wave_ccd4 > 7680
 
-                spectrum['crval_ccd4'] = wave_ccd4[bad_ir][0]
-                spectrum['counts_ccd4'] = spectrum['counts_ccd4'][bad_ir]
-                spectrum['counts_unc_ccd4'] = spectrum['counts_unc_ccd4'][bad_ir]
-                spectrum['lsf_ccd4'] = spectrum['lsf_ccd4'][bad_ir]
+            spectrum['crval_ccd4'] = wave_ccd4[bad_ir][0]
+            spectrum['counts_ccd4'] = spectrum['counts_ccd4'][bad_ir]
+            spectrum['counts_unc_ccd4'] = spectrum['counts_unc_ccd4'][bad_ir]
+            spectrum['lsf_ccd4'] = spectrum['lsf_ccd4'][bad_ir]
 
-            spectrum['available_ccds'].append(ccd)
-        except:
-            pass
     dr60 = 0
         
     return(spectrum)
@@ -2250,7 +2280,7 @@ fig = plot_spectrum(
         model_optimized
     ],
     np.sqrt(data_sigma2_optimized+model_sigma2_optimized),
-    str(sobject_id)+': '+
+    str(sobject_id)+' : '+
     'Teff='+str(int(np.round(output['teff'][0])))+'K, '+
     'logg='+str(np.round(output['logg'][0],decimals=2))+', '+
     '[Fe/H]='+str(np.round(output['fe_h'][0],decimals=2))+', '+
@@ -2271,10 +2301,4 @@ plt.close()
 
 end_time = time.time() - start_time
 print('Duration: '+str(np.round(end_time,decimals=1)))
-
-
-# In[ ]:
-
-
-
 
