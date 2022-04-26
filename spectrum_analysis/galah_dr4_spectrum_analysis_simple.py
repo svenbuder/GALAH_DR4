@@ -233,7 +233,12 @@ if sys.argv[1] != '-f':
             print('Using default interpolation: payne')
         else:
             use_cannon_or_payne = sys.argv[3]   
-    
+            
+        if len(sys.argv) <= 4:
+            neglect_ir_beginning = True
+            print('Using default setting: neglect IR beginning')
+        else:
+            neglect_ir_beginning = False
 else:
 
     # sobject_id = 170906001601045 # Solar twin
