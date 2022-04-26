@@ -84,7 +84,7 @@ except:
     #grid_index = 2000 # 5750_4.50_0.00
     #grid_index = 1259 # 4250_1.50_-0.50
     #grid_index = 1919 # 5750_4.00_0.00
-    grid_index = 1234
+    grid_index = 1331
     
     print('Using default grid index ',grid_index)
 
@@ -463,33 +463,44 @@ for label_index, label in enumerate(labels):
     gradient_down = []
     
     for ccd in [1,2,3,4]:
+        spectra_available = False
         try:
             increased_spectrum = readsav(synthesis_files+'/galah_dr4_trainingset_'+teff_logg_feh_name+'_'+str(2+label_index)+'_'+str(ccd)+'.out').results[0]
             decreased_spectrum = readsav(synthesis_files+'/galah_dr4_trainingset_'+teff_logg_feh_name+'_'+str(37+label_index)+'_'+str(ccd)+'.out').results[0]
+            spectra_available = True
         except:
-            increased_spectrum = readsav(synthesis_files+'/galah_dr4_cannon_trainingset_'+teff_logg_feh_name+'_'+str(2+label_index)+'_'+str(ccd)+'.out').results[0]
-            decreased_spectrum = readsav(synthesis_files+'/galah_dr4_cannon_trainingset_'+teff_logg_feh_name+'_'+str(37+label_index)+'_'+str(ccd)+'.out').results[0]
-
+            try:
+                increased_spectrum = readsav(synthesis_files+'/galah_dr4_cannon_trainingset_'+teff_logg_feh_name+'_'+str(2+label_index)+'_'+str(ccd)+'.out').results[0]
+                decreased_spectrum = readsav(synthesis_files+'/galah_dr4_cannon_trainingset_'+teff_logg_feh_name+'_'+str(37+label_index)+'_'+str(ccd)+'.out').results[0]
+                spectra_available = True
+            except:
+                pass
             
-        wave_increase, spectrum_increase = broaden_spectrum(
-            increased_spectrum.wint,
-            increased_spectrum.sint,
-            increased_spectrum.wave,
-            increased_spectrum.cmod,
-            vsini = vsini_values[-1]
-        )
-        
-        wave_decrease, spectrum_decrease = broaden_spectrum(
-            decreased_spectrum.wint,
-            decreased_spectrum.sint,
-            decreased_spectrum.wave,
-            decreased_spectrum.cmod,
-            vsini = vsini_values[-1]
-        )
-        
-        gradient_up.append(spectrum_increase - null_spectrum_broad['spectrum_null_ccd'+str(ccd)])
-        gradient_down.append(spectrum_decrease - null_spectrum_broad['spectrum_null_ccd'+str(ccd)])
+        if spectra_available:
+            wave_increase, spectrum_increase = broaden_spectrum(
+                increased_spectrum.wint,
+                increased_spectrum.sint,
+                increased_spectrum.wave,
+                increased_spectrum.cmod,
+                vsini = vsini_values[-1]
+            )
 
+            wave_decrease, spectrum_decrease = broaden_spectrum(
+                decreased_spectrum.wint,
+                decreased_spectrum.sint,
+                decreased_spectrum.wave,
+                decreased_spectrum.cmod,
+                vsini = vsini_values[-1]
+            )
+
+            gradient_up.append(spectrum_increase - null_spectrum_broad['spectrum_null_ccd'+str(ccd)])
+            gradient_down.append(spectrum_decrease - null_spectrum_broad['spectrum_null_ccd'+str(ccd)])
+        else:
+            if label == 'logg':
+                print('No gradient spectrum for logg available (possible for grid edges e.g. 5.0) - fixing by returning 1s')
+                gradient_up.append(np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
+                gradient_down.append(-np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
+            
     gradient_spectra_up[label] = np.concatenate((gradient_up))
     gradient_spectra_down[label] = np.concatenate((gradient_down))
 
