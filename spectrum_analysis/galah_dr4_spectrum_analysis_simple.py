@@ -272,52 +272,72 @@ else:
     sobject_id = 170614002601199 # Arcturus twin CEMP according to Cotar et al. (2019)
     
     sobject_id = 131217003301039 # Arcturus twin in APOGEE with CNO
-    sobject_id = 131217003301059 # What's going on with that CCD1? And what about CCD3 wavelength solution beyond 6700 / Arcturus twin in APOGEE with CNO
-    sobject_id = 140117002101137 # Arcturus twin in APOGEE with CNO
-    sobject_id = 140118002001294 # Arcturus twin in APOGEE with CNO
-    sobject_id = 140314005201085 # Arcturus twin in APOGEE with CNO
-    sobject_id = 140314005201136 # Arcturus twin in APOGEE with CNO
-    sobject_id = 140314005201308 # Arcturus twin in APOGEE with CNO
-    sobject_id = 140314002601397 # Wavelength solution CCD2? / Arcturus twin in APOGEE with CNO
+#     sobject_id = 131217003301059 # What's going on with that CCD1? And what about CCD3 wavelength solution beyond 6700 / Arcturus twin in APOGEE with CNO
+#     sobject_id = 140117002101137 # Arcturus twin in APOGEE with CNO
+#     sobject_id = 140118002001294 # Arcturus twin in APOGEE with CNO
+#     sobject_id = 140314005201085 # Arcturus twin in APOGEE with CNO
+#     sobject_id = 140314005201136 # Arcturus twin in APOGEE with CNO
+#     sobject_id = 140314005201308 # Arcturus twin in APOGEE with CNO
+#     sobject_id = 140314002601397 # Wavelength solution CCD2? / Arcturus twin in APOGEE with CNO
 #     sobject_id = 150107003201395 # Arcturus twin in APOGEE with CNO
 #     sobject_id = 150427003301082 # Arcturus twin in APOGEE with CNO
 #     sobject_id = 160419003601111 # Arcturus twin in APOGEE with CNO
 #     sobject_id = 170614002601342 # Need to copy SPECTRUM / Arcturus twin in APOGEE with CNO
 #     sobject_id = 171102004501003 # Need to copy SPECTRUM / Arcturus twin in APOGEE with CNO
     
-    sobject_id = 131216001601132 # Solar Twin in APOGEE DR17 with CNO
-    sobject_id = 140118003001383 # Test case for switch from 29 to 28 model_labels
-    sobject_id = 140707003101341 # Test case for bad normalisation in CCD3 -> Check if another iteration needed or raise flag_sp because best_fit model is not same as previous...
-    sobject_id = 140207004301201 # M67 High-Res
-    sobject_id = 140810002201339 # Binary!
-    sobject_id = 170112002101011 # Use for outlier optimisation for normalisation!
-    sobject_id = 181221001601377 # Test Case for not having CCD4
-    sobject_id = 140113002901206 # Reduction pipeline outside of feasible range
-    sobject_id = 150603003301185 # cov_errors infinity? --> uob <= 0.00
-    sobject_id = 150603003801147 # cov_errors infinity? --> uob <= 0.00
-    sobject_id = 150603004801145 # cov_errors infinity? --> uob <= 0.00
-    sobject_id = 150603004801273 # cov_errors infinity? --> uob <= 0.00
+#     sobject_id = 131216001601132 # Solar Twin in APOGEE DR17 with CNO
+#     sobject_id = 140118003001383 # Test case for switch from 29 to 28 model_labels
+#     sobject_id = 140707003101341 # Test case for bad normalisation in CCD3 -> Check if another iteration needed or raise flag_sp because best_fit model is not same as previous...
+#     sobject_id = 140207004301201 # M67 High-Res
+#     sobject_id = 140810002201339 # Binary!
+#     sobject_id = 170112002101011 # Use for outlier optimisation for normalisation!
+#     sobject_id = 181221001601377 # Test Case for not having CCD4
+#     sobject_id = 140113002901206 # Reduction pipeline outside of feasible range
+#     sobject_id = 150603003301185 # cov_errors infinity? --> uob <= 0.00
+#     sobject_id = 150603003801147 # cov_errors infinity? --> uob <= 0.00
+#     sobject_id = 150603004801145 # cov_errors infinity? --> uob <= 0.00
+#     sobject_id = 150603004801273 # cov_errors infinity? --> uob <= 0.00
 
+#     sobject_id = 140310002101218 # cool giant <3500K with vbroad > 20
+    
+#     sobject_id = 170129002101312 # cool dwarf BP_RP > 4
+    
     # sobject_id = 160531003601263 # MS according to Skiff2009
     
-    sobject_id = 140316003301356 # 
+#     sobject_id = 140316003301356 # 
     
     sobject_id = 160531004101359 # strong CNO
     
-    sobject_id = 150603003301185
+#     sobject_id = 150603003301185 # weird CCD1 behaviour
     
-    sobject_id = 140610005001020 # star with strange low [Fe/H] or too high logg
+#     sobject_id = 140610005001020 # star with strange low [Fe/H] or too high logg
 
-    sobject_id = 181223003501088 # cool giant with CCD4 missing - test case which needs larger maxfev
+#     sobject_id = 181223003501088 # cool giant with CCD4 missing - test case which needs larger maxfev
     
+#     sobject_id = 140611003501191 # cool giant with lots if TiO
+    
+#     sobject_id = 170515005101325 # CEMP
+    
+#     sobject_id = 170508005901143 # Reduction parameters bad, but GALAH DR3 reliable
+    
+#     sobject_id = 170508005901143 # Strong interstellar K
+#     sobject_id = 170712001601268 # Strong interstellar K
+#     sobject_id = 170509005701291 # Very bad CCD3 RV ==> need to shift crval_ccd3 by -0.4
+    
+#     sobject_id = 160513002101076
+
+    sobject_id = 160919004001388 # Strong C2 and CN
+
 #     sobject_id = 210115002201239 # VESTA
     
     use_spectroscopy = True
-    use_photoastrometry = False
+    use_photoastrometry = True
     use_asteroseismology = False
     use_interferometry = False
     
     use_cannon_or_payne = 'payne' # options: 'payne' or 'cannon'
+    
+    neglect_ir_beginning = True
     
 print('sobject_id: ',sobject_id)
 print('use_spectroscopy:     ',use_spectroscopy)
@@ -398,63 +418,6 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
     else:
         spectrum['resolution'] = 'low-res'
     
-    if fits_file[0].header['PAR_OK']==1:
-        
-        # TEFF
-        spectrum['init_teff'] = 0.001*fits_file[0].header['TEFF_R']
-        if spectrum['init_teff'] < 3:
-            spectrum['init_teff'] = 3.1
-            print('Reduction pipeline TEFF < 3000')
-        if spectrum['init_teff'] > 8:
-            spectrum['init_teff'] = 7.75
-            print('Reduction pipeline TEFF > 8000')
-        
-        # LOGG
-        spectrum['init_logg'] = fits_file[0].header['LOGG_R']
-        if spectrum['init_logg'] < -0.5:
-            spectrum['init_logg'] = 0.0
-            print('Reduction pipeline LOGG < -0.5')
-        if spectrum['init_logg'] > 5.5:
-            spectrum['init_logg'] = 4.95
-            print('Reduction pipeline LOGG > 5.5')
-            
-        # FE_H
-        spectrum['init_fe_h'] = fits_file[0].header['FE_H_R']
-        if spectrum['init_fe_h'] < -4.0:
-            spectrum['init_fe_h'] = -3.9
-            print('Reduction pipeline LOGG < -4.0')
-        if spectrum['init_fe_h'] > 1.0:
-            spectrum['init_fe_h'] = .75
-            print('Reduction pipeline LOGG > 1.0')
-        
-        # VMIC
-        spectrum['init_vmic'] = fits_file[0].header['VMIC_R']
-        if spectrum['init_vmic'] < 0.5:
-            spectrum['init_vmic'] = 0.5
-            print('Reduction pipeline VMIC < 0.5')
-        
-        # VBROAD
-        spectrum['init_vsini'] = fits_file[0].header['VBROAD_R']
-        if spectrum['init_vsini'] < 0:
-            spectrum['init_vsini'] = 0
-            print('Reduction pipeline VSINI < 0')
-
-        for element in ['Li','C','N','O','Na','Mg','Al','Si','K','Ca','Sc','Ti','V','Cr','Mn','Co','Ni','Cu','Zn','Rb','Sr','Y','Zr','Mo','Ru','Ba','La','Ce','Nd','Sm','Eu']:
-            spectrum['init_'+element.lower()+'_fe'] = 0.0
-
-        # ALPHA_FE -> C, O, Si, Mg, Ca, Ti
-        for each_alpha in ['c','o','mg','si','ca','ti']:
-            spectrum['init_'+each_alpha+'_fe'] = fits_file[0].header['A_FE_R']
-            if spectrum['init_'+each_alpha+'_fe'] < -1.0:
-                spectrum['init_'+each_alpha+'_fe'] = -0.75
-                print('Reduction pipeline ['+each_alpha+'/Fe] < -1.0')
-            if spectrum['init_'+each_alpha+'_fe'] > 1.0:
-                spectrum['init_'+each_alpha+'_fe'] = 0.75
-                print('Reduction pipeline ['+each_alpha+'/Fe] > 1.0')
-
-    else:
-        raise ValueError('Reduction parameters not trustworthy!')
-
     if fits_file[0].header['RVCOM_OK']==1:
         spectrum['init_vrad'] = fits_file[0].header['RVCOM']
     else:
@@ -468,7 +431,13 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
 
     spectrum['plate'] = int(fits_file[0].header['PLATE'])
         
-    dr60 = 0
+    dr60 = Table.read('../auxiliary_information/dr6.0_lite.fits')
+    dr60_entry = np.where(dr60['sobject_id'] == sobject_id)[0]
+    if len(dr60_entry) > 0:
+        spectrum['ebv'] = dr60['e_b-v'][dr60_entry[0]]
+    else:
+        print('No entry in dr6.0_lite')
+        spectrum['ebv'] = 0.0
     
     # This is a test if the CCD is actually available. For 181221001601377, CCD4 is missing for example.
     # We therefore implement a keyword 'available_ccds' to trigger only to loop over the available CCDs
@@ -506,9 +475,6 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
 
         if ccd in spectrum['available_ccds']:
             if np.shape(spectrum['lsf_ccd'+str(ccd)])[0] == 1:
-
-                if dr60==0:
-                    dr60 = Table.read('../auxiliary_information/dr6.0.fits')
 
                 # find all spectra are
                 # a) observed with same FIBRE (*pivot*) and
@@ -557,10 +523,87 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
             spectrum['lsf_ccd4'] = spectrum['lsf_ccd4'][bad_ir]
 
     dr60 = 0
+    
+    spectrum['init_teff'] = 5.0
+    spectrum['init_logg'] = 3.0
+    spectrum['init_fe_h'] = 0.0
+    spectrum['init_vmic'] = 1.0
+    spectrum['init_vsini'] = 5.0
+
+    for element in ['Li','C','N','O','Na','Mg','Al','Si','K','Ca','Sc','Ti','V','Cr','Mn','Co','Ni','Cu','Zn','Rb','Sr','Y','Zr','Mo','Ru','Ba','La','Ce','Nd','Sm','Eu']:
+        spectrum['init_'+element.lower()+'_fe'] = 0.0
+
+
+    if fits_file[0].header['PAR_OK']==1:
+        spectrum['init_source'] = 'iraf60'
+        
+        # TEFF
+        spectrum['init_teff'] = 0.001*fits_file[0].header['TEFF_R']
+        if spectrum['init_teff'] < 3:
+            spectrum['init_teff'] = 3.1
+            print('Reduction pipeline TEFF < 3000')
+        if spectrum['init_teff'] > 8:
+            spectrum['init_teff'] = 7.75
+            print('Reduction pipeline TEFF > 8000')
+        
+        # LOGG
+        spectrum['init_logg'] = fits_file[0].header['LOGG_R']
+        if spectrum['init_logg'] < -0.5:
+            spectrum['init_logg'] = 0.0
+            print('Reduction pipeline LOGG < -0.5')
+        if spectrum['init_logg'] > 5.5:
+            spectrum['init_logg'] = 4.95
+            print('Reduction pipeline LOGG > 5.5')
+            
+        # FE_H
+        spectrum['init_fe_h'] = fits_file[0].header['FE_H_R']
+        if spectrum['init_fe_h'] < -4.0:
+            spectrum['init_fe_h'] = -3.9
+            print('Reduction pipeline LOGG < -4.0')
+        if spectrum['init_fe_h'] > 1.0:
+            spectrum['init_fe_h'] = .75
+            print('Reduction pipeline LOGG > 1.0')
+        
+        # VMIC
+        spectrum['init_vmic'] = fits_file[0].header['VMIC_R']
+        if spectrum['init_vmic'] < 0.5:
+            spectrum['init_vmic'] = 0.5
+            print('Reduction pipeline VMIC < 0.5')
+        
+        # VBROAD
+        spectrum['init_vsini'] = fits_file[0].header['VBROAD_R']
+        if spectrum['init_vsini'] < 0:
+            spectrum['init_vsini'] = 0
+            print('Reduction pipeline VSINI < 0')
+
+        # ALPHA_FE -> C, O, Si, Mg, Ca, Ti
+        for each_alpha in ['c','o','mg','si','ca','ti']:
+            spectrum['init_'+each_alpha+'_fe'] = fits_file[0].header['A_FE_R']
+            if spectrum['init_'+each_alpha+'_fe'] < -1.0:
+                spectrum['init_'+each_alpha+'_fe'] = -0.75
+                print('Reduction pipeline ['+each_alpha+'/Fe] < -1.0')
+            if spectrum['init_'+each_alpha+'_fe'] > 1.0:
+                spectrum['init_'+each_alpha+'_fe'] = 0.75
+                print('Reduction pipeline ['+each_alpha+'/Fe] > 1.0')
+
+    else:
+        spectrum['init_source'] = 'none'
+        print('Reduction parameters not trustworthy!')        
         
     return(spectrum)
 
-spectrum = get_reduction_products(sobject_id)
+spectrum = get_reduction_products(sobject_id,neglect_ir_beginning)
+
+
+# In[ ]:
+
+
+if sobject_id == 170509005701291:
+    spectrum['crval_ccd3'] -= 0.4
+    raise ValueError('crval CCD3 off!')
+if sobject_id == 170515005101325:
+    spectrum['crval_ccd3'] += 0.4
+    spectrum['cdelt_ccd3'] *= 0.9985
 
 
 # In[ ]:
@@ -573,32 +616,85 @@ def exchange_with_reliable_galah_dr3_values(spectrum):
     if len(galah_dr3_match) > 0:
         print('Found match in GALAH+ DR3')
         galah_dr3_entry = galah_dr3[galah_dr3_match[0]]
+        print('flag_sp from GALAH+ DR3 is '+str(galah_dr3_entry['flag_sp']))
 
         if galah_dr3_entry['flag_sp'] < 8:
-            print('flag_sp from GALAH+ DR3 is '+str(galah_dr3_entry['flag_sp']))
+            spectrum['init_source'] = 'galah_dr3'
+
             print('Replacing initial value for Teff, logg, vmic, vsini with GALAH+ DR3 ones.')
-            print('Teff IRAF 6.0: ',"{:.2f}".format(1000.*spectrum['init_teff']), 'GALAH+ DR3: ',"{:.2f}".format(galah_dr3_entry['teff']))
+            #print('Teff IRAF 6.0: ',"{:.2f}".format(1000.*spectrum['init_teff']), 'GALAH+ DR3: ',"{:.2f}".format(galah_dr3_entry['teff']))
             spectrum['init_teff'] = 0.001*galah_dr3_entry['teff']
             
             for label in ['logg','vmic','vsini']:
                 label2 = label
                 if label=='vsini':
                     label2 = 'vbroad'
-                print(label+' IRAF 6.0: ',"{:.2f}".format(spectrum['init_'+label]), 'GALAH+ DR3: ',"{:.2f}".format(galah_dr3_entry[label2]))
+                #print(label+' IRAF 6.0: ',"{:.2f}".format(spectrum['init_'+label]), 'GALAH+ DR3: ',"{:.2f}".format(galah_dr3_entry[label2]))
                 spectrum['init_'+label] = galah_dr3_entry[label2]
 
             if galah_dr3_entry['flag_fe_h'] == 0:
                 print('Replacing initial value for [Fe/H] with GALAH+ DR3 ones.')
-                print('[Fe/H] IRAF 6.0: ',"{:.2f}".format(spectrum['init_fe_h']), 'GALAH+ DR3: ',"{:.2f}".format(galah_dr3_entry['fe_h']))
+                #print('[Fe/H] IRAF 6.0: ',"{:.2f}".format(spectrum['init_fe_h']), 'GALAH+ DR3: ',"{:.2f}".format(galah_dr3_entry['fe_h']))
                 spectrum['init_fe_h'] = galah_dr3_entry['fe_h']
 
             for element in ['Li','C','O','Na','Mg','Al','Si','K','Ca','Sc','Ti','V','Cr','Mn','Co','Ni','Cu','Zn','Rb','Sr','Y','Zr','Mo','Ru','Ba','La','Ce','Nd','Sm','Eu']:
                 if galah_dr3_entry['flag_'+element+'_fe'] == 0:
-                    print('['+element+'/Fe] initial value from GALAH+ DR3: '+"{:.2f}".format(galah_dr3_entry[element+'_fe']))
+                    #print('['+element+'/Fe] initial value from GALAH+ DR3: '+"{:.2f}".format(galah_dr3_entry[element+'_fe']))
 
                     spectrum['init_'+element.lower()+'_fe'] = galah_dr3_entry[element+'_fe']
 
     galah_dr3 = 0
+    
+    # sanity check with IRFM
+    if sobject_id == 140310002101218:
+        print('Cool Giants (Teff < 3500 K).')
+        print('Bad initial parameters, updating teff from IRFM and logg from astrometric values.')
+        print('Setting vbroad to 5 km s-2')
+        spectrum['init_teff'] = 3.5
+        spectrum['init_logg'] = 0.428
+        spectrum['init_fe_h'] = -0.25
+        spectrum['init_vsini'] = 5.0
+        
+    
+    print('Initial Parameters: '+str(sobject_id))
+    print('Teff / K:           ',int(np.round(spectrum['init_teff']*1000)))
+    print('log (g / cm s-2):   ',np.round(spectrum['init_logg'],decimals=2))
+    print('vmic / km s-2:      ',np.round(spectrum['init_vmic'],decimals=2))
+    print('vsini / km s-2:     ',np.round(spectrum['init_vsini'],decimals=2))
+    print('vrad / km s-2:      ',np.round(spectrum['init_vrad'],decimals=2))
+    print('E(B-V) / mag:       ',np.round(spectrum['ebv'],decimals=2))
+    print('[Fe/H]:  ',np.round(spectrum['init_fe_h'],decimals=2))
+    print('[Li/Fe]: ',np.round(spectrum['init_li_fe'],decimals=2))
+    print('[C/Fe]:  ',np.round(spectrum['init_c_fe'],decimals=2))
+    print('[N/Fe]:  ',np.round(spectrum['init_n_fe'],decimals=2))
+    print('[O/Fe]:  ',np.round(spectrum['init_o_fe'],decimals=2))
+    print('[Na/Fe]: ',np.round(spectrum['init_na_fe'],decimals=2))
+    print('[Mg/Fe]: ',np.round(spectrum['init_mg_fe'],decimals=2))
+    print('[Al/Fe]: ',np.round(spectrum['init_al_fe'],decimals=2))
+    print('[Si/Fe]: ',np.round(spectrum['init_si_fe'],decimals=2))
+    print('[K/Fe]:  ',np.round(spectrum['init_k_fe'],decimals=2))
+    print('[Ca/Fe]: ',np.round(spectrum['init_ca_fe'],decimals=2))
+    print('[Sc/Fe]: ',np.round(spectrum['init_sc_fe'],decimals=2))
+    print('[Ti/Fe]: ',np.round(spectrum['init_ti_fe'],decimals=2))
+    print('[V/Fe]:  ',np.round(spectrum['init_v_fe'],decimals=2))
+    print('[Cr/Fe]: ',np.round(spectrum['init_cr_fe'],decimals=2))
+    print('[Mn/Fe]: ',np.round(spectrum['init_mn_fe'],decimals=2))
+    print('[Co/Fe]: ',np.round(spectrum['init_co_fe'],decimals=2))
+    print('[Ni/Fe]: ',np.round(spectrum['init_ni_fe'],decimals=2))
+    print('[Cu/Fe]: ',np.round(spectrum['init_cu_fe'],decimals=2))
+    print('[Zn/Fe]: ',np.round(spectrum['init_zn_fe'],decimals=2))
+    print('[Rb/Fe]: ',np.round(spectrum['init_rb_fe'],decimals=2))
+    print('[Sr/Fe]: ',np.round(spectrum['init_sr_fe'],decimals=2))
+    print('[Y/Fe]:  ',np.round(spectrum['init_y_fe'],decimals=2))
+    print('[Zr/Fe]: ',np.round(spectrum['init_zr_fe'],decimals=2))
+    print('[Mo/Fe]: ',np.round(spectrum['init_mo_fe'],decimals=2))
+    print('[Ru/Fe]: ',np.round(spectrum['init_ru_fe'],decimals=2))
+    print('[Ba/Fe]: ',np.round(spectrum['init_ba_fe'],decimals=2))
+    print('[La/Fe]: ',np.round(spectrum['init_la_fe'],decimals=2))
+    print('[Ce/Fe]: ',np.round(spectrum['init_ce_fe'],decimals=2))
+    print('[Nd/Fe]: ',np.round(spectrum['init_nd_fe'],decimals=2))
+    print('[Sm/Fe]: ',np.round(spectrum['init_sm_fe'],decimals=2))
+    print('[Eu/Fe]: ',np.round(spectrum['init_eu_fe'],decimals=2))
 exchange_with_reliable_galah_dr3_values(spectrum)
 
 
@@ -896,22 +992,24 @@ def get_non_spec_info(spectrum, use_photoastrometry, use_asteroseismology):
 
     return(non_spec_info)
 
+# # Corrections to non-spectroscopic data
+# from astroquery.gaia import Gaia
+# from zero_point import zpt
+# zpt.load_tables()
+
+# non_spec_info = get_non_spec_info(spectrum, use_photoastrometry, use_asteroseismology)
+
+
+# In[ ]:
+
+
 if use_photoastrometry:
-    # Corrections to non-spectroscopic data
-    from astroquery.gaia import Gaia
-    from zero_point import zpt
-    zpt.load_tables()
-    
     # Read in isochrone grid and trained nearest neighbor search machinery 'kdtree'
     parsec = Table.read('../auxiliary_information/parsec_isochrones/parsec_isochrones_logt_6p19_0p01_10p17_mh_m2p75_0p25_m0p75_mh_m0p60_0p10_0p70_GaiaEDR3_2MASS.fits')
     # parsec = Table.read('../auxiliary_information/parsec_isochrones/parsec_isochrones_logt_6p19_0p01_10p17_mh_m2p75_0p25_1p00_mh_m0p75_0p05_0p75_GaiaEDR3_2MASS.fits')
     file = open('../auxiliary_information/parsec_isochrones/isochrone_kdtree_Teff_logg_M_H.pickle','rb')
     parsec_kdtree = pickle.load(file)
     file.close()
-
-if use_photoastrometry | use_asteroseismology:
-    
-    non_spec_info = get_non_spec_info(spectrum, use_photoastrometry, use_asteroseismology)
 
 
 # In[ ]:
@@ -1840,6 +1938,16 @@ def identify_best_model(
         default_model = (w_array_0, w_array_1, w_array_2, b_array_0, b_array_1, b_array_2, x_min, x_max)
 
         model_labels = np.loadtxt('../spectrum_interpolation/gradient_spectra/'+default_model_teff_logg_feh+'/recommended_fit_labels_'+default_model_teff_logg_feh+'.txt',usecols=(0,),dtype=str)
+        if spectrum['init_fe_h'] < -1:
+            if 'c_fe' not in model_labels:
+                print('[Fe/H] < -1, adding [C/Fe] to models')
+                model_labels = list(model_labels)
+                if 'li_fe' not in model_labels:
+                    model_labels.insert(5,'c_fe')
+                else:
+                    model_labels.insert(6,'c_fe')
+                model_labels = np.array(model_labels)
+        print('')
         print('Fitting the following labels:')
         print(model_labels)
         
@@ -1854,6 +1962,8 @@ def identify_best_model(
 # Setup initial model interpolation and parameters
 
 (default_model_index, default_model_teff_logg_feh,default_model_name,default_model,model_labels) = identify_best_model(spectrum['init_teff'],spectrum['init_logg'],spectrum['init_fe_h'],use_cannon_or_payne)
+
+model_labels
 
 initial_model_parameters = [
     spectrum['init_'+label] for label in model_labels
@@ -1899,7 +2009,6 @@ model_parameters_iter1, covariances_iter1 = curve_fit(get_flux_only,wave_init[un
                        p0 = initial_model_parameters,
                        sigma=np.sqrt(data_sigma2_init[unmasked]),
                        absolute_sigma=True,
-                       #bounds = ([3,-1,-4,0.1,0.5,-2,-1],[8,6,1,4.0,25,5,1])#,**kwargs
                        **kwargs
                       )
 
@@ -1967,7 +2076,6 @@ model_parameters_optimised, covariances_optimised = curve_fit(get_flux_only,wave
                        p0 = model_parameters_iter1,
                        sigma=np.sqrt(data_sigma2_iter1[unmasked]),
                        absolute_sigma=True,
-                       #bounds = ([3,-1,-4,0.1,0.5,-2],[8,6,1,4.0,25,5])#,
                        **kwargs
                       )
 (wave_optimized,data_optimized,data_sigma2_optimized,model_optimized,model_sigma2_optimized) = match_observation_and_model(model_parameters_optimised, model_labels, spectrum, masks, default_model, default_model_name, True, False)
@@ -2011,7 +2119,7 @@ important_lines, important_molecules = load_dr3_lines()
 # In[ ]:
 
 
-def plot_spectrum(wave,flux,flux_uncertainty,title_text):
+def plot_spectrum(wave,flux,flux_uncertainty,title_text,neglect_ir_beginning=neglect_ir_beginning):
     """
     Let's plot a spectrum, that is, flux over wavelenth
     
@@ -2023,20 +2131,37 @@ def plot_spectrum(wave,flux,flux_uncertainty,title_text):
     """
     
     # Let's define the wavelength beginnings and ends for each suplot
-    subplot_wavelengths = np.array([
-        [4710,4775],
-        [4770,4850],
-        [4840,4905],
-        [5645,5730],
-        [5720,5805],
-        [5795,5878],
-        [6470,6600],
-        [6590,6670],
-        [6660,6739],
-        [7677,7720],
-        [7710,7820],
-        [7810,7890]
-    ])
+    if neglect_ir_beginning:
+        subplot_wavelengths = np.array([
+            [4710,4775],
+            [4770,4850],
+            [4840,4905],
+            [5645,5730],
+            [5720,5805],
+            [5795,5878],
+            [6470,6600],
+            [6590,6670],
+            [6660,6739],
+            [7677,7720],
+            [7710,7820],
+            [7810,7890]
+        ])
+    else:
+        subplot_wavelengths = np.array([
+            [4710,4775],
+            [4770,4850],
+            [4840,4905],
+            [5645,5730],
+            [5720,5805],
+            [5795,5878],
+            [6470,6600],
+            [6590,6670],
+            [6660,6739],
+            [7577,7697],
+            [7677,7720],
+            [7710,7820],
+            [7810,7890]
+        ])
     
     # How many subplots will we need?
     nr_subplots = np.shape(subplot_wavelengths)[0]
@@ -2069,8 +2194,8 @@ def plot_spectrum(wave,flux,flux_uncertainty,title_text):
                     if index == 0:
                         ax.plot(wave[in_subplot_wavelength_range],flux[0,in_subplot_wavelength_range],lw=0.5,c='k',label='data');
                         ax.plot(wave[in_subplot_wavelength_range],1.05 + flux_uncertainty[in_subplot_wavelength_range],lw=0.5,c='C3',label='scatter');
-                    if index == 1:
-                        ax.plot(wave[in_subplot_wavelength_range],flux[index,in_subplot_wavelength_range],lw=0.5,c='C0',label='model (initial)');
+#                     if index == 1:
+#                         ax.plot(wave[in_subplot_wavelength_range],flux[index,in_subplot_wavelength_range],lw=0.5,c='C0',label='model (initial)');
                     if index == 2:
                         ax.plot(wave[in_subplot_wavelength_range],flux[index,in_subplot_wavelength_range],lw=0.5,c='r',label='model (optimised)');
                         ax.plot(wave[in_subplot_wavelength_range],1.05 + np.abs(flux[0,in_subplot_wavelength_range]-flux[index,in_subplot_wavelength_range]),lw=0.5,c='C4',label='residuals');
@@ -2115,9 +2240,12 @@ def plot_spectrum(wave,flux,flux_uncertainty,title_text):
 # In[ ]:
 
 
+# Save fits_results
+
 output = Table()
 
-file_directory = working_directory+'/analysis_products/fitting_output/'+str(spectrum['sobject_id'])[:6]+'/'
+#file_directory = working_directory+'/analysis_products/fitting_output/'+str(spectrum['sobject_id'])[:6]+'/'
+file_directory = working_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
 Path(file_directory).mkdir(parents=True, exist_ok=True)
 
 for label in ['sobject_id']:
@@ -2266,10 +2394,39 @@ col = Table.Column(
 output.add_column(col)
 
 # And save!
-output.write(file_directory+str(spectrum['sobject_id'])+'_curvefit_tlfvv_'+use_cannon_or_payne+'.fits',overwrite=True)
+output.write(file_directory+str(spectrum['sobject_id'])+'_simple_fit_results.fits',overwrite=True)
 
 # Let's check what we got
 output
+
+
+# In[ ]:
+
+
+# Save spectrum
+save_spectrum = Table()
+save_spectrum['wave'] = wave_optimized
+save_spectrum['sob'] = data_optimized
+save_spectrum['uob'] = np.sqrt(data_sigma2_optimized)
+save_spectrum['smod'] = model_optimized
+
+file_directory = working_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
+Path(file_directory).mkdir(parents=True, exist_ok=True)
+
+save_spectrum.write(file_directory+str(spectrum['sobject_id'])+'_simple_fit_spectrum.fits',overwrite=True)
+
+
+# In[ ]:
+
+
+# Save covariances
+np.savez(
+    file_directory+str(spectrum['sobject_id'])+'_simple_fit_covariances.npz',
+    model_labels = model_labels,
+    model_parameters_optimised = model_parameters_optimised,
+    covariances_optimised = covariances_optimised,
+    default_model_name = default_model_name
+)
 
 
 # In[ ]:
@@ -2291,10 +2448,10 @@ fig = plot_spectrum(
     'vsini='+str(np.round(output['vsini'][0],decimals=1))+'km/s'
 )
 
-file_directory = working_directory+'/analysis_products/diagnostic_plots/'+str(spectrum['sobject_id'])[:6]+'/'
+file_directory = working_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
 Path(file_directory).mkdir(parents=True, exist_ok=True)
 
-fig.savefig(file_directory+str(spectrum['sobject_id'])+'_stellar_parameter_spectrum_comparison_'+use_cannon_or_payne+'.pdf',overwrite=True,bbox_inches='tight')
+fig.savefig(file_directory+str(spectrum['sobject_id'])+'_simple_fit_comparison.pdf',overwrite=True,bbox_inches='tight')
 plt.show()
 plt.close()
 
@@ -2304,4 +2461,10 @@ plt.close()
 
 end_time = time.time() - start_time
 print('Duration: '+str(np.round(end_time,decimals=1)))
+
+
+# In[ ]:
+
+
+
 
