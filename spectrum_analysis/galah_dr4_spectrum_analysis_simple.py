@@ -203,6 +203,8 @@ if sys.argv[1] != '-f':
         use_cannon_or_payne = 'payne' # options: 'payne' or 'cannon'
         print('Using default information: S')
         print('Using default interpolation: payne')
+        neglect_ir_beginning = True
+            print('Using default setting: neglect IR beginning')
     else:
         setup = sys.argv[2]
     
