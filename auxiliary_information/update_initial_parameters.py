@@ -82,31 +82,34 @@ dr60_gaia_edr3 = join(dr60, gaia_edr3, keys='sobject_id')
 # In[ ]:
 
 
-# useful = (
-#     np.isfinite(dr60_gaia_edr3['phot_g_mean_mag']) &
-#     np.isfinite(dr60_gaia_edr3['phot_bp_mean_mag']) &
-#     np.isfinite(dr60_gaia_edr3['phot_rp_mean_mag']) &
-#     np.isfinite(dr60_gaia_edr3['j_m']) &
-#     np.isfinite(dr60_gaia_edr3['h_m']) &
-#     np.isfinite(dr60_gaia_edr3['ks_m']) &
-#     np.isfinite(dr60_gaia_edr3['e_b-v']) &
-#     np.isfinite(dr60_gaia_edr3['r_med_photogeo'])
-# )
-# dr60_gaia_edr3 = dr60_gaia_edr3[useful]
+useful = (
+    np.isfinite(dr60_gaia_edr3['phot_g_mean_mag']) &
+    np.isfinite(dr60_gaia_edr3['phot_bp_mean_mag']) &
+    np.isfinite(dr60_gaia_edr3['phot_rp_mean_mag']) &
+    np.isfinite(dr60_gaia_edr3['j_m']) &
+    np.isfinite(dr60_gaia_edr3['h_m']) &
+    np.isfinite(dr60_gaia_edr3['ks_m']) &
+    np.isfinite(dr60_gaia_edr3['e_b-v']) &
+    np.isfinite(dr60_gaia_edr3['r_med_photogeo'])
+)
+dr60_gaia_edr3 = dr60_gaia_edr3[useful]
 
-# #  Adjust missing values
-# dr60_gaia_edr3['logg_r'][np.isnan(dr60_gaia_edr3['logg_r'])] = 3.0
-# dr60_gaia_edr3['fe_h_r'][np.isnan(dr60_gaia_edr3['fe_h_r'])] = 0.0
+#  Adjust missing values
+dr60_gaia_edr3['logg_r'][np.isnan(dr60_gaia_edr3['logg_r'])] = 3.0
+dr60_gaia_edr3['fe_h_r'][np.isnan(dr60_gaia_edr3['fe_h_r'])] = 0.0
 
-# # Adjust logg and feh min and max to reasonable values
-# dr60_gaia_edr3['logg_r'] = (dr60_gaia_edr3['logg_r']).clip(min=0.0,max=5.5);
-# dr60_gaia_edr3['fe_h_r'] = (dr60_gaia_edr3['fe_h_r']).clip(min=-4,max=1.0);
+# Adjust logg and feh min and max to reasonable values
+dr60_gaia_edr3['logg_r'] = (dr60_gaia_edr3['logg_r']).clip(min=0.0,max=5.5);
+dr60_gaia_edr3['fe_h_r'] = (dr60_gaia_edr3['fe_h_r']).clip(min=-4,max=1.0);
 
 
 # In[ ]:
 
 
-twentyfivek_index = 0
+try:
+    twentyfivek_index = sys.argv[1]
+except:
+    twentyfivek_index = 0
 
 
 # In[ ]:
