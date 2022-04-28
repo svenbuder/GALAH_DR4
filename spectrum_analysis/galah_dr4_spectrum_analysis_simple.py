@@ -304,6 +304,7 @@ else:
 #     sobject_id = 150603003801147 # cov_errors infinity? --> uob <= 0.00
 #     sobject_id = 150603004801145 # cov_errors infinity? --> uob <= 0.00
 #     sobject_id = 150603004801273 # cov_errors infinity? --> uob <= 0.00
+#     sobject_id = 150603003301185 # CCD1 issues?
 
 #     sobject_id = 140310002101218 # cool giant <3500K with vbroad > 20
     
@@ -333,8 +334,98 @@ else:
     
 #     sobject_id = 160513002101076
 
-    sobject_id = 160919004001388 # Strong C2 and CN
+    sobject_id = 140115003101086 # wrong VRAD!
 
+    sobject_id = 160919004001388 # Strong C2 and CN
+    sobject_id = 140314005201392 # Crazy strong CN (even double CN at 7850)
+    sobject_id = 140708001201302 # Strong C2 and CN
+    sobject_id = 141103002601328 # strong C2 and CN
+    sobject_id = 140707002601381 # high [C/Fe] but actually no strong C2?
+    sobject_id = 150208004701010 # strong C2
+    sobject_id = 150210004201187 # intermediate C2
+    sobject_id = 150409005601238 # strong C2
+    sobject_id = 150409007601105 # strong C2
+    sobject_id = 151220001601285 # strong C2
+    sobject_id = 160111002601144 # strong C2
+    sobject_id = 160419002101208 # strong C2
+    sobject_id = 160422004501289 # strong C2
+    sobject_id = 160514001801328 # strong C2
+    sobject_id = 160519004601398 # intermediate C2
+    sobject_id = 160515003401143 # strong C2
+    sobject_id = 160527001601331 # strong C2
+    sobject_id = 160530002201097 # strong C2
+    sobject_id = 160530002801181 # intermediate C2 [Fe/H] < -2
+    sobject_id = 160723002001090 # intermediate C2
+    sobject_id = 160811004601305 # intermediate C2
+    sobject_id = 160921001601375 # intermediate C2
+    sobject_id = 161006003101374 # strong C2
+    sobject_id = 161115003701356 # strong C2
+    sobject_id = 180101004301352 # strong C2
+    sobject_id = 180102003601223 # strong C2
+    
+    sobject_id = 140209002701002 # bad normalisation. What happened?
+    sobject_id = 140209002701031 # bad normalisation. What happened?
+    sobject_id = 140209002701026 # bad normalisation. What happened?
+    
+    sobject_id = 140806001701062 # Binary star with split lines...
+    sobject_id = 150830006601013 # Binary
+    sobject_id = 150831006001335 # Binary in NIR
+    sobject_id = 151227004201013 # Binary
+    sobject_id = 131217003901059 # Binary
+    sobject_id = 131217003901163 # Binary
+    sobject_id = 140111002601019 # Binary
+    sobject_id = 140111002601065 # Binary
+    sobject_id = 140112002801065 # Binary
+    sobject_id = 140209002701244 # Binary
+    sobject_id = 140209002701258 # Binary
+    
+    sobject_id = 160423003801308 # Issue with CCD3 normalisation
+    sobject_id = 160423003801310 # Issue with CCD3 normalisation
+    sobject_id = 170112002101011 # Issue with CCD3 normalisation
+    sobject_id = 160110003101348 # Issue with CCD2 normalisation
+    sobject_id = 170115004701018 # Issue with CCD3 normalisation
+    sobject_id = 131217004401002 # Issue with CCD3 normalisation
+    sobject_id = 140209002701002 # Issue with CCD3 normalisation
+    sobject_id = 140209002701031 # Issue with CCD3 normalisation
+    sobject_id = 140209002701035 # Issue with CCD3 normalisation
+    sobject_id = 140209002701026 # Issue with CCD3 normalisation
+    
+    sobject_id = 170904000101009 # CCD 4 fail?
+    sobject_id = 170904000101010 # CCD 4 fail?
+    sobject_id = 140609002101006 # weird pattern end of CCD4
+    sobject_id = 160419003101016 # weird pattern end of CCD4
+    sobject_id = 171227004101023 # weird pattern end of CCD3
+    sobject_id = 140412002801329 # CCD 2 fail?
+    sobject_id = 140412002801387 # CCD 2 fail?
+    sobject_id = 171230004101012 # CCD 3 fail?
+    sobject_id = 140711003401101 # CCD 3 fail?
+    sobject_id = 140810002201006 # CCD 3 fail?
+    
+    sobject_id = 170907004601217 # Skylines or something like that in CCD4 strong!
+    
+    sobject_id = 170509006701393 # CCD3 RV?
+    sobject_id = 170509005201277 # CCD3 RV?
+    sobject_id = 170603007701383 # wavelength solution beginning CCD3
+    
+    sobject_id = 150410003301102 # weird binary with cool giant? see K line!
+
+    sobject_id = 160107004101318 # bad fit - hot star / binary?
+    
+    sobject_id = 160107004101288 # Is there even any signal? :D
+    sobject_id = 140316002801001 # Is there even any signal? :D
+    sobject_id = 160107004101288 # Is there even any signal? :D
+    sobject_id = 160107004101290 # Is there even any signal? :D
+    
+    sobject_id = 150426000601388 # Balmer lines in emission!
+    
+    sobject_id = 160108002601014 # something wrong in CCD1 normalisation -> wrong C2 detection?
+    sobject_id = 170510005801264 # something wrong in CCD1 normalisation -> wrong C2 detection?
+    sobject_id = 161107004401335 # something wrong in CCD1 normalisation -> wrong C2 detection?
+
+    sobject_id = 131217004401393 # M67 giant wrong WL CCD 2 (and 4?)
+    
+    sobject_id = 160107004101325 # Horrible fit to an otherwise normal spectrum
+    
 #     sobject_id = 210115002201239 # VESTA
     
     use_spectroscopy = True
@@ -611,6 +702,10 @@ if sobject_id == 170509005701291:
 if sobject_id == 170515005101325:
     spectrum['crval_ccd3'] += 0.4
     spectrum['cdelt_ccd3'] *= 0.9985
+if sobject_id == 131217004401393:
+    spectrum['crval_ccd2'] += 0.41
+if sobject_id == 131217004401255:
+    spectrum['crval_ccd2'] += 0.4
 
 
 # In[ ]:
@@ -2062,6 +2157,29 @@ except:
 # In[ ]:
 
 
+if model_parameters_iter1[0] > 6.:
+    print('Star has Teff > 6000 K, nulling abundances (exepct Li)')
+    # We will actually apply that further down
+
+# Some abundance values may be extreme at the beginning - let's bring them back closer to 0 in this case
+for parameter_index, value in enumerate(model_parameters_iter1):
+    if model_labels[parameter_index] not in ['teff', 'logg', 'fe_h', 'vmic', 'vsini','li_fe']:
+        if model_parameters_iter1[0] > 6.:
+            # Null abundances (except Li), if Teff > 6000K
+            model_parameters_iter1[parameter_index] = 0.0
+        if model_labels[parameter_index] in ['o_fe','ba_fe','y_fe']:
+            if np.abs(model_parameters_iter1[parameter_index]) > 1.5:
+                print('Extreme value for '+model_labels[parameter_index]+' detected, setting back to +- 1.5')
+                model_parameters_iter1[parameter_index].clip(min=-1.5,max=1.5)
+        else:
+            if np.abs(model_parameters_iter1[parameter_index]) > 0.75:
+                print('Extreme value for '+model_labels[parameter_index]+' detected, setting back to +- 0.75')
+                model_parameters_iter1[parameter_index].clip(min=-0.75,max=0.75)
+
+
+# In[ ]:
+
+
 # Update pixels to be masked
 
 (wave_iter1,data_iter1,data_sigma2_iter1,model_iter1,model_sigma2_iter1) = match_observation_and_model(model_parameters_iter1, model_labels, spectrum, masks, default_model, default_model_name, True, False)
@@ -2468,10 +2586,4 @@ plt.close()
 
 end_time = time.time() - start_time
 print('Duration: '+str(np.round(end_time,decimals=1)))
-
-
-# In[ ]:
-
-
-
 
