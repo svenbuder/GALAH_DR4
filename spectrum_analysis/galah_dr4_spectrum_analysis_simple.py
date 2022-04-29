@@ -424,7 +424,9 @@ else:
 
     sobject_id = 131217004401393 # M67 giant wrong WL CCD 2 (and 4?)
     
-    sobject_id = 160107004101325 # Horrible fit to an otherwise normal spectrum
+    sobject_id = 160107004101325 # Horrible fit before nulling abundances
+    
+    sobject_id = 131217004401241 # Test effect of initial values
     
 #     sobject_id = 210115002201239 # VESTA
     
@@ -675,14 +677,15 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
             print('Reduction pipeline VSINI < 0')
 
         # ALPHA_FE -> C, O, Si, Mg, Ca, Ti
+        alpha_fe = np.max([0.0,np.min([0.4,fits_file[0].header['A_FE_R']])])
         for each_alpha in ['c','o','mg','si','ca','ti']:
-            spectrum['init_'+each_alpha+'_fe'] = fits_file[0].header['A_FE_R']
-            if spectrum['init_'+each_alpha+'_fe'] < -1.0:
-                spectrum['init_'+each_alpha+'_fe'] = -0.75
-                print('Reduction pipeline ['+each_alpha+'/Fe] < -1.0')
-            if spectrum['init_'+each_alpha+'_fe'] > 1.0:
-                spectrum['init_'+each_alpha+'_fe'] = 0.75
-                print('Reduction pipeline ['+each_alpha+'/Fe] > 1.0')
+            spectrum['init_'+each_alpha+'_fe'] = alpha_fe
+            #if spectrum['init_'+each_alpha+'_fe'] < -1.0:
+            #    spectrum['init_'+each_alpha+'_fe'] = -0.75
+            #    print('Reduction pipeline ['+each_alpha+'/Fe] < -1.0')
+            #if spectrum['init_'+each_alpha+'_fe'] > 1.0:
+            #    spectrum['init_'+each_alpha+'_fe'] = 0.75
+            #    print('Reduction pipeline ['+each_alpha+'/Fe] > 1.0')
 
     else:
         spectrum['init_source'] = 'none'
@@ -702,10 +705,16 @@ if sobject_id == 170509005701291:
 if sobject_id == 170515005101325:
     spectrum['crval_ccd3'] += 0.4
     spectrum['cdelt_ccd3'] *= 0.9985
+    print(sobject_id,' Adjusting wavelength solution for CCD3')
 if sobject_id == 131217004401393:
     spectrum['crval_ccd2'] += 0.41
+    print(sobject_id,' Adjusting wavelength solution for CCD3')
 if sobject_id == 131217004401255:
     spectrum['crval_ccd2'] += 0.4
+    print(sobject_id,' Adjusting wavelength solution for CCD3')
+if sobject_id == 131217004401241:
+    spectrum['crval_ccd2'] += 0.4
+    print(sobject_id,' Adjusting wavelength solution for CCD3')
 
 
 # In[ ]:
@@ -738,12 +747,21 @@ def exchange_with_reliable_galah_dr3_values(spectrum):
                 print('Replacing initial value for [Fe/H] with GALAH+ DR3 ones.')
                 #print('[Fe/H] IRAF 6.0: ',"{:.2f}".format(spectrum['init_fe_h']), 'GALAH+ DR3: ',"{:.2f}".format(galah_dr3_entry['fe_h']))
                 spectrum['init_fe_h'] = galah_dr3_entry['fe_h']
+                
+            if galah_dr3_entry['flag_alpha_fe'] == 0:
+                # [alpha/Fe] -> C, O, Si, Mg, Ca, Ti
+                print('Replacing initial value for C, O, Si, Mg, Ca, Ti with GALAH+ DR3 one for [alpha/Fe] between 0.0 and 0.4.')
+                alpha_fe = np.max([0.0,np.min([0.4,galah_dr3_entry['alpha_fe']])])
+                for each_alpha in ['c','o','mg','si','ca','ti']:
+                    spectrum['init_'+each_alpha+'_fe'] = alpha_fe
 
-            for element in ['Li','C','O','Na','Mg','Al','Si','K','Ca','Sc','Ti','V','Cr','Mn','Co','Ni','Cu','Zn','Rb','Sr','Y','Zr','Mo','Ru','Ba','La','Ce','Nd','Sm','Eu']:
-                if galah_dr3_entry['flag_'+element+'_fe'] == 0:
+            # We will not replace the abundances anymore, but stay at [X/Fe] = 0
+            # This has led to a more robust performance (especially if the DR3 values were actually questionable, but unflagged)
+            #for element in ['Li','C','O','Na','Mg','Al','Si','K','Ca','Sc','Ti','V','Cr','Mn','Co','Ni','Cu','Zn','Rb','Sr','Y','Zr','Mo','Ru','Ba','La','Ce','Nd','Sm','Eu']:
+                #if galah_dr3_entry['flag_'+element+'_fe'] == 0:
                     #print('['+element+'/Fe] initial value from GALAH+ DR3: '+"{:.2f}".format(galah_dr3_entry[element+'_fe']))
 
-                    spectrum['init_'+element.lower()+'_fe'] = galah_dr3_entry[element+'_fe']
+                    #spectrum['init_'+element.lower()+'_fe'] = galah_dr3_entry[element+'_fe']
 
     galah_dr3 = 0
     
@@ -2077,7 +2095,7 @@ initial_model_parameters = [
 
 # Find pixels that should be initially masked
 
-# kwargs={'loss':'linear',"max_nfev":1e8,'xtol':1e-4}
+# kwargs={'loss':'linear',"max_nfev":1e8,'xtol':1e-4}?
 kwargs={'maxfev':10000,'xtol':1e-4}
 
 (wave_init,data_init,data_sigma2_init,model_init,model_sigma2_init) = match_observation_and_model(initial_model_parameters, model_labels, spectrum, masks, default_model, default_model_name, True, False)
