@@ -45,6 +45,21 @@ dr60 = Table.read('../auxiliary_information/dr6.0.fits')
 dr60['date'] = np.array([str(x)[:6] for x in dr60['sobject_id']])
 
 
+# In[ ]:
+
+
+# unique_dates = np.unique(dr60['date'])
+
+# for year in ['13','14','15','16','17','18','19','20','21','22']:
+#     dates_in_that_year = list(unique_dates[
+#         np.where([date[:2] == year for date in unique_dates])
+#     ])
+#     print('import os')
+#     print("dates = ['"+"','".join(dates_in_that_year)+"']")
+#     print('for date in dates:')
+#     print("    os.system('ipython galah_dr4_post_processing.py '+date)")
+
+
 # # Post process each date
 
 # In[ ]:
@@ -93,6 +108,7 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
     
     a_file = open("final_flag_sp_dictionary.pkl", "rb")
     flag_sp_dictionary = pickle.load(a_file)
+    a_file.close()
     
     for reason in flag_sp_dictionary.keys():
         
