@@ -48,16 +48,16 @@ dr60['date'] = np.array([str(x)[:6] for x in dr60['sobject_id']])
 # In[ ]:
 
 
-# unique_dates = np.unique(dr60['date'])
+unique_dates = np.unique(dr60['date'])
 
-# for year in ['13','14','15','16','17','18','19','20','21','22']:
-#     dates_in_that_year = list(unique_dates[
-#         np.where([date[:2] == year for date in unique_dates])
-#     ])
-#     print('import os')
-#     print("dates = ['"+"','".join(dates_in_that_year)+"']")
-#     print('for date in dates:')
-#     print("    os.system('ipython galah_dr4_post_processing.py '+date)")
+for year in ['13','14','15','16','17','18','19','20','21','22']:
+    dates_in_that_year = list(unique_dates[
+        np.where([date[:2] == year for date in unique_dates])
+    ])
+    print('import os')
+    print("dates = ['"+"','".join(dates_in_that_year)+"']")
+    print('for date in dates:')
+    print("    os.system('ipython galah_dr4_post_processing.py '+date)")
 
 
 # # Post process each date
@@ -95,9 +95,9 @@ flag_sp_dictionary['no_results']  = [8,'No spectroscopic analysis results availa
 # flag_sp_dictionary['spec_binary'] = [,'Flux contribution of another component suspected with more than 5 sigma certainty']
 # flag_sp_dictionary['emission']    = [,'Emission in Halpha/Hbeta detected']
 
-a_file = open("final_flag_sp_dictionary.pkl", "wb")
-pickle.dump(flag_sp_dictionary,a_file)
-a_file.close()
+# a_file = open("final_flag_sp_dictionary.pkl", "wb")
+# pickle.dump(flag_sp_dictionary,a_file)
+# a_file.close()
 
 
 # In[ ]:
