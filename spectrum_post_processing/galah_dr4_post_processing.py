@@ -69,10 +69,10 @@ dr60.sort(keys='sobject_id')
 
 
 flag_sp_dictionary = dict()
-flag_sp_dictionary['no_results']  = [1,'No spectroscopic analysis results available']
-flag_sp_dictionary['is_sb2']      = [2,'Double line splitting detected (SB2)']
-flag_sp_dictionary['high_vsini']  = [4,'Broadening values very large']
-flag_sp_dictionary['emission']    = [8,'Emission in Halpha/Hbeta detected']
+flag_sp_dictionary['emission']    = [1,'Emission in Halpha/Hbeta detected']
+flag_sp_dictionary['high_vsini']  = [2,'Broadening values very large']
+flag_sp_dictionary['is_sb2']      = [4,'Double line splitting detected (SB2)']
+flag_sp_dictionary['no_results']  = [8,'No spectroscopic analysis results available']
 
 # flag_sp_dictionary['no_model']    = [,'Best spectroscopic model not available; using initial model']
 # flag_sp_dictionary['ccd_missing'] = [,'Not all 4 CCDs available']
@@ -722,13 +722,13 @@ def process_date(parameter_biases, debug = True):
     return(final_table)
 
 
-# In[30]:
+# In[ ]:
 
 
 final_table = process_date(parameter_biases,debug=False)
 
 
-# In[31]:
+# In[ ]:
 
 
 final_table.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'.fits',overwrite=True)
