@@ -54,6 +54,7 @@ if sys.argv[1] != '-f':
     date = sys.argv[1]
 else:
     date = '131217'
+print('Post-Processing '+date)
 
 
 # In[ ]:
@@ -636,6 +637,9 @@ def process_date(parameter_biases, debug = True):
     #print(final_table)
     
     for dr60_index, sobject_id in enumerate(dr60['sobject_id']):
+        
+        if dr60_index%250==0:
+            print(dr60_index)
         
         has_results = False
         try:
