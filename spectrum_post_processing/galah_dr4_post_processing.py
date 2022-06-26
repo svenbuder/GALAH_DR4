@@ -50,14 +50,75 @@ dr60['date'] = np.array([str(x)[:6] for x in dr60['sobject_id']])
 
 unique_dates = np.unique(dr60['date'])
 
-for year in ['13','14','15','16','17','18','19','20','21','22']:
-    dates_in_that_year = list(unique_dates[
-        np.where([date[:2] == year for date in unique_dates])
-    ])
-    print('import os')
-    print("dates = ['"+"','".join(dates_in_that_year)+"']")
-    print('for date in dates:')
-    print("    os.system('ipython galah_dr4_post_processing.py '+date)")
+dates_run = [
+    '131216',
+    '131217',
+    '131220',
+    '140209',
+#     '140314',
+    '140608',
+#     '140824',
+    '150109',
+    '150408',
+    '150409',
+#     '150901',
+    '151225',
+    '161212',
+    '170205',
+    '170806',
+    '170828',
+    '170829',
+    '170830',
+    '170904',
+    '170912',
+    '190207',
+#     '190224',
+    '190225',
+    '190614',
+    '190615',
+    '191106',
+    '191107',
+    '191108',
+    '191109',
+    '191114',
+    '191115',
+    '191116',
+    '200213',
+    '200214',
+    '200215',
+    '200216',
+    '200511',
+    '200512',
+    '200513',
+#     '200514',
+    '200515',
+    '200516',
+    '200517',
+    '200519',
+    '200521',
+#     '200528',
+#     '200529',
+    '200530',
+#     '200531',
+#     '200708',
+    '200709',
+    '200712',
+#     '200714',
+#     '200724',
+#     '200728',
+    '201003',
+#     '220219',
+    '220220',
+]
+
+# for year in ['13','14','15','16','17','18','19','20','21','22']:
+#     dates_in_that_year = list(unique_dates[
+#         np.where([date[:2] == year for date in unique_dates])
+#     ])
+#     print('import os')
+#     print("dates = ['"+"','".join(dates_in_that_year)+"']")
+#     print('for date in dates:')
+#     print("    os.system('ipython galah_dr4_post_processing.py '+date)")
 
 
 # # Post process each date
@@ -68,7 +129,7 @@ for year in ['13','14','15','16','17','18','19','20','21','22']:
 if sys.argv[1] != '-f':
     date = sys.argv[1]
 else:
-    date = '131217'
+    date = '131216'
 print('Post-Processing '+date)
 
 
@@ -86,14 +147,11 @@ dr60.sort(keys='sobject_id')
 flag_sp_dictionary = dict()
 flag_sp_dictionary['emission']    = [1,'Emission in Halpha/Hbeta detected']
 flag_sp_dictionary['high_vsini']  = [2,'Broadening values very large']
-flag_sp_dictionary['is_sb2']      = [4,'Double line splitting detected (SB2)']
-flag_sp_dictionary['no_results']  = [8,'No spectroscopic analysis results available']
-
-# flag_sp_dictionary['no_model']    = [,'Best spectroscopic model not available; using initial model']
-# flag_sp_dictionary['ccd_missing'] = [,'Not all 4 CCDs available']
-# flag_sp_dictionary['chi2_high']   = [,'Chi2 value of overall spectrum above critical threshold']
-# flag_sp_dictionary['spec_binary'] = [,'Flux contribution of another component suspected with more than 5 sigma certainty']
-# flag_sp_dictionary['emission']    = [,'Emission in Halpha/Hbeta detected']
+flag_sp_dictionary['chi2_3sigma'] = [4,'chi square unusually low/high by 3 sigma']
+flag_sp_dictionary['is_sb2']      = [8,'Double line splitting detected (SB2)']
+flag_sp_dictionary['ccd_missing'] = [16,'Not all 4 CCDs available']
+flag_sp_dictionary['no_model']    = [32,'Extrapolating spectrum model']
+flag_sp_dictionary['no_results']  = [64,'No spectroscopic analysis results available']
 
 # a_file = open("final_flag_sp_dictionary.pkl", "wb")
 # pickle.dump(flag_sp_dictionary,a_file)
@@ -117,22 +175,38 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
             if not has_results:
                 intermediate_flag_sp += flag_sp_dictionary['no_results'][0]
                 
-        # Raise flag for 'is_sb2':
-        # If we have a significant and repeated detection of a velocity peak in the residual of sob-smod
-        if reason == 'is_sb2':
-            if np.isfinite(final_table_row['sb2_rv_16']):
-                intermediate_flag_sp += flag_sp_dictionary['is_sb2'][0]
-                
-        # Raise flag for 'high_vsini':
-        if reason == 'high_vsini':
-            if final_table_row['vsini'] > 25:
-                intermediate_flag_sp += flag_sp_dictionary['high_vsini'][0]
-                
-        # Raise flag for 'emission':
-        if reason == 'emission':
-            if emission_info['any_emission']:
-                intermediate_flag_sp += flag_sp_dictionary['emission'][0]
-        
+        if has_results:
+            
+            # Raise flag for 'chi2_3sigma':
+            # If the chi2_sp is more than 3 sigma above or below the expected value of median=0.82
+            if reason == 'chi2_3sigma':
+                if (final_table_row['chi2_sp'] < 0.57) | (final_table_row['chi2_sp'] > 1.4):
+                    intermediate_flag_sp += flag_sp_dictionary['chi2_3sigma'][0]
+
+            # Raise flag for 'is_sb2':
+            # If we have a significant and repeated detection of a velocity peak in the residual of sob-smod
+            if reason == 'is_sb2':
+                if np.isfinite(final_table_row['sb2_rv_16']):
+                    intermediate_flag_sp += flag_sp_dictionary['is_sb2'][0]
+
+            # Raise flag for 'high_vsini':
+            if reason == 'high_vsini':
+                if final_table_row['vsini'] > 25:
+                    intermediate_flag_sp += flag_sp_dictionary['high_vsini'][0]
+
+            # Raise flag for 'emission':
+            if (reason == 'emission'):
+                if emission_info['any_emission']:
+                    intermediate_flag_sp += flag_sp_dictionary['emission'][0]
+                    
+            if reason == 'ccd_missing':
+                if((results['flag_sp'][0] & 2) == 2):
+                    intermediate_flag_sp += flag_sp_dictionary['ccd_missing'][0]
+            
+            if reason == 'no_model':
+                if((results['flag_sp'][0] & 1) == 1):
+                    intermediate_flag_sp += flag_sp_dictionary['no_model'][0]
+
     return(intermediate_flag_sp)
 
 
@@ -145,7 +219,7 @@ def create_final_dr40_table():
     table_length = len(dr60['sobject_id'])
     
     # Identifiers
-    empty_final_dr40_table['sobject_id'] = np.array(dr60['sobject_id'], dtype=np.int32)
+    empty_final_dr40_table['sobject_id'] = np.array(dr60['sobject_id'], dtype=np.int64)
     empty_final_dr40_table['tmass_id'] = np.array(dr60['2mass'], dtype=str)
     empty_final_dr40_table['gaiadr3_source_id'] = np.array(dr60['gaia_id'], dtype=np.int64)
 
@@ -173,7 +247,6 @@ def create_final_dr40_table():
         empty_final_dr40_table[element.lower()+'_fe'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
         empty_final_dr40_table['e_'+element.lower()+'_fe'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
         empty_final_dr40_table['flag_'+element.lower()+'_fe'] = -np.ones(table_length, dtype=int)
-            
         
     # Post processed analysis
     for label in [
@@ -665,6 +738,8 @@ def process_date(parameter_biases, debug = True):
 
             has_results = True
         except:
+            spectra = []
+            results = []
             pass       
         
         if has_results:
@@ -696,9 +771,9 @@ def process_date(parameter_biases, debug = True):
                 'K','Ca','Sc','Ti','V','Cr','Mn','Co','Ni','Cu','Zn',
                 'Rb','Sr','Y','Zr','Mo','Ru',
                 'Ba','La','Ce','Nd','Sm','Eu'
-                
             ]:
-                final_table[element.lower()+'_fe'][dr60_index] = results[element.lower()+'_fe']
+                if np.isfinite(results[element.lower()+'_fe']):
+                    final_table[element.lower()+'_fe'][dr60_index] = results[element.lower()+'_fe'] + parameter_biases[element.lower()+'_fe']
                 final_table['e_'+element.lower()+'_fe'][dr60_index] = results['cov_e_'+element.lower()+'_fe']
                 final_table['flag_'+element.lower()+'_fe'][dr60_index] = results['flag_'+element.lower()+'_fe']
 
@@ -732,6 +807,8 @@ def process_date(parameter_biases, debug = True):
                     final_table['rv_dib'+str(int(line))][dr60_index] = rv
                 except:
                     pass
+        else:
+            emission_information = [] 
 
         final_table['flag_sp'][dr60_index] = apply_final_flag_sp(results,spectra,final_table[dr60_index],has_results,emission_information)
         
@@ -748,4 +825,10 @@ final_table = process_date(parameter_biases,debug=False)
 
 
 final_table.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'.fits',overwrite=True)
+
+
+# In[ ]:
+
+
+
 
