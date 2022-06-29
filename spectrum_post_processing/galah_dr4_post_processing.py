@@ -96,18 +96,27 @@ dates_run = [
     '200517',
     '200519',
     '200521',
-#     '200528',
-#     '200529',
+    '200528',
+    '200529',
     '200530',
-#     '200531',
-#     '200708',
+    '200531',
+    '200708',
     '200709',
     '200712',
 #     '200714',
 #     '200724',
-#     '200728',
+    '200728',
+#     '200801',
+#     '200802',
+#     '200803',
+    '200804',
+    '200805',
+    '200810',
+    '200824',
+    '200825',
+    '200826',
     '201003',
-#     '220219',
+    '220219',
     '220220',
 ]
 
@@ -244,8 +253,8 @@ def create_final_dr40_table():
                 'Rb','Sr','Y','Zr','Mo','Ru',
                 'Ba','La','Ce','Nd','Sm','Eu'
         ]:
-        empty_final_dr40_table[element.lower()+'_fe'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
-        empty_final_dr40_table['e_'+element.lower()+'_fe'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
+        empty_final_dr40_table[element.lower()+'_fe'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[element.lower()+'_fe'][:] = np.NaN
+        empty_final_dr40_table['e_'+element.lower()+'_fe'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table['e_'+element.lower()+'_fe'][:] = np.NaN
         empty_final_dr40_table['flag_'+element.lower()+'_fe'] = -np.ones(table_length, dtype=int)
         
     # Post processed analysis
