@@ -48,16 +48,16 @@ dr60['date'] = np.array([str(x)[:6] for x in dr60['sobject_id']])
 # In[ ]:
 
 
-unique_dates = np.unique(dr60['date'])
-sobject_ids_per_date = []
-for date in unique_dates:
-    sobject_ids_per_date.append(len(dr60['date'][(dr60['date']==date) & np.isfinite(dr60['rv_com'])]))
+# unique_dates = np.unique(dr60['date'])
+# sobject_ids_per_date = []
+# for date in unique_dates:
+#     sobject_ids_per_date.append(len(dr60['date'][(dr60['date']==date) & np.isfinite(dr60['rv_com'])]))
     
-date_nr = Table()
-date_nr['date'] = unique_dates
-date_nr['nr'] = np.array(sobject_ids_per_date)
-date_nr.sort(keys='nr',reverse=True)
-date_nr
+# date_nr = Table()
+# date_nr['date'] = unique_dates
+# date_nr['nr'] = np.array(sobject_ids_per_date)
+# date_nr.sort(keys='nr',reverse=True)
+# date_nr
 
 
 # In[ ]:
@@ -153,35 +153,106 @@ dates_run = [
     '210113',
     '210114',
     '210115',
-#     '210116',
+    '210116',
     '210117',
-#     '210122',
-#     '210123',
-#     '210124',
-#     '210125',
+    '210122',
+    '210123',
+    '210124',
+    '210125',
     '210126',
-#     '210202',
-#     '210203',
-#     '210324',
-#     '210325',
-#     '210327',
-#     '210328',
-#     '210329',
-#     '210330',
-#     '210331',
+    '210202',
+    '210203',
+    '210324',
+    '210325',
+    '210327',
+    '210328',
+    '210329',
+    '210330',
+    '210331',
+    '210401',
+    '210402',
+    '210403',
+    '210404',
+    '210405',
+    '210422',
+    '210513',
+    '210514',
+    '210515',
+    '210516',
+    '210517',
+    '210518',
+    '210519',
+    '210520',
+    '210521',
+    '210522',
+    '210523',
+    '210524',
+    '210531',
+    '210602',
+    '210605',
+    '210606',
+    '210607',
+    '210608',
+    '210612',
+    '210614',
+    '210706',
+    '210707',
+    '210710',
+    '210711',
+    '210715',
+    '210716',
+    '210718',
+    '210719',
+    '210721',
+    '210725',
+    '210726',
+    '210727',
+    '210728',
+    '210729',
+    '210730',
+    '210731',
+    '210802',
+    '210803',
+    '210914',
+    '210915',
+    '210916',
+    '210918',
+    '210919',
+    '210920',
+    '210921',
+#     '210922',
+    '210923',
+    '210925',
+    '210926',
+    '210927',
+    '211113',
+    '211114',
+    '211213',
+    '211214',
+    '211215',
+    '211216',
+    '211217',
+    '211219',
+    '211220',
+    '211221',
     '220120',
     '220121',
     '220122',
     '220123',
     '220124',
     '220125',
-#     '220214',
-#     '220215',
-#     '220216',
+    '220214',
+    '220215',
+    '220216',
     '220217',
     '220218',
     '220219',
     '220220',
+    '220221',
+    '220322',
+    '220324',
+    '220420',
+    '220422',
 ]
 
 # for year in ['13','14','15','16','17','18','19','20','21','22']:
@@ -217,14 +288,21 @@ dr60.sort(keys='sobject_id')
 # In[ ]:
 
 
+masks = Table.read('../spectrum_analysis/spectrum_masks/solar_spectrum_mask.fits')
+
+
+# In[ ]:
+
+
 flag_sp_dictionary = dict()
 flag_sp_dictionary['emission']    = [1,'Emission in Halpha/Hbeta detected']
-flag_sp_dictionary['high_vsini']  = [2,'Broadening values very large']
-flag_sp_dictionary['chi2_3sigma'] = [4,'chi square unusually low/high by 3 sigma']
-flag_sp_dictionary['is_sb2']      = [8,'Double line splitting detected (SB2)']
-flag_sp_dictionary['ccd_missing'] = [16,'Not all 4 CCDs available']
-flag_sp_dictionary['no_model']    = [32,'Extrapolating spectrum model']
-flag_sp_dictionary['no_results']  = [64,'No spectroscopic analysis results available']
+flag_sp_dictionary['vsini_warn']  = [2,'Broadening (vsini) warning']
+flag_sp_dictionary['vmic_warn']   = [4,'Microturbulence (vmic) warning']
+flag_sp_dictionary['chi2_3sigma'] = [8,'chi square unusually low/high by 3 sigma']
+flag_sp_dictionary['is_sb2']      = [16,'Double line splitting detected (SB2)']
+flag_sp_dictionary['ccd_missing'] = [32,'Not all 4 CCDs available']
+flag_sp_dictionary['no_model']    = [64,'Extrapolating spectrum model']
+flag_sp_dictionary['no_results']  = [128,'No spectroscopic analysis results available']
 
 # a_file = open("final_flag_sp_dictionary.pkl", "wb")
 # pickle.dump(flag_sp_dictionary,a_file)
@@ -262,16 +340,21 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
                 if np.isfinite(final_table_row['sb2_rv_16']):
                     intermediate_flag_sp += flag_sp_dictionary['is_sb2'][0]
 
-            # Raise flag for 'high_vsini':
-            if reason == 'high_vsini':
+            # Raise flag for 'vsini_warn':
+            if reason == 'vsini_warn':
                 if final_table_row['vsini'] > 25:
-                    intermediate_flag_sp += flag_sp_dictionary['high_vsini'][0]
+                    intermediate_flag_sp += flag_sp_dictionary['vsini_warn'][0]
+
+            # Raise flag for 'vmic_warn':
+            if reason == 'vmic_warn':
+                if final_table_row['vmic'] < np.max([0.5,0.5 + 0.5*(final_table_row['teff']-6000.)/1000.]):
+                    intermediate_flag_sp += flag_sp_dictionary['vmic_warn'][0]
 
             # Raise flag for 'emission':
             if (reason == 'emission'):
                 if emission_info['any_emission']:
                     intermediate_flag_sp += flag_sp_dictionary['emission'][0]
-                    
+
             if reason == 'ccd_missing':
                 if((results['flag_sp'][0] & 2) == 2):
                     intermediate_flag_sp += flag_sp_dictionary['ccd_missing'][0]
@@ -349,6 +432,7 @@ spectral_lines_to_assess = [
     7774.1660, # O triplet
     7775.3880, # O triplet
     7691.5500, # Mg line
+    # Note that we do not use the K line here, because it was wrongly detecting interstellar as binary signatures
     4890.7551, # Fe line
     4891.4921, # Fe line
     6643.6303, # Ni line
@@ -371,9 +455,14 @@ def identify_possible_RV_shifts(
     
     possible_line_splitting_peaks = []
     
+    # We have to make sure that the regions that are always masked (never fitted) are actually not used for estimating binarity
+    not_modelled = np.any(np.array([((spectra['wave'] >= mask_beginning) & (spectra['wave'] <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0)
+    spectra['smod'][not_modelled] = spectra['sob'][not_modelled]
+    
     for line in spectral_lines_to_assess:
         wave_km_s = ((spectra['wave']/line - 1)*c.c).to(u.km/u.s).value
         within_rv_shift_km_s = np.abs(wave_km_s - search_window_center_in_kms) < 0.5*search_window_width_in_kms
+        
 
         # We will work with the difference of observed and synthetic spectra
         # To avoid low SNR to introduce issues, we will only allow differences above 
@@ -457,7 +546,7 @@ def identify_possible_RV_shifts(
                 indices_within_search_window = np.abs(equidistant_velocity - equidistant_velocity[np.argmin(equidistant_flux_difference)]) < 0.5*search_peak_width_in_kms
                 equidistant_flux_difference_to_search[indices_within_search_window] = 0
 
-    if len(possible_line_splitting_peaks) >= 3:
+    if len(possible_line_splitting_peaks) >= 4:
         hist = np.histogram(possible_line_splitting_peaks, bins=np.arange(-0.5*search_window_width_in_kms+search_window_center_in_kms,0.5*search_window_width_in_kms+search_window_center_in_kms+0.1,20))
         if debug:
             plt.figure()
@@ -800,7 +889,7 @@ def process_date(parameter_biases, debug = True):
     for dr60_index, sobject_id in enumerate(dr60['sobject_id']):
         
         if dr60_index%250==0:
-            print(dr60_index)
+            print(dr60_index, str(np.round(dr60_index/len(dr60['sobject_id'])))+'%')
         
         has_results = False
         try:
