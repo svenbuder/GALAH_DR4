@@ -48,7 +48,7 @@ dr60['date'] = np.array([str(x)[:6] for x in dr60['sobject_id']])
 # In[ ]:
 
 
-# unique_dates = np.unique(dr60['date'])
+unique_dates = np.unique(dr60['date'])
 # sobject_ids_per_date = []
 # for date in unique_dates:
 #     sobject_ids_per_date.append(len(dr60['date'][(dr60['date']==date) & np.isfinite(dr60['rv_com'])]))
@@ -67,7 +67,26 @@ dates_run = [
     '131216',
     '131217',
     '131220',
+    '140111',
+    '140112',
+    '140113',
+    '140114',
+    '140115',
+    '140116',
+    '140117',
+    '140118',
+    '140207',
+    '140208',
     '140209',
+    '140210',
+    '140211',
+    '140212',
+    '140303',
+    '140304',
+    '140305',
+#     '140307',
+#     '140308',
+#     '140309',
     '140314',
     '140608',
     '140824',
@@ -77,6 +96,8 @@ dates_run = [
     '150901',
     '151225',
     '161212',
+#     '161213',
+#     '161217',
     '170205',
     '170806',
     '170828',
@@ -255,14 +276,14 @@ dates_run = [
     '220422',
 ]
 
-# for year in ['13','14','15','16','17','18','19','20','21','22']:
-#     dates_in_that_year = list(unique_dates[
-#         np.where([date[:2] == year for date in unique_dates])
-#     ])
-#     print('import os')
-#     print("dates = ['"+"','".join(dates_in_that_year)+"']")
-#     print('for date in dates:')
-#     print("    os.system('ipython galah_dr4_post_processing.py '+date)")
+for year in ['13','14','15','16','17','18','19','20','21','22']:
+    dates_in_that_year = list(unique_dates[
+        np.where([date[:2] == year for date in unique_dates])
+    ])
+    print('import os')
+    print("dates = ['"+"','".join(dates_in_that_year)+"']")
+    print('for date in dates:')
+    print("    os.system('ipython galah_dr4_post_processing.py '+date)")
 
 
 # # Post process each date
@@ -379,6 +400,10 @@ def create_final_dr40_table():
     empty_final_dr40_table['tmass_id'] = np.array(dr60['2mass'], dtype=str)
     empty_final_dr40_table['gaiadr3_source_id'] = np.array(dr60['gaia_id'], dtype=np.int64)
 
+    # Positions
+    empty_final_dr40_table['ra'] = np.array(dr60['ra'], dtype=np.float64)
+    empty_final_dr40_table['dec'] = np.array(dr60['dec'], dtype=np.float64)
+    
     # Major Spectroscopic Results
     empty_final_dr40_table['flag_sp'] = -np.ones(table_length, dtype=int)
     for label in ['chi2_sp']:
@@ -832,46 +857,66 @@ for (element, zeropoint) in zip(elements, zeropoints):
 # In[ ]:
 
 
+galah_zeropoints = Table()
+galah_zeropoints['teff']  = [np.float32(5770.6)]
+galah_zeropoints['logg']  = [np.float32(4.339)]
+galah_zeropoints['A_Fe']  = [np.float32(7.45-0.070)]
+galah_zeropoints['vmic']  = [np.float32(1.07)]
+galah_zeropoints['vsini'] = [np.float32(5.7)]
+
+galah_zeropoints['A_Li'] = [np.float32(1.05+0.250)] # +0.543 VESTA, GAS07: 1.05, DR3: 1.05
+galah_zeropoints['A_C']  = [np.float32(8.39+0.035)] # VESTA, GAS07: 8.39, DR3: 8.45
+galah_zeropoints['A_N']  = [np.float32(7.78+0.150)]  # VESTA: 7.78+0.617, GAS07: 7.78, DR3:
+galah_zeropoints['A_O']  = [np.float32(8.66+0.070)] # -0.124 VESTA, GAS07: 8.66, DR3: 8.77
+galah_zeropoints['A_Na'] = [np.float32(6.17+0.204)] # VESTA, GAS07: 6.17, DR3: 6.06
+galah_zeropoints['A_Mg'] = [np.float32(7.53+0.082)] # +0.164 VESTA, GAS07: 7.53, DR3: 7.60
+galah_zeropoints['A_Al'] = [np.float32(6.37+0.205)] # VESTA, GAS07: 6.37, DR3: 6.41
+galah_zeropoints['A_Si'] = [np.float32(7.51+0.009)] # VESTA, GAS07: 7.51, DR3: 7.47
+galah_zeropoints['A_K']  = [np.float32(5.08-0.029)] # VESTA, GAS07: 5.08, DR3: 5.07
+galah_zeropoints['A_Ca'] = [np.float32(6.31+0.035)] # VESTA, GAS07: 6.31, DR3: 6.18
+galah_zeropoints['A_Sc'] = [np.float32(3.17-0.016)] # VESTA, GAS07: 3.17, DR3:
+galah_zeropoints['A_Ti'] = [np.float32(4.90+0.010)] # VESTA, GAS07: 4.90, DR3:
+galah_zeropoints['A_V']  = [np.float32(4.00-0.116)] # VESTA, GAS07: 4.00, DR3:
+galah_zeropoints['A_Cr'] = [np.float32(5.64+0.014)] # VESTA, GAS07: 5.64, DR3: 0.132
+galah_zeropoints['A_Mn'] = [np.float32(5.39+0.135)] # VESTA, GAS07: 5.39, DR3: 0.064
+galah_zeropoints['A_Co'] = [np.float32(4.92-0.095)] # VESTA, GAS07: 4.92, DR3: 0.072
+galah_zeropoints['A_Ni'] = [np.float32(6.23+0.016)] # VESTA, GAS07: 6.23, DR3: 6.23
+galah_zeropoints['A_Cu'] = [np.float32(4.21-0.154)] # VESTA, GAS07: 4.21, DR3: 4.06
+galah_zeropoints['A_Zn'] = [np.float32(4.60-0.050)] # VESTA, GAS07: 4.60, DR3:
+galah_zeropoints['A_Rb'] = [np.float32(2.60)] # GAS07: 2.60, DR3: 2.60
+galah_zeropoints['A_Sr'] = [np.float32(2.92)] # GAS07: 2.92, DR3: 3.30
+galah_zeropoints['A_Y']  = [np.float32(2.21-0.115)] # VESTA, GAS07: 2.21, DR3: 2.14
+galah_zeropoints['A_Zr'] = [np.float32(2.58-0.297)] # VESTA, GAS07: 2.58, DR3:
+galah_zeropoints['A_Mo'] = [np.float32(1.92)] # GAS07: 1.92, DR3:
+galah_zeropoints['A_Ru'] = [np.float32(1.84)] # GAS07: 1.84, DR3: 2.31
+galah_zeropoints['A_Ba'] = [np.float32(2.17-0.067)] # VESTA, GAS07: 2.17, DR3: 2.17
+galah_zeropoints['A_La'] = [np.float32(1.13)] # GAS07: 1.13, DR3:
+galah_zeropoints['A_Ce'] = [np.float32(1.70)] # GAS07: 1.70, DR3: 2.14
+galah_zeropoints['A_Nd'] = [np.float32(1.45+0.137)] # VESTA, GAS07: 1.45, DR3:
+galah_zeropoints['A_Sm'] = [np.float32(1.00+0.130)] # GAS07: 1.00, DR3:
+galah_zeropoints['A_Eu'] = [np.float32(0.52+0.40)] # GAS07: 0.52, DR3: 0.57
+galah_zeropoints
+
+
+# In[ ]:
+
+
 # Parameter Biases
 parameter_biases = dict()
 
-parameter_biases['teff']  = 5772.0 - 5770.6
-parameter_biases['logg']  = 4.438 - 4.339 # DR3: offset without non-spectroscopic information
-parameter_biases['fe_h']  = marcs2014_a_x_sun['Fe'] - (7.45-0.070)  # -0.017 VESTA, GAS07: 7.45, DR3: 7.38
+parameter_biases['teff']  = 5772.0 - galah_zeropoints['teff'][0]
+parameter_biases['logg']  = 4.438 - galah_zeropoints['logg'][0] # DR3: offset without non-spectroscopic information
+parameter_biases['fe_h']  = marcs2014_a_x_sun['Fe'] - galah_zeropoints['A_Fe'][0]  # -0.017 VESTA, GAS07: 7.45, DR3: 7.38
 parameter_biases['vmic']  = 0.
 parameter_biases['vsini'] = 0.
-
-parameter_biases['li_fe'] = marcs2014_a_x_sun['Li'] - (1.05+0.250) # +0.543 VESTA, GAS07: 1.05, DR3: 1.05
-parameter_biases['c_fe']  = marcs2014_a_x_sun['C']  - (8.39+0.035) # VESTA, GAS07: 8.39, DR3: 8.45
-parameter_biases['n_fe']  = marcs2014_a_x_sun['N']  - (7.78+0.150)  # VESTA: 7.78+0.617, GAS07: 7.78, DR3:
-parameter_biases['o_fe']  = marcs2014_a_x_sun['O']  - (8.66+0.070) # -0.124 VESTA, GAS07: 8.66, DR3: 8.77
-parameter_biases['na_fe'] = marcs2014_a_x_sun['Na'] - (6.17+0.204) # VESTA, GAS07: 6.17, DR3: 6.06
-parameter_biases['mg_fe'] = marcs2014_a_x_sun['Mg'] - (7.53+0.082) # +0.164 VESTA, GAS07: 7.53, DR3: 7.60
-parameter_biases['al_fe'] = marcs2014_a_x_sun['Al'] - (6.37+0.205) # VESTA, GAS07: 6.37, DR3: 6.41
-parameter_biases['si_fe'] = marcs2014_a_x_sun['Si'] - (7.51+0.009) # VESTA, GAS07: 7.51, DR3: 7.47
-parameter_biases['k_fe']  = marcs2014_a_x_sun['K']  - (5.08-0.029) # VESTA, GAS07: 5.08, DR3: 5.07
-parameter_biases['ca_fe'] = marcs2014_a_x_sun['Ca'] - (6.31+0.035) # VESTA, GAS07: 6.31, DR3: 6.18
-parameter_biases['sc_fe'] = marcs2014_a_x_sun['Sc'] - (3.17-0.016) # VESTA, GAS07: 3.17, DR3:
-parameter_biases['ti_fe'] = marcs2014_a_x_sun['Ti'] - (4.90+0.010) # VESTA, GAS07: 4.90, DR3:
-parameter_biases['v_fe']  = marcs2014_a_x_sun['V']  - (4.00-0.116) # VESTA, GAS07: 4.00, DR3:
-parameter_biases['cr_fe'] = marcs2014_a_x_sun['Cr'] - (5.64+0.014) # VESTA, GAS07: 5.64, DR3: 0.132
-parameter_biases['mn_fe'] = marcs2014_a_x_sun['Mn'] - (5.39+0.135) # VESTA, GAS07: 5.39, DR3: 0.064
-parameter_biases['co_fe'] = marcs2014_a_x_sun['Co'] - (4.92-0.095) # VESTA, GAS07: 4.92, DR3: 0.072
-parameter_biases['ni_fe'] = marcs2014_a_x_sun['Ni'] - (6.23+0.016) # VESTA, GAS07: 6.23, DR3: 6.23
-parameter_biases['cu_fe'] = marcs2014_a_x_sun['Cu'] - (4.21-0.154) # VESTA, GAS07: 4.21, DR3: 4.06
-parameter_biases['zn_fe'] = marcs2014_a_x_sun['Zn'] - (4.60-0.050) # VESTA, GAS07: 4.60, DR3:
-parameter_biases['rb_fe'] = marcs2014_a_x_sun['Rb'] - (2.60) # GAS07: 2.60, DR3: 2.60
-parameter_biases['sr_fe'] = marcs2014_a_x_sun['Sr'] - (2.92) # GAS07: 2.92, DR3: 3.30
-parameter_biases['y_fe']  = marcs2014_a_x_sun['Y']  - (2.21-0.115) # VESTA, GAS07: 2.21, DR3: 2.14
-parameter_biases['zr_fe'] = marcs2014_a_x_sun['Zr'] - (2.58-0.297) # VESTA, GAS07: 2.58, DR3:
-parameter_biases['mo_fe'] = marcs2014_a_x_sun['Mo'] - (1.92) # GAS07: 1.92, DR3:
-parameter_biases['ru_fe'] = marcs2014_a_x_sun['Ru'] - (1.84) # GAS07: 1.84, DR3: 2.31
-parameter_biases['ba_fe'] = marcs2014_a_x_sun['Ba'] - (2.17-0.067) # VESTA, GAS07: 2.17, DR3: 2.17
-parameter_biases['la_fe'] = marcs2014_a_x_sun['La'] - (1.13) # GAS07: 1.13, DR3:
-parameter_biases['ce_fe'] = marcs2014_a_x_sun['Ce'] - (1.70) # GAS07: 1.70, DR3: 2.14
-parameter_biases['nd_fe'] = marcs2014_a_x_sun['Nd'] - (1.45+0.137) # VESTA, GAS07: 1.45, DR3:
-parameter_biases['sm_fe'] = marcs2014_a_x_sun['Sm'] - (1.00+0.130) # GAS07: 1.00, DR3:
-parameter_biases['eu_fe'] = marcs2014_a_x_sun['Eu'] - (0.52) # GAS07: 0.52, DR3: 0.57
+for element in [
+    'Li','C','N','O',
+    'Na','Mg','Al','Si',
+    'K','Ca','Sc','Ti','V','Cr','Mn','Co','Ni','Cu','Zn',
+    'Rb','Sr','Y','Zr','Mo','Ru',
+    'Ba','La','Ce','Nd','Sm','Eu'
+]:
+    parameter_biases[element.lower()+'_fe'] = marcs2014_a_x_sun['Li'] - galah_zeropoints['A_'+element][0]
 
 
 # In[ ]:
@@ -986,10 +1031,4 @@ final_table = process_date(parameter_biases,debug=False)
 
 
 final_table.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'.fits',overwrite=True)
-
-
-# In[ ]:
-
-
-
 
