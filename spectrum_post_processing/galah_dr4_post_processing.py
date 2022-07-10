@@ -939,7 +939,7 @@ def process_date(parameter_biases, debug = True):
     for dr60_index, sobject_id in enumerate(dr60['sobject_id']):
         
         if dr60_index%250==0:
-            print(dr60_index, str(np.round(100*dr60_index*/len(dr60['sobject_id'])))+'%')
+            print(dr60_index, str(np.round(100*dr60_index/len(dr60['sobject_id'])))+'%')
         
         has_results = False
         try:
