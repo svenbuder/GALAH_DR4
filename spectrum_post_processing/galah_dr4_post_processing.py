@@ -84,9 +84,12 @@ dates_run = [
     '140303',
     '140304',
     '140305',
-#     '140307',
-#     '140308',
+    '140307',
+    '140308',
 #     '140309',
+#     '140310',
+#     '140311',
+#     '140312',
     '140314',
     '140608',
     '140824',
@@ -276,14 +279,14 @@ dates_run = [
     '220422',
 ]
 
-for year in ['13','14','15','16','17','18','19','20','21','22']:
-    dates_in_that_year = list(unique_dates[
-        np.where([date[:2] == year for date in unique_dates])
-    ])
-    print('import os')
-    print("dates = ['"+"','".join(dates_in_that_year)+"']")
-    print('for date in dates:')
-    print("    os.system('ipython galah_dr4_post_processing.py '+date)")
+# for year in ['13','14','15','16','17','18','19','20','21','22']:
+#     dates_in_that_year = list(unique_dates[
+#         np.where([date[:2] == year for date in unique_dates])
+#     ])
+#     print('import os')
+#     print("dates = ['"+"','".join(dates_in_that_year)+"']")
+#     print('for date in dates:')
+#     print("    os.system('ipython galah_dr4_post_processing.py '+date)")
 
 
 # # Post process each date
@@ -897,6 +900,8 @@ galah_zeropoints['A_Sm'] = [np.float32(1.00+0.130)] # GAS07: 1.00, DR3:
 galah_zeropoints['A_Eu'] = [np.float32(0.52+0.40)] # GAS07: 0.52, DR3: 0.57
 galah_zeropoints
 
+# galah_zeropoints.write('galah_dr4_zeropoints.fits',overwrite=True)
+
 
 # In[ ]:
 
@@ -916,7 +921,7 @@ for element in [
     'Rb','Sr','Y','Zr','Mo','Ru',
     'Ba','La','Ce','Nd','Sm','Eu'
 ]:
-    parameter_biases[element.lower()+'_fe'] = marcs2014_a_x_sun['Li'] - galah_zeropoints['A_'+element][0]
+    parameter_biases[element.lower()+'_fe'] = marcs2014_a_x_sun[element] - galah_zeropoints['A_'+element][0]
 
 
 # In[ ]:
@@ -934,7 +939,7 @@ def process_date(parameter_biases, debug = True):
     for dr60_index, sobject_id in enumerate(dr60['sobject_id']):
         
         if dr60_index%250==0:
-            print(dr60_index, str(np.round(dr60_index/len(dr60['sobject_id'])))+'%')
+            print(dr60_index, str(np.round(100*dr60_index*/len(dr60['sobject_id'])))+'%')
         
         has_results = False
         try:
