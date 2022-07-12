@@ -5,6 +5,14 @@ This repository accompanies the Data Release 4 (DR4) of the Galactic Archaeology
 ## Authors
 - [Sven Buder](https://github.com/svenbuder) (ANU, ASTRO 3D)
 
+## Where to find and how to use the data release catalogs
+
+The catalogs will be released publicly on the datacentral website: [http://datacentral.org.au/teamdata/GALAH/public/](http://datacentral.org.au/teamdata/GALAH/public/).
+
+The inofficial releases can be downloaded by logging into the internal GALAH website: [https://internal.galah-survey.org](https://internal.galah-survey.org)
+
+Use flag_sp == 0 and flag_x_fe == 0 for best results!
+
 ## About Galactic Archaeology with HERMES (GALAH)
 
 GALAH is a stellar spectroscopic survey of a million stars in the Milky Way. It's scientific motivation is described by [De Silva et al. (2015)](http://adsabs.harvard.edu/abs/2015MNRAS.449.2604D). GALAH had three previous data releases: DR1 [(Martell et al. 2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.465.3203M), DR2 [Buder et al. 2018)](https://ui.adsabs.harvard.edu/abs/2018MNRAS.478.4513B), and DR3 [(Buder et al. 2021)](https://ui.adsabs.harvard.edu/abs/2021MNRAS.506..150B). For more information see [the GALAH survey website](https://www.galah-survey.org).
