@@ -91,6 +91,8 @@ dates_run = [
 #     '140311',
 #     '140312',
     '140314',
+#     '140315',
+#     '140316',
     '140608',
     '140824',
     '150109',
@@ -244,7 +246,7 @@ dates_run = [
     '210919',
     '210920',
     '210921',
-#     '210922',
+    '210922',
     '210923',
     '210925',
     '210926',
@@ -432,6 +434,20 @@ def create_final_dr40_table():
         empty_final_dr40_table['e_'+element.lower()+'_fe'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table['e_'+element.lower()+'_fe'][:] = np.NaN
         empty_final_dr40_table['flag_'+element.lower()+'_fe'] = -np.ones(table_length, dtype=int)
         
+    # Positions
+    empty_final_dr40_table['v_bary_eff'] = np.array(dr60['v_bary_eff'], dtype=np.float64)
+    empty_final_dr40_table['red_rv_ccd'] = dr60['rv']
+    empty_final_dr40_table['red_e_rv_ccd'] = dr60['e_rv']
+    empty_final_dr40_table['red_rv_com'] = np.array(dr60['rv_com'], dtype=np.float64)
+    empty_final_dr40_table['red_e_rv_com'] = np.array(dr60['e_rv_com'], dtype=np.float64)
+    empty_final_dr40_table['red_teff'] = np.array(dr60['teff_r'], dtype=np.float64)
+    empty_final_dr40_table['red_logg'] = np.array(dr60['logg_r'], dtype=np.float64)
+    empty_final_dr40_table['red_fe_h'] = np.array(dr60['fe_h_r'], dtype=np.float64)
+    empty_final_dr40_table['red_alpha_fe'] = np.array(dr60['alpha_fe_r'], dtype=np.float64)
+    empty_final_dr40_table['red_vmic'] = np.array(dr60['vmic_r'], dtype=np.float64)
+    empty_final_dr40_table['red_vbroad'] = np.array(dr60['vbroad_r'], dtype=np.float64)
+    empty_final_dr40_table['red_flag'] = np.array(dr60['e_rv_com'], dtype=np.int)
+
     # Post processed analysis
     for label in [
         'sb2_rv_16','sb2_rv_50','sb2_rv_84',
@@ -948,6 +964,11 @@ def process_date(parameter_biases, debug = True):
             results = Table.read('../analysis_products/'+str(sobject_id)[:6]+'/'+str(sobject_id)+'/'+str(sobject_id)+'_simple_fit_results.fits')
 
             has_results = True
+            
+            # There are completely unreasonable outliers!
+            if sobject_id in [200714001301248,140303000401330,200714001301055]:
+                has_results = False
+            
         except:
             spectra = []
             results = []
