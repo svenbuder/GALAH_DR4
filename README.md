@@ -2,8 +2,9 @@
 
 This repository accompanies the Data Release 4 (DR4) of the Galactic Archaeology with HERMES (GALAH) Survey.
 
-## Authors
-- [Sven Buder](https://github.com/svenbuder) (ANU, ASTRO 3D)
+## About Galactic Archaeology with HERMES (GALAH)
+
+GALAH is a stellar spectroscopic survey of a million stars in the Milky Way. It's scientific motivation is described by [De Silva et al. (2015)](http://adsabs.harvard.edu/abs/2015MNRAS.449.2604D). GALAH had three previous data releases: DR1 [(Martell et al. 2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.465.3203M), DR2 [Buder et al. 2018)](https://ui.adsabs.harvard.edu/abs/2018MNRAS.478.4513B), and DR3 [(Buder et al. 2021)](https://ui.adsabs.harvard.edu/abs/2021MNRAS.506..150B). For more information see [the GALAH survey website](https://www.galah-survey.org).
 
 ## Where to find and how to use the data release catalogs
 
@@ -13,11 +14,7 @@ The inofficial releases can be downloaded by logging into the internal GALAH web
 
 Use flag_sp == 0 and flag_x_fe == 0 for best results!
 
-## About Galactic Archaeology with HERMES (GALAH)
-
-GALAH is a stellar spectroscopic survey of a million stars in the Milky Way. It's scientific motivation is described by [De Silva et al. (2015)](http://adsabs.harvard.edu/abs/2015MNRAS.449.2604D). GALAH had three previous data releases: DR1 [(Martell et al. 2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.465.3203M), DR2 [Buder et al. 2018)](https://ui.adsabs.harvard.edu/abs/2018MNRAS.478.4513B), and DR3 [(Buder et al. 2021)](https://ui.adsabs.harvard.edu/abs/2021MNRAS.506..150B). For more information see [the GALAH survey website](https://www.galah-survey.org).
-
-## Overview of this repository
+## Overview of this repository as a way to reproduce results and understand the analysis
 
 In this repository, you find the relevant code and example spectra (excluding large files) for reproducing the GALAH data analysis. Input files are provided by the reduction pipeline of GALAH, which is also published on a [github repository](https://github.com/sheliak/galah_reduction).
 
@@ -35,6 +32,8 @@ Code/Files are accessed in the following order:
 9. catalogs (final catalogs to be published).
 
 ## Overview of the data release products as of 11 July 2022
+
+This is a trial of the analysis pipeline. While the pipeline is still under development, only a subset of stars has been run, which led to the analysis of 237,717 spectra without raising quality flags for the main parameters.
 
 ![Overview of the fourth data release as of 11 July 2022 with density plots of unflagged stellar parameters and abundances](spectrum_post_processing/figures/galah_dr4_overview.png)
 
@@ -84,9 +83,10 @@ We are fitting CNO abundances now! Thanks to the enhanced creation of synthetic 
     <img src="validation/figures/galah_dr4_validation_apogeedr17_ni_fe_density.png" alt="drawing" width="45%"/>
 </p>
 
-Attribution
------------
+## Authors
+- [Sven Buder](https://github.com/svenbuder) (ANU, ASTRO 3D)
 
+## Attribution
 If you make use of this code, please cite the paper::
 
     @article{Buder2022,
