@@ -28,18 +28,60 @@ Code/Files are accessed in the following order:
 
 ## Overview of the data release products as of 11 July 2022
 
-### Stellar Parameters
+![Overview of the fourth data release as of 11 July 2022 with density plots of unflagged stellar parameters and abundances](spectrum_post_processing/figures/galah_dr4_overview.png)
 
-### Elemental abundances
+### What's new? Fastly interpolated synthetic spectra for the whole wavelength range
 
-### Comparison with literature (like APOGEE DR17)
+To allow the simultanious fitting of stellar parameters and abundances (a shortcoming of the previous data releases affecting especially blended regions), we have changed our fitting approach. We are now producing synthetic spectra for a limited random selection and train neural networks on them. This allows to fit all 5 stellar parameters (Teff, logg, [Fe/H], vmic, vsini) and up to 31 elemental abundances at the same time.
+<p align=center>
+    <img src="analysis_products/210115/210115002201239/210115002201239_simple_fit_comparison.png" alt="Observed and synthetic spectrum for VESTA" width="50%"/>
+</p>
+
+### What's new? CNO Abundances
+
+We are fitting CNO abundances now! Thanks to the enhanced creation of synthetic stellar spectra, we are now also producing synthetic spectra for regions with strong molecular absorption features, like C2 (C12-C12 Swan bands before 4738Å) and CN (beyond 7870Å) as well as an underlying CN feature throughout most of the red and infrared region (most notably in cool giants).
+<p align=center>
+    <img src="spectrum_post_processing/figures/overview_CNO.png" alt="CNO abundance overview" width="50%"/>
+</p>
+
+## Validation
+
+### Gaia FGK Benchmark Stars
+
+<p align=center>
+    <img src="validation/figures/gbs_performance_lbol.png" alt="drawing" width="50%"/>
+</p>
+
+### APOGEE DR17     
+
+#### Comparison of APOGEE DR17 stellar parameters with GALAH DR4, for all stars (top), dwarfs (middle) and giants (bottom).
+
+<p align=center>
+    <img src="validation/figures/galah_dr4_validation_apogeedr17_teffloggfeh_diff_all.png" alt="drawing" width="75%"/>
+    <img src="validation/figures/galah_dr4_validation_apogeedr17_teffloggfeh_diff_dwarfs.png" alt="drawing" width="75%"/>
+    <img src="validation/figures/galah_dr4_validation_apogeedr17_teffloggfeh_diff_giants.png" alt="drawing" width="75%"/>
+</p>
+    
+#### [Fe/H] vs. [Mg/Fe] compared to GALAH DR3 and APOGEE DR17
+    
+<p align=center>
+    <img src="validation/figures/galah_dr4_validation_galah_dr3_mg_fe_density.png" alt="drawing" width="45%"/>
+    <img src="validation/figures/galah_dr4_validation_apogeedr17_mg_fe_density.png" alt="drawing" width="45%"/>
+</p>
+
+#### [Fe/H] vs. [Ni/Fe] compared to GALAH DR3 and APOGEE DR17
+
+<p align=center>
+    <img src="validation/figures/galah_dr4_validation_galah_dr3_ni_fe_density.png" alt="drawing" width="45%"/>
+    <img src="validation/figures/galah_dr4_validation_apogeedr17_ni_fe_density.png" alt="drawing" width="45%"/>
+</p>
 
 Attribution
 -----------
 
 If you make use of this code, please cite the paper::
 
-    @article{gala,
+    @article{Buder2022,
       url = {https://github.com/svenbuder/GALAH_DR4},
       year = in prep.,
       author = {Sven Buder},
