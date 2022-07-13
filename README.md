@@ -31,11 +31,11 @@ Code/Files are accessed in the following order:
 8. validation (directory with validation codes and diagnostic figures), and
 9. catalogs (final catalogs to be published).
 
-## Overview of the data release products as of 11 July 2022
+## Overview of the data release products as of 13 July 2022
 
 This is a trial of the analysis pipeline. While the pipeline is still under development, only a subset of stars has been run, which led to the analysis of 237,717 spectra without raising quality flags for the main parameters.
 
-![Overview of the fourth data release as of 11 July 2022 with density plots of unflagged stellar parameters and abundances](spectrum_post_processing/figures/galah_dr4_overview.png)
+![Overview of the fourth data release as of 13 July 2022 with density plots of unflagged stellar parameters and abundances](spectrum_post_processing/figures/galah_dr4_overview.png)
 
 ### What's new? Fastly interpolated synthetic spectra for the whole wavelength range
 
