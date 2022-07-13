@@ -33,7 +33,7 @@ Code/Files are accessed in the following order:
 
 ## Overview of the data release products as of 13 July 2022
 
-This is a trial of the analysis pipeline. While the pipeline is still under development, only a subset of stars has been run, which led to the analysis of 237,717 spectra without raising quality flags for the main parameters.
+This is a trial of the analysis pipeline. While the pipeline is still under development, only a subset of stars has been run, which led to the analysis of 250,358 spectra without raising quality flags for the main parameters.
 
 ![Overview of the fourth data release as of 13 July 2022 with density plots of unflagged stellar parameters and abundances](spectrum_post_processing/figures/galah_dr4_overview.png)
 
@@ -82,6 +82,30 @@ We are fitting CNO abundances now! Thanks to the enhanced creation of synthetic 
     <img src="validation/figures/galah_dr4_validation_galah_dr3_ni_fe_density.png" alt="drawing" width="45%"/>
     <img src="validation/figures/galah_dr4_validation_apogeedr17_ni_fe_density.png" alt="drawing" width="45%"/>
 </p>
+
+## Flag bitmask explanation
+
+### flag_sp bitmask:
+
+*Bitmask* | *Description* | 
+:--------------|:--------------|
+0 | No flag rasied | 
+1 | Emission in Halpha/Hbeta detected | 
+2 | Broadening (vsini) warning | 
+4 | Microturbulence (vmic) warning | 
+8 | chi square unusually low/high by 3 sigma | 
+16 | Double line splitting detected (SB2) | 
+32 | Not all 4 CCDs available | 
+64 | Extrapolating spectrum model | 
+128 | No spectroscopic analysis results available | 
+
+### flag_x_fe bitmask:
+
+*Bitmask* | *Description* | 
+:--------------|:--------------|
+0 | No flag rasied | 
+1 | Upper limit | 
+2 | No measurement available | 
 
 ## Data model of galah_dr4_allspec file
 
