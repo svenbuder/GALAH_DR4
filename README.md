@@ -10,7 +10,7 @@ GALAH is a stellar spectroscopic survey of a million stars in the Milky Way. It'
 
 The catalogs will be released publicly on the datacentral website: [http://datacentral.org.au/teamdata/GALAH/public/](http://datacentral.org.au/teamdata/GALAH/public/).
 
-The inofficial releases can be downloaded by logging into the internal GALAH website: [https://internal.galah-survey.org](https://internal.galah-survey.org)
+The inofficial releases can be downloaded by logging into the internal GALAH website: [https://internal.galah-survey.org/node/131052](https://internal.galah-survey.org/node/131052)
 
 Use flag_sp == 0 and flag_x_fe == 0 for best results!
 
