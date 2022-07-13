@@ -1,0 +1,11 @@
+*Bitmask* | *Description* | 
+:--------------|:--------------|
+0 | No flag rasied | 
+1 | Emission in Halpha/Hbeta detected | 
+2 | Broadening (vsini) warning | 
+4 | Microturbulence (vmic) warning | 
+8 | chi square unusually low/high by 3 sigma | 
+16 | Double line splitting detected (SB2) | 
+32 | Not all 4 CCDs available | 
+64 | Extrapolating spectrum model | 
+128 | No spectroscopic analysis results available | 

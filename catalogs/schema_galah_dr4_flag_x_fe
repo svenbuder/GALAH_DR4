@@ -1,0 +1,5 @@
+*Bitmask* | *Description* | 
+:--------------|:--------------|
+0 | No flag rasied | 
+1 | Upper limit | 
+2 | No measurement available | 
