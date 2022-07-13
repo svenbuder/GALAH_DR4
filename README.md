@@ -33,7 +33,7 @@ Code/Files are accessed in the following order:
 
 ## Overview of the data release products as of 13 July 2022
 
-This is a trial of the analysis pipeline. While the pipeline is still under development, only a subset of stars has been run, which led to the analysis of 250,358 spectra without raising quality flags for the main parameters.
+This is a trial of the analysis pipeline. While the pipeline is still under development, only a subset of stars has been run, which led to the analysis of 252,373 spectra without raising quality flags for the main parameters.
 
 ![Overview of the fourth data release as of 13 July 2022 with density plots of unflagged stellar parameters and abundances](spectrum_post_processing/figures/galah_dr4_overview.png)
 
