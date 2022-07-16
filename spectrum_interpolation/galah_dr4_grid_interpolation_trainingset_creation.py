@@ -496,10 +496,20 @@ for label_index, label in enumerate(labels):
             gradient_up.append(spectrum_increase - null_spectrum_broad['spectrum_null_ccd'+str(ccd)])
             gradient_down.append(spectrum_decrease - null_spectrum_broad['spectrum_null_ccd'+str(ccd)])
         else:
-            if label == 'logg':
+            if label == 'teff':
+                print('No gradient spectrum for Teff available (possible for grid edges e.g. 8000K) - fixing by returning 1s')
+                gradient_up.append(np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
+                gradient_down.append(-np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
+            elif label == 'logg':
                 print('No gradient spectrum for logg available (possible for grid edges e.g. 5.0) - fixing by returning 1s')
                 gradient_up.append(np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
                 gradient_down.append(-np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
+            elif label == 'o_fe':
+                print('No gradient spectrum for ofe available (possible for cool stars) - fixing by returning 1s')
+                gradient_up.append(np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
+                gradient_down.append(-np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
+            else:
+                print(label)
             
     gradient_spectra_up[label] = np.concatenate((gradient_up))
     gradient_spectra_down[label] = np.concatenate((gradient_down))
