@@ -4,8 +4,9 @@ PRO galah_dr4_3d_bin_subgrids_compute_sme_spectrum_index,grid_index,spectrum_ind
 ;                                                                                                                                            
 cla=command_line_args(count=count)
 if count ne 0 then begin
-   index  = cla[0]
-   ccd = cla[1]
+   grid_index = cla[0]
+   spectrum_index  = cla[1]
+   ccd = cla[2]
    endif
 ; Ensure strings without spaces
 ;                                                                                                                                            
@@ -35,14 +36,14 @@ if nr_matching_grid_indices eq 1 then begin
    if grid_fe_h lt 0.0 then fe_h_string = string(grid_fe_h,format='(f5.2)')
    grid_name = teff_string+'_'+logg_string+'_'+fe_h_string
 
-   grid_params = mrdfits('3d_bin_subgrids/'+grid_name+'/galah_dr4_cannon_trainingset_'+grid_name+'.fits',1)
+   grid_params = mrdfits('3d_bin_subgrids/'+grid_name+'/galah_dr4_trainingset_'+grid_name+'.fits',1)
 
 endif else begin
    goto,end_of_script
 endelse
 
-log_file = '3d_bin_subgrids/'+grid_name+'/galah_dr4_cannon_trainingset_'+grid_name+'_'+fs(spectrum_index)+'.log'
-sme_file = '3d_bin_subgrids/'+grid_name+'/galah_dr4_cannon_trainingset_'+grid_name+'_'+fs(spectrum_index)+'.out'
+log_file = '3d_bin_subgrids/'+grid_name+'/galah_dr4_trainingset_'+grid_name+'_'+fs(spectrum_index)+'_'+fs(ccd)+'.log'
+sme_file = '3d_bin_subgrids/'+grid_name+'/galah_dr4_trainingset_'+grid_name+'_'+fs(spectrum_index)+'_'+fs(ccd)+'.out'
 
 journal, log_file
 
