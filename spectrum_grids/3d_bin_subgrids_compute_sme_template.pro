@@ -56,8 +56,8 @@ gf_free=lonarr(n_elements(species))
 ; NLTE
 nlte_elem_flags = bytarr(99)
 nlte_grids = strarr(99)
-nltee = ['H','Li','C','N','O','Na','Mg','Al','Si','K','Ca','Mn','Ba']
-nltez = [ 1 ,  3 , 6 , 7 , 8 , 11 , 12,  13 , 14 , 19, 20 , 25 , 56 ]
+nltee = ['H','Li','C','N','O','Na','Mg','Al','Si','K','Ca','Mn','Fe','Ba']
+nltez = [ 1 ,  3 , 6 , 7 , 8 , 11 , 12,  13 , 14 , 19, 20 , 25 , 26 , 56 ]
 for i=0,n_elements(nltez)-1 do begin
    inlte = where(nltee eq nltee[i]) & inlte=inlte[0]
    nlte_elem_flags[nltez[inlte]-1]  = 1B
@@ -68,6 +68,7 @@ for i=0,n_elements(nltez)-1 do begin
    if nltee[inlte] eq 'C' then nlte_grids[nltez[inlte]-1] = ['nlte_C_ama51_idlsme.grd']
    if nltee[inlte] eq 'Li' and logg ge 3.0 then nlte_grids[nltez[inlte]-1] = ['nlte_Li_dwarf_scatt_idlsme.grd']
    if nltee[inlte] eq 'Li' and logg lt 3.0 then nlte_grids[nltez[inlte]-1] = ['nlte_Li_giant_scatt_idlsme.grd']
+   if nltee[inlte] eq 'Fe' then nlte_grids[nltez[inlte]-1] = ['nlte_Fe_ama51_Feb2022_idlsme.grd']
 endfor
 
 print,nltee
