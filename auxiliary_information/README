@@ -1,0 +1,12 @@
+
+
+
+
+## Johnson_2010ApJ...722.1373J.fits
+-> This file was created by downloading the binary fits file of all entries on Vizier:
+https://vizier.u-strasbg.fr/viz-bin/VizieR-3?-source=J/ApJ/722/1373/stars
+with options:
+max = unlimited
+All columns = True
+then crossmatching it to 2MASS via J2000 coordinates
+and renaming 2MASS to tmass_id
