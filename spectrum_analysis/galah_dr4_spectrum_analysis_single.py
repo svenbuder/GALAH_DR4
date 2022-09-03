@@ -165,6 +165,7 @@ else:
 #     sobject_id = 171228001601213 # dRV -27
 #     sobject_id = 170723002601105 # dRV -30
     sobject_id = 131216001101015 # Test case with maximum_loop reached
+#     sobject_id = 131216001101059 # Binary, but with only close separation
 
 print('sobject_id: ',sobject_id)
 print()
@@ -1360,7 +1361,7 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
     ax.set_ylabel(r'$1/\chi^2$')
 
     # Analyse for multiple peaks
-    peaks,peaks_info=signal.find_peaks(rv_adjustment_chi2, width=2, distance=3, height=0.15, prominence=0.1)
+    peaks,peaks_info=signal.find_peaks(rv_adjustment_chi2, width=2, distance=3, height=0.15, prominence=0.05)
     
     height_sorted = np.argsort(peaks_info['peak_heights'])[::-1]
     peaks = peaks[height_sorted]
