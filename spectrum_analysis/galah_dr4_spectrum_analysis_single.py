@@ -155,7 +155,7 @@ else:
 #     sobject_id = 210403002101363 # cdelt and crval outside of usual range
     sobject_id = 210115002201239 # VESTA
 #     sobject_id = 210403002101363 # bad initital RV
-    sobject_id = 131216001101006 # testing RV update; also: model changing
+#     sobject_id = 131216001101006 # testing RV update; also: model changing
 #     sobject_id = 131216001101026 # binary
 #     sobject_id = 210405004201265 # RV off Gaia DR3 RV correct and new initial RV
 #     sobject_id = 210325002801361 # RV off, bad CCD4
@@ -408,7 +408,7 @@ spectrum = read_spectrum(sobject_id, spectrum, init_values_table)
 
 # Based on feedback from Adam Rains:
 # Line information of blue wavelengths in the coolest stars maybe not reliable.
-if (spectrum['init_teff'] < 4100) & (1 in spectrum['available_ccds']):
+if (spectrum['init_teff'] < 4.1) & (1 in spectrum['available_ccds']):
     print('Models are not reliable for bluest part of spectra (CCD1) for cool stars (< 4100K).')
     print('Doubling observational uncertainties of that region to give less weight here during fitting')
     spectrum['counts_unc_ccd1'] *= 2
