@@ -155,7 +155,7 @@ else:
 #     sobject_id = 210403002101363 # cdelt and crval outside of usual range
     sobject_id = 210115002201239 # VESTA
 #     sobject_id = 210403002101363 # bad initital RV
-    sobject_id = 131216001101006 # testing RV update; also: model changing
+#     sobject_id = 131216001101006 # testing RV update; also: model changing
 #     sobject_id = 131216001101026 # binary
 #     sobject_id = 210405004201265 # RV off Gaia DR3 RV correct and new initial RV
 #     sobject_id = 210325002801361 # RV off, bad CCD4
@@ -164,6 +164,8 @@ else:
 #     sobject_id = 170516000601359 # dRV 22
 #     sobject_id = 171228001601213 # dRV -27
 #     sobject_id = 170723002601105 # dRV -30
+    sobject_id = 131216001101015 # Test case with maximum_loop reached
+#     sobject_id = 131216001101059 # Binary, but with only close separation
 
 print('sobject_id: ',sobject_id)
 print()
@@ -408,7 +410,7 @@ spectrum = read_spectrum(sobject_id, spectrum, init_values_table)
 
 # Based on feedback from Adam Rains:
 # Line information of blue wavelengths in the coolest stars maybe not reliable.
-if (spectrum['init_teff'] < 4100) & (1 in spectrum['available_ccds']):
+if (spectrum['init_teff'] < 4.1) & (1 in spectrum['available_ccds']):
     print('Models are not reliable for bluest part of spectra (CCD1) for cool stars (< 4100K).')
     print('Doubling observational uncertainties of that region to give less weight here during fitting')
     spectrum['counts_unc_ccd1'] *= 2
@@ -1359,17 +1361,13 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
     ax.set_ylabel(r'$1/\chi^2$')
 
     # Analyse for multiple peaks
-    peaks,peaks_info=signal.find_peaks(rv_adjustment_chi2, width=2, distance=3, height=0.15, prominence=0.1)
+    peaks,peaks_info=signal.find_peaks(rv_adjustment_chi2, width=2, distance=3, height=0.15, prominence=0.05)
     
     height_sorted = np.argsort(peaks_info['peak_heights'])[::-1]
     peaks = peaks[height_sorted]
     peak_heights = peaks_info['peak_heights'][height_sorted]
     peak_prominence = peaks_info['prominences'][height_sorted]
     
-    if sys.argv[1] != '-f':
-        print(peaks)
-        print(peaks_info['peak_heights'][height_sorted])
-
     ax.plot(
         rv_adjustment_array,
         rv_adjustment_chi2,
@@ -1587,7 +1585,7 @@ converged = False
 maximum_loops = 4
 
 # We loop up to maximum_loops times over the major iteration step
-while (spectrum['opt_loop'] <= maximum_loops) & (converged == False):
+while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
     
     print('\n *** STARTING MAJOR LOOP '+str(spectrum['opt_loop'])+' *** \n')
     
@@ -1646,12 +1644,10 @@ while (spectrum['opt_loop'] <= maximum_loops) & (converged == False):
                 'vsini='+str(np.round(model_parameters_opt[model_labels_opt == 'vsini'][0],decimals=1))+'km/s'
             )
 
-    if spectrum['opt_loop'] != maximum_loops:
-        spectrum['opt_loop'] += 1
-    else:
-        if not converged:
-            success = False
-            print('Label optimisation falied within '+str(maximum_loops)+' loops')
+    spectrum['opt_loop'] += 1
+    if (spectrum['opt_loop'] == maximum_loops) & (converged != True):
+        success = False
+        print('Label optimisation falied within '+str(maximum_loops)+' loops')         
 
 
 # # The end: plot full spectrum
@@ -1882,16 +1878,17 @@ for label in model_interpolation_labels:
             unit=units[label])
         output.add_column(col)
     
-        label_value = diagonal_covariance_entries_sqrt[label_index]
-        if label == 'teff':
-            label_value *= 1000
+        if success | (label in ['teff','logg','fe_h','vmic','vsini']):
+            label_value = diagonal_covariance_entries_sqrt[label_index]
+            if label == 'teff':
+                label_value *= 1000
 
-        col = Table.Column(
-            name='cov_e_'+label,
-            data = [np.float32(label_value)],
-            description='Diagonal Covariance Error (raw) for '+description[label],
-            unit=units[label])
-        output.add_column(col)
+            col = Table.Column(
+                name='cov_e_'+label,
+                data = [np.float32(label_value)],
+                description='Diagonal Covariance Error (raw) for '+description[label],
+                unit=units[label])
+            output.add_column(col)
     
         # For [Fe/H] and [X/Fe], we do an additional test, if the lines are actually sufficiently detected
         if ((label == 'fe_h') | (label[-3:] == '_fe')):
@@ -1955,7 +1952,13 @@ output.write(file_directory+str(spectrum['sobject_id'])+'_single_fit_results.fit
 
 print('Duration: '+str(np.round(end_time,decimals=1)))
 
-# Let's check what we got
-if sys.argv[1] != '-f':
+# Let's check what we got during interactive mode
+if sys.argv[1] == '-f':
     output
+
+
+# In[ ]:
+
+
+
 
