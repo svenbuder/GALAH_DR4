@@ -15,7 +15,7 @@
 # History:  
 # 220902 Created from previous code 'galah_dr4_spectrum_analysis_simple'
 
-# In[1]:
+# In[ ]:
 
 
 # Preamble 
@@ -52,13 +52,13 @@ import emcee
 import corner
 
 
-# In[2]:
+# In[ ]:
 
 
 start_time = time.time()
 
 
-# In[3]:
+# In[ ]:
 
 
 # Create dictionary for descriptions
@@ -90,7 +90,7 @@ description['closest_model'] = 'Closest model needed for label optimisation'
 description['spectrum_covariances'] = 'Covariances from CurveFit to spectra'
 
 
-# In[4]:
+# In[ ]:
 
 
 # Create dictionary for units
@@ -121,7 +121,7 @@ for each in description.keys():
         print("'"+each+"',")
 
 
-# In[5]:
+# In[ ]:
 
 
 if sys.argv[1] != '-f':
@@ -155,12 +155,12 @@ else:
 #     sobject_id = 210403002101363 # cdelt and crval outside of usual range
     sobject_id = 210115002201239 # VESTA
 #     sobject_id = 210403002101363 # bad initital RV
-#     sobject_id = 131216001101006 # testing RV update
+    sobject_id = 131216001101006 # testing RV update; also: model changing
 #     sobject_id = 131216001101026 # binary
 #     sobject_id = 210405004201265 # RV off Gaia DR3 RV correct and new initial RV
 #     sobject_id = 210325002801361 # RV off, bad CCD4
 #     sobject_id = 220123002201380 # bad CCD4
-    sobject_id = 190224001601035 # Binary with dRV = 22
+#     sobject_id = 190224001601035 # Binary with dRV = 22
 #     sobject_id = 170516000601359 # dRV 22
 #     sobject_id = 171228001601213 # dRV -27
 #     sobject_id = 170723002601105 # dRV -30
@@ -190,7 +190,7 @@ model_directory = working_directory+'spectrum_interpolation/NN_models/models/'
 
 # # Setup our output data
 
-# In[6]:
+# In[ ]:
 
 
 output = Table()
@@ -207,7 +207,7 @@ output.add_column(col)
 
 # # Get our initial information
 
-# In[7]:
+# In[ ]:
 
 
 spectrum = dict()
@@ -295,7 +295,7 @@ if not isinstance(spectrum['ebv'], float):
 
 # # Get spectrum
 
-# In[8]:
+# In[ ]:
 
 
 def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=True):
@@ -403,9 +403,20 @@ def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=
 spectrum = read_spectrum(sobject_id, spectrum, init_values_table)
 
 
+# In[ ]:
+
+
+# Based on feedback from Adam Rains:
+# Line information of blue wavelengths in the coolest stars maybe not reliable.
+if (spectrum['init_teff'] < 4100) & (1 in spectrum['available_ccds']):
+    print('Models are not reliable for bluest part of spectra (CCD1) for cool stars (< 4100K).')
+    print('Doubling observational uncertainties of that region to give less weight here during fitting')
+    spectrum['counts_unc_ccd1'] *= 2
+
+
 # # Prepare spectroscopic analysis
 
-# In[9]:
+# In[ ]:
 
 
 # Load spectrum masks
@@ -422,11 +433,11 @@ grids = Table.read('../spectrum_grids/galah_dr4_model_trainingset_gridpoints.fit
 grids_avail = Table.read('../spectrum_grids/galah_dr4_model_trainingset_gridpoints_trained.fits')
 grids_avail = grids_avail[grids_avail['has_model_extra6']]
 
-grid_index_tree = cKDTree(np.c_[grids['teff_subgrid'],grids['logg_subgrid'],grids['fe_h_subgrid']])
-grid_avail_index_tree = cKDTree(np.c_[grids_avail['teff_subgrid'],grids_avail['logg_subgrid'],grids_avail['fe_h_subgrid']])
+grid_index_tree = cKDTree(np.c_[grids['teff_subgrid']/1000.,grids['logg_subgrid'],grids['fe_h_subgrid']])
+grid_avail_index_tree = cKDTree(np.c_[grids_avail['teff_subgrid']/1000.,grids_avail['logg_subgrid'],grids_avail['fe_h_subgrid']])
 
 
-# In[10]:
+# In[ ]:
 
 
 def load_dr3_lines(mode_dr3_path = './spectrum_masks/important_lines'):
@@ -457,7 +468,7 @@ def load_dr3_lines(mode_dr3_path = './spectrum_masks/important_lines'):
 important_lines, important_molecules = load_dr3_lines()
 
 
-# In[11]:
+# In[ ]:
 
 
 def plot_spectrum(wave,flux,flux_uncertainty,unmasked_region,title_text,comp1_text,comp2_text,neglect_ir_beginning=neglect_ir_beginning):
@@ -575,7 +586,7 @@ def plot_spectrum(wave,flux,flux_uncertainty,unmasked_region,title_text,comp1_te
     return f
 
 
-# In[12]:
+# In[ ]:
 
 
 def galah_kern(fwhm, b):
@@ -588,7 +599,7 @@ def galah_kern(fwhm, b):
     return g / np.sum(g)
 
 
-# In[13]:
+# In[ ]:
 
 
 def cubic_spline_interpolate(old_wavelength, old_flux, new_wavelength):
@@ -603,7 +614,7 @@ def cubic_spline_interpolate(old_wavelength, old_flux, new_wavelength):
     return scipy.interpolate.CubicSpline(old_wavelength, old_flux)(new_wavelength)
 
 
-# In[14]:
+# In[ ]:
 
 
 def gaussbroad(w, s, hwhm):
@@ -670,7 +681,7 @@ def gaussbroad(w, s, hwhm):
     return sout
 
 
-# In[15]:
+# In[ ]:
 
 
 def apply_gauss_broad(wave, smod, ipres=30000, debug=True):
@@ -684,7 +695,7 @@ def apply_gauss_broad(wave, smod, ipres=30000, debug=True):
     return(smod)
 
 
-# In[16]:
+# In[ ]:
 
 
 def sclip(p,fit,n,ye=[],sl=99999,su=99999,min=0,max=0,min_data=1,grow=0,global_mask=None,verbose=True):
@@ -789,7 +800,7 @@ def sclip(p,fit,n,ye=[],sl=99999,su=99999,min=0,max=0,min_data=1,grow=0,global_m
     return f,tmp_results,b
 
 
-# In[17]:
+# In[ ]:
 
 
 def chebyshev(p,ye,mask):
@@ -798,7 +809,7 @@ def chebyshev(p,ye,mask):
     return cont
 
 
-# In[18]:
+# In[ ]:
 
 
 def calculate_default_degrading_wavelength_grid(default_model_wave, synth_res=300000.):
@@ -858,7 +869,7 @@ def calculate_default_degrading_wavelength_grid(default_model_wave, synth_res=30
 initial_l = calculate_default_degrading_wavelength_grid(default_model_wave)
 
 
-# In[19]:
+# In[ ]:
 
 
 def synth_resolution_degradation(l, res_map, res_b, synth, synth_res=300000.0, reuse_initial_res_wave_grid=True, initial_l=initial_l):
@@ -928,7 +939,7 @@ def synth_resolution_degradation(l, res_map, res_b, synth, synth_res=300000.0, r
     return np.array([np.array(l_new),con_f])
 
 
-# In[20]:
+# In[ ]:
 
 
 def rv_shift(rv_value, wavelength):
@@ -945,7 +956,7 @@ def rv_shift(rv_value, wavelength):
     return wavelength / (1.+rv_value/c.c.to(u.km/u.s).value)
 
 
-# In[21]:
+# In[ ]:
 
 
 def leaky_relu(z):
@@ -959,7 +970,7 @@ def get_spectrum_from_neural_net(scaled_labels, NN_coeffs):
     return spectrum
 
 
-# In[22]:
+# In[ ]:
 
 
 def create_synthetic_spectrum(model_parameters, model_labels, neural_network_model, debug=True):
@@ -1162,7 +1173,7 @@ def create_synthetic_spectrum(model_parameters, model_labels, neural_network_mod
     )
 
 
-# In[23]:
+# In[ ]:
 
 
 def match_observation_and_model(model_parameters, model_labels, spectrum, neural_network_model, reuse_initial_res_wave_grid=False, debug=True):
@@ -1240,12 +1251,12 @@ def match_observation_and_model(model_parameters, model_labels, spectrum, neural
     return(wave,data,sigma2,model)
 
 
-# In[24]:
+# In[ ]:
 
 
 def find_best_available_neutral_network_model(teff, logg, fe_h):
 
-    model_index = grid_index_tree.query([teff,logg,fe_h],k=1)[1]
+    model_index = grid_index_tree.query([teff/1000.,logg,fe_h],k=1)[1]
 
     model_teff_logg_feh = str(int(grids['teff_subgrid'][model_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][model_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][model_index])
 
@@ -1262,8 +1273,8 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
         print('Using '+model_teff_logg_feh+' (closest)')
         
     except:
-        print('Could not load '+model_name+' (closest)')
-        model_index = grid_avail_index_tree.query([teff,logg,fe_h],k=1)[1]
+        print('Could not load '+closest_model+' (closest)')
+        model_index = grid_avail_index_tree.query([teff/1000.,logg,fe_h],k=1)[1]
         model_teff_logg_feh = str(int(grids_avail['teff_subgrid'][model_index]))+'_'+"{:.2f}".format(grids_avail['logg_subgrid'][model_index])+'_'+"{:.2f}".format(grids_avail['fe_h_subgrid'][model_index])
         model_name = model_directory+'/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
         print('Using '+model_teff_logg_feh+' instead')
@@ -1300,7 +1311,7 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
     return(neural_network_model, closest_model, used_model, model_labels)
 
 
-# In[25]:
+# In[ ]:
 
 
 def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for_rv, model_input_for_rv):
@@ -1348,10 +1359,16 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
     ax.set_ylabel(r'$1/\chi^2$')
 
     # Analyse for multiple peaks
-    peaks,peaks_info=signal.find_peaks(rv_adjustment_chi2, width=2, distance=3, height=0.15, prominence=0.05)
-
+    peaks,peaks_info=signal.find_peaks(rv_adjustment_chi2, width=2, distance=3, height=0.15, prominence=0.1)
+    
     height_sorted = np.argsort(peaks_info['peak_heights'])[::-1]
     peaks = peaks[height_sorted]
+    peak_heights = peaks_info['peak_heights'][height_sorted]
+    peak_prominence = peaks_info['prominences'][height_sorted]
+    
+    if sys.argv[1] != '-f':
+        print(peaks)
+        print(peaks_info['peak_heights'][height_sorted])
 
     ax.plot(
         rv_adjustment_array,
@@ -1360,15 +1377,25 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
     )
     print('   ',rv_adjustment_array[peaks],'peaks found by scipy.signal.finds_peaks')
 
+    spectrum['rv_peak_nr'] = int(len(peaks))
+
     if len(peaks) > 0:
         spectrum['rv_peak_1'] = float(rv_adjustment_array[peaks[0]])
+        spectrum['rv_peak_1_h'] = float(peak_heights[0])
+        spectrum['rv_peak_1_p'] = float(peak_prominence[0])
     else:
         spectrum['rv_peak_1'] = np.NaN
+        spectrum['rv_peak_1_h'] = np.NaN
+        spectrum['rv_peak_1_p'] = np.NaN
     if len(peaks) > 1:
         spectrum['rv_peak_2'] = float(rv_adjustment_array[peaks[1]])
+        spectrum['rv_peak_2_h'] = float(peak_heights[1])
+        spectrum['rv_peak_2_p'] = float(peak_prominence[1])
         print('   ','Multiple peaks found! Suggest binary analysis and save 2 highest peaks')
     else:
         spectrum['rv_peak_2'] = np.NaN
+        spectrum['rv_peak_2_h'] = np.NaN
+        spectrum['rv_peak_2_p'] = np.NaN
     for peak in peaks:
         ax.axvline(rv_adjustment_array[peak], c = 'orange', ls='dashed')
     if len(peaks) <= 3:
@@ -1464,7 +1491,7 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
 # # Optimising labels 
 # For computational reasons, we fix RV here and fit only the other labels
 
-# In[26]:
+# In[ ]:
 
 
 def optimise_labels(input_model_parameters, input_model, input_model_name, input_model_labels, input_wave, input_data, input_sigma, input_unmasked):
@@ -1535,11 +1562,11 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
         # Match old labels if possible, otherwise add [X/Fe] = 0
         for label in output_model_labels:
             if label in input_model_labels:
-                model_parameters_new.append(model_parameters_new[input_model_labels==label][0])
+                model_parameters_new.append(output_model_parameters[input_model_labels==label][0])
             else:
                 model_parameters_new.append(0) # If label not available for any [X/Fe], set it to 0
         
-        output_model_labels = np.array(model_parameters_new)
+        output_model_parameters = np.array(model_parameters_new)
 
     # Test if the a new iteration of labels would happen with the same neutral network.
     # If yes: we converged on a model
@@ -1551,7 +1578,7 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
     return(converged, output_flux, output_model_parameters, output_model_covariances, output_model, output_model_name, output_model_labels, output_wave, output_data, output_sigma)
 
 
-# In[27]:
+# In[ ]:
 
 
 spectrum['opt_loop'] = 0
@@ -1629,7 +1656,7 @@ while (spectrum['opt_loop'] <= maximum_loops) & (converged == False):
 
 # # The end: plot full spectrum
 
-# In[28]:
+# In[ ]:
 
 
 if success:
@@ -1638,7 +1665,7 @@ else:
     info_line_1 = str(sobject_id)+': not successful, Model '+model_name_opt
 
 if spectrum['flag_sp'] == 1:
-    info_line_1 = useful_information_1+' (extrap.)'
+    info_line_1 = info_line_1+' (extrap.)'
 
 if success:
     info_line_2 = 'Teff='+str(int(1000*model_parameters_opt[model_labels_opt == 'teff'][0]))+'K, '+         'logg='+str(np.round(model_parameters_opt[model_labels_opt == 'logg'][0],decimals=2))+', '+         '[Fe/H]='+str(np.round(model_parameters_opt[model_labels_opt == 'fe_h'][0],decimals=2))+', '+         'vmic='+str(np.round(model_parameters_opt[model_labels_opt == 'vmic'][0],decimals=2))+'km/s, '+         'vsini='+str(np.round(model_parameters_opt[model_labels_opt == 'vsini'][0],decimals=1))+'km/s'
@@ -1688,7 +1715,37 @@ plt.close()
 
 # # Save Results
 
-# In[29]:
+# In[ ]:
+
+
+# Save spectrum
+save_spectrum = Table()
+save_spectrum['wave'] = wave_opt
+save_spectrum['sob'] = data_opt
+save_spectrum['uob'] = np.sqrt(sigma2_opt)
+save_spectrum['smod'] = model_flux_opt
+save_spectrum['mob'] = unmasked_opt
+
+file_directory = working_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
+Path(file_directory).mkdir(parents=True, exist_ok=True)
+
+save_spectrum.write(file_directory+str(spectrum['sobject_id'])+'_single_fit_spectrum.fits',overwrite=True)
+
+
+# In[ ]:
+
+
+# Save covariances
+np.savez(
+    file_directory+str(spectrum['sobject_id'])+'_single_fit_covariances.npz',
+    model_labels = model_labels_opt,
+    model_parameters_optimised = model_parameters_opt,
+    covariances_optimised = output_model_covariances,
+    default_model_name = model_name_opt
+)
+
+
+# In[ ]:
 
 
 output = Table()
@@ -1743,12 +1800,30 @@ col = Table.Column(
     unit=units['rv_gauss'])
 output.add_column(col)
 
+col = Table.Column(
+    name='rv_peak_nr',
+    data = [np.float32(spectrum['rv_peak_nr'])],
+    description='Nr. peaks for RV found via scipy.signal.find_peaks',
+    unit='n')
+output.add_column(col)
 for peak in ['rv_peak_1','rv_peak_2']:
     col = Table.Column(
         name=peak,
         data = [np.float32(spectrum[peak])],
         description='Peak for RV fit via scipy.signal.find_peaks',
         unit=units['rv_gauss'])
+    output.add_column(col)
+    col = Table.Column(
+        name=peak+'_h',
+        data = [np.float32(spectrum[peak+'_h'])],
+        description='Height of '+peak,
+        unit='')
+    output.add_column(col)
+    col = Table.Column(
+        name=peak+'_p',
+        data = [np.float32(spectrum[peak+'_p'])],
+        description='Prominence of '+peak,
+        unit='')
     output.add_column(col)
     
 diagonal_covariance_entries_sqrt = np.sqrt(np.diag(output_model_covariances))
@@ -1799,7 +1874,7 @@ for label in model_interpolation_labels:
         label_value = model_parameters_opt[label_index]
         if label == 'teff':
             label_value *= 1000
-    
+
         col = Table.Column(
             name=label,
             data = [np.float32(label_value)],
@@ -1866,46 +1941,21 @@ col = Table.Column(
     unit=units['closest_model'])
 output.add_column(col)
 
+end_time = time.time() - start_time
+
+col = Table.Column(
+    name='comp_time',
+    data = [float(end_time)],
+    description='Computational time used on this sobject_id',
+    unit='s')
+output.add_column(col)
+
 # And save!
 output.write(file_directory+str(spectrum['sobject_id'])+'_single_fit_results.fits',overwrite=True)
 
-# Let's check what we got
-output
-
-
-# In[30]:
-
-
-# Save spectrum
-save_spectrum = Table()
-save_spectrum['wave'] = wave_opt
-save_spectrum['sob'] = data_opt
-save_spectrum['uob'] = np.sqrt(sigma2_opt)
-save_spectrum['smod'] = model_flux_opt
-save_spectrum['mob'] = unmasked_opt
-
-file_directory = working_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
-Path(file_directory).mkdir(parents=True, exist_ok=True)
-
-save_spectrum.write(file_directory+str(spectrum['sobject_id'])+'_single_fit_spectrum.fits',overwrite=True)
-
-
-# In[31]:
-
-
-# Save covariances
-np.savez(
-    file_directory+str(spectrum['sobject_id'])+'_single_fit_covariances.npz',
-    model_labels = model_labels_opt,
-    model_parameters_optimised = model_parameters_opt,
-    covariances_optimised = output_model_covariances,
-    default_model_name = model_name_opt
-)
-
-
-# In[32]:
-
-
-end_time = time.time() - start_time
 print('Duration: '+str(np.round(end_time,decimals=1)))
+
+# Let's check what we got
+if sys.argv[1] != '-f':
+    output
 
