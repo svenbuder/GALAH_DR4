@@ -214,7 +214,11 @@ output.add_column(col)
 
 spectrum = dict()
 spectrum['sobject_id'] = sobject_id
+
 spectrum['flag_sp'] = int(0)
+flag_sp_closest_model_not_available = int(1)
+flag_sp_no_successful_convergence_within_maximum_loops = int(2)
+flag_sp_not_all_ccds_available = int(4)
 
 init_values_table = Table.read('galah_dr4_initial_parameters_220714_lite.fits')
 sobject_id_initial_index = np.where(init_values_table['sobject_id'] == sobject_id)[0]
@@ -414,6 +418,9 @@ if (spectrum['init_teff'] < 4.1) & (1 in spectrum['available_ccds']):
     print('Models are not reliable for bluest part of spectra (CCD1) for cool stars (< 4100K).')
     print('Doubling observational uncertainties of that region to give less weight here during fitting')
     spectrum['counts_unc_ccd1'] *= 2
+    
+if len(spectrum['available_ccds']) != 4:
+    spectrum['flag_sp'] += flag_sp_not_all_ccds_available
 
 
 # # Prepare spectroscopic analysis
@@ -1541,7 +1548,7 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
         output_model_parameters[input_model_labels == 'fe_h'][0]
     )
     if not output_model_name == closest_model:
-        spectrum['flag_sp'] = 1
+        spectrum['flag_sp'] = flag_sp_closest_model_not_available
 
     # Test if output and input model have same labels
     
@@ -1599,7 +1606,7 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
             spectrum['init_fe_h']
         )
         if model_name_opt != closest_model:
-            spectrum['flag_sp'] = 1
+            spectrum['flag_sp'] = flag_sp_closest_model_not_available
         
         # Feed initial values into array
         model_parameters_opt = [spectrum['init_'+label] for label in model_labels_opt]
@@ -1660,7 +1667,7 @@ if success:
 else:
     info_line_1 = str(sobject_id)+': not successful, Model '+model_name_opt
 
-if spectrum['flag_sp'] == 1:
+if (spectrum['flag_sp'] & 2**flag_sp_closest_model_not_available) > 0:
     info_line_1 = info_line_1+' (extrap.)'
 
 if success:
@@ -1770,12 +1777,6 @@ for label in ['gaia_edr3_source_id']:
         unit=units[label])
     output.add_column(col)
 
-# flag_sp:
-# flag_sp == 1: could not use correct interpolation model
-# flag_sp == 2: not all CCDs available
-if len(spectrum['available_ccds']) != 4:
-    spectrum['flag_sp'] += 2
-
 col = Table.Column(
     name='flag_sp_fit',
     data = [int(spectrum['flag_sp'])],
@@ -1830,6 +1831,7 @@ model_interpolation_labels = np.array(['teff', 'logg', 'fe_h', 'vmic', 'vsini', 
 # flag_x_fe_values:
 flag_x_fe_value_no_detection = 1
 flag_x_fe_value_not_measured = 2
+flag_x_fe_value_no_success = 4
 
 # Let's loop through all the parameters that are part of the spectrum_interpolation routine
 for label in model_interpolation_labels:
@@ -1889,7 +1891,14 @@ for label in model_interpolation_labels:
                 description='Diagonal Covariance Error (raw) for '+description[label],
                 unit=units[label])
             output.add_column(col)
-    
+        else:
+            col = Table.Column(
+                name='cov_e_'+label,
+                data = [np.float32(np.NaN)],
+                description='Diagonal Covariance Error (raw) for '+description[label],
+                unit=units[label])
+            output.add_column(col)
+
         # For [Fe/H] and [X/Fe], we do an additional test, if the lines are actually sufficiently detected
         if ((label == 'fe_h') | (label[-3:] == '_fe')):
 
@@ -1916,6 +1925,10 @@ for label in model_interpolation_labels:
             # If the difference is not larger than 3xnoise, we raise a flag that we do not have a detection
             if not np.max(difference_with_respect_to_noise) > 3:
                 flag_x_fe += flag_x_fe_value_no_detection
+                
+            if not success:
+                flag_x_fe += flag_x_fe_value_no_success
+
             col = Table.Column(
                 name='flag_'+label,
                 data = [int(flag_x_fe)],
@@ -1955,10 +1968,4 @@ print('Duration: '+str(np.round(end_time,decimals=1)))
 # Let's check what we got during interactive mode
 if sys.argv[1] == '-f':
     output
-
-
-# In[ ]:
-
-
-
 
