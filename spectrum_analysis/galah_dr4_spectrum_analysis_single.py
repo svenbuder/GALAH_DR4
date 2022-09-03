@@ -167,6 +167,7 @@ else:
     sobject_id = 131216001101015 # Test case with maximum_loop reached
 #     sobject_id = 131216001101059 # Binary, but with only close separation
     sobject_id = 140607000701060 # Test Eu6645 fitting
+    sobject_id = 140823002701208 # Test of cool star with too many points masked
 
 print('sobject_id: ',sobject_id)
 print()
@@ -1615,7 +1616,7 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
         # Create model flux for finding best mask for this optimisation loop
         (wave_opt,data_opt,sigma2_opt,model_flux_opt) = match_observation_and_model(model_parameters_opt, model_labels_opt, spectrum, neural_network_model_opt, True, False)
         unmasked_opt = (
-            (~((np.abs(data_opt-model_flux_opt)/np.sqrt(sigma2_opt) > 5) & (np.abs(data_opt-model_flux_opt) > 0.2))) & 
+            (~((np.abs(data_opt-model_flux_opt)/np.sqrt(sigma2_opt) > 5) & (np.abs(data_opt-model_flux_opt) > 0.4))) & 
             (~np.any(np.array([((wave_opt >= mask_beginning) & (wave_opt <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0))
         )
                 
@@ -1628,7 +1629,7 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
     # Find new mask based on optimised RV
     (wave_opt,data_opt,sigma2_opt,model_flux_opt) = match_observation_and_model(model_parameters_opt, model_labels_opt, spectrum, neural_network_model_opt, True, False)
     unmasked_opt = (
-        (~((np.abs(data_opt-model_flux_opt)/np.sqrt(sigma2_opt) > 5) & (np.abs(data_opt-model_flux_opt) > 0.2))) & 
+        (~((np.abs(data_opt-model_flux_opt)/np.sqrt(sigma2_opt) > 5) & (np.abs(data_opt-model_flux_opt) > 0.3))) & 
         (~np.any(np.array([((wave_opt >= mask_beginning) & (wave_opt <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0))
     )
     # fix issues with Eu6645 lines
