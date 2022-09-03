@@ -166,6 +166,7 @@ else:
 #     sobject_id = 170723002601105 # dRV -30
     sobject_id = 131216001101015 # Test case with maximum_loop reached
 #     sobject_id = 131216001101059 # Binary, but with only close separation
+    sobject_id = 140607000701060 # Test Eu6645 fitting
 
 print('sobject_id: ',sobject_id)
 print()
@@ -1617,6 +1618,7 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
             (~((np.abs(data_opt-model_flux_opt)/np.sqrt(sigma2_opt) > 5) & (np.abs(data_opt-model_flux_opt) > 0.2))) & 
             (~np.any(np.array([((wave_opt >= mask_beginning) & (wave_opt <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0))
         )
+                
         print('Initial Nr. Wavelength Points: '+str(len(np.where(unmasked_opt==True)[0]))+' ('+str(int(np.round(100*len(np.where(unmasked_opt==True)[0])/len(unmasked_opt))))+'%)')
     # For Major loops > 0: We already have a model flux to use for the RV optimisation
     
@@ -1629,6 +1631,9 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
         (~((np.abs(data_opt-model_flux_opt)/np.sqrt(sigma2_opt) > 5) & (np.abs(data_opt-model_flux_opt) > 0.2))) & 
         (~np.any(np.array([((wave_opt >= mask_beginning) & (wave_opt <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0))
     )
+    # fix issues with Eu6645 lines
+    unmasked_opt[(wave_opt > 6644) & (wave_opt < 6646)] = True
+
     print('Loop '+str(spectrum['opt_loop'])+' Nr. Wavelength Points: '+str(len(np.where(unmasked_opt==True)[0]))+' ('+str(int(np.round(100*len(np.where(unmasked_opt==True)[0])/len(unmasked_opt))))+'%) \n')
 
     # Call optimisation routine
@@ -1964,8 +1969,4 @@ output.add_column(col)
 output.write(file_directory+str(spectrum['sobject_id'])+'_single_fit_results.fits',overwrite=True)
 
 print('Duration: '+str(np.round(end_time,decimals=1)))
-
-# Let's check what we got during interactive mode
-if sys.argv[1] == '-f':
-    output
 
