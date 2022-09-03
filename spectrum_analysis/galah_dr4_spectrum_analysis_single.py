@@ -1366,10 +1366,6 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
     peak_heights = peaks_info['peak_heights'][height_sorted]
     peak_prominence = peaks_info['prominences'][height_sorted]
     
-    if sys.argv[1] != '-f':
-        print(peaks)
-        print(peaks_info['peak_heights'][height_sorted])
-
     ax.plot(
         rv_adjustment_array,
         rv_adjustment_chi2,
@@ -1587,7 +1583,7 @@ converged = False
 maximum_loops = 4
 
 # We loop up to maximum_loops times over the major iteration step
-while (spectrum['opt_loop'] <= maximum_loops) & (converged == False):
+while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
     
     print('\n *** STARTING MAJOR LOOP '+str(spectrum['opt_loop'])+' *** \n')
     
@@ -1646,12 +1642,10 @@ while (spectrum['opt_loop'] <= maximum_loops) & (converged == False):
                 'vsini='+str(np.round(model_parameters_opt[model_labels_opt == 'vsini'][0],decimals=1))+'km/s'
             )
 
-    if spectrum['opt_loop'] != maximum_loops:
-        spectrum['opt_loop'] += 1
-    else:
-        if not converged:
-            success = False
-            print('Label optimisation falied within '+str(maximum_loops)+' loops')
+    spectrum['opt_loop'] += 1
+    if (spectrum['opt_loop'] == maximum_loops) & (converged != True):
+        success = False
+        print('Label optimisation falied within '+str(maximum_loops)+' loops')         
 
 
 # # The end: plot full spectrum
@@ -1955,7 +1949,7 @@ output.write(file_directory+str(spectrum['sobject_id'])+'_single_fit_results.fit
 
 print('Duration: '+str(np.round(end_time,decimals=1)))
 
-# Let's check what we got
-if sys.argv[1] != '-f':
+# Let's check what we got during interactive mode
+if sys.argv[1] == '-f':
     output
 
