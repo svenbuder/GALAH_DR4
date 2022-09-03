@@ -1877,7 +1877,7 @@ for label in model_interpolation_labels:
             unit=units[label])
         output.add_column(col)
     
-        if success | label in ['teff','logg','fe_h','vmic','vsini']:
+        if success | (label in ['teff','logg','fe_h','vmic','vsini']):
             label_value = diagonal_covariance_entries_sqrt[label_index]
             if label == 'teff':
                 label_value *= 1000
@@ -1954,4 +1954,10 @@ print('Duration: '+str(np.round(end_time,decimals=1)))
 # Let's check what we got during interactive mode
 if sys.argv[1] == '-f':
     output
+
+
+# In[ ]:
+
+
+
 
