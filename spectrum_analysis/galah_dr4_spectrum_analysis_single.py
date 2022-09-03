@@ -168,6 +168,7 @@ else:
 #     sobject_id = 131216001101059 # Binary, but with only close separation
     sobject_id = 140607000701060 # Test Eu6645 fitting
     sobject_id = 140823002701208 # Test of cool star with too many points masked
+    sobject_id = 171205002101255 # Test RV with Balmer lines for metal-poor stars
 
 print('sobject_id: ',sobject_id)
 print()
@@ -1391,6 +1392,9 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
         spectrum['rv_peak_1_h'] = float(peak_heights[0])
         spectrum['rv_peak_1_p'] = float(peak_prominence[0])
     else:
+        print('No peaks found. Assuming that initial RV must have been close to correct one')
+        print('Looking around '+"{:.2f}".format(current_rv))
+        suggested_shift_broad = current_rv
         spectrum['rv_peak_1'] = np.NaN
         spectrum['rv_peak_1_h'] = np.NaN
         spectrum['rv_peak_1_p'] = np.NaN
