@@ -164,6 +164,7 @@ else:
 #     sobject_id = 170516000601359 # dRV 22
 #     sobject_id = 171228001601213 # dRV -27
 #     sobject_id = 170723002601105 # dRV -30
+    sobject_id = 131216001101015 # Test case with maximum_loop reached
 
 print('sobject_id: ',sobject_id)
 print()
@@ -1876,16 +1877,17 @@ for label in model_interpolation_labels:
             unit=units[label])
         output.add_column(col)
     
-        label_value = diagonal_covariance_entries_sqrt[label_index]
-        if label == 'teff':
-            label_value *= 1000
+        if success | label in ['teff','logg','fe_h','vmic','vsini']:
+            label_value = diagonal_covariance_entries_sqrt[label_index]
+            if label == 'teff':
+                label_value *= 1000
 
-        col = Table.Column(
-            name='cov_e_'+label,
-            data = [np.float32(label_value)],
-            description='Diagonal Covariance Error (raw) for '+description[label],
-            unit=units[label])
-        output.add_column(col)
+            col = Table.Column(
+                name='cov_e_'+label,
+                data = [np.float32(label_value)],
+                description='Diagonal Covariance Error (raw) for '+description[label],
+                unit=units[label])
+            output.add_column(col)
     
         # For [Fe/H] and [X/Fe], we do an additional test, if the lines are actually sufficiently detected
         if ((label == 'fe_h') | (label[-3:] == '_fe')):
