@@ -3,7 +3,7 @@
 
 # # galah_dr4_grid_interpolation_trainingset_creation
 
-# In[ ]:
+# In[1]:
 
 
 try:
@@ -24,14 +24,14 @@ import sys
 import time
 
 
-# In[ ]:
+# In[2]:
 
 
 # Read in all available grids
 grids = Table.read('../spectrum_grids/galah_dr4_model_trainingset_gridpoints.fits')
 
 
-# In[ ]:
+# In[3]:
 
 
 # choose one grid_index
@@ -39,54 +39,13 @@ try:
     grid_index = int(sys.argv[1])
     print('Using Grid index ',grid_index)
 except:
-    # Done:
-    """
-    1137,
-    1247,
-    1258,1259,1260,
-    1271,
-    1368,
-    1832,1833,1834,
-    1930,1931,1932,
-    1997,
-    2000,
-    2013,2014,2015
-    
-    currently: 1844
-    
-    next:
-    1499,
-    1511, # 4750_3.00_-0.25
-    1819,
-    1820,1821,1822, # 5500_3.50_X -0.25..0.00..0.25
-    1831,
-    1832,1833,1834, # 5500_4.00_X -0.25..0.00..0.25
-    1843,
-    1844,1845,1846, # 5500_4.50_X -0.25..0.00..0.25
-    1905,
-    1906,1907,1908, # 5750..3.50X -0.25..0.00..0.25
-    1917,
-    1918,1919,1920, # 5750_4.00_X -0.25..0.00..0.25
-    1929,
-    1930,1931,1932, # 5750_4.50_X -0.25..0.00..0.25
-    1933,1934,
-    1935,1936,1937,
-    1988,
-    1989,1990,1991, # 6000..3.50X -0.25..0.00..0.25
-    2000,
-    2001,2002,2003, # 6000_4.00_X -0.25..0.00..0.25
-    2012,
-    2013,2014,2015, # 6000_4.50_X -0.25..0.00..0.25
-    2078,
-    2079
-    
-    """
-    #grid_index = 2000 # 5750_4.50_0.00
-    #grid_index = 1259 # 4250_1.50_-0.50
-    #grid_index = 1919 # 5750_4.00_0.00
-    grid_index = 1331
-    
-    print('Using default grid index ',grid_index)
+    print('Interactive mode')
+    grid_index = 1931
+    print('Using Grid index ',grid_index)
+
+
+# In[4]:
+
 
 try:
     teff_logg_feh_name = str(int(grids['teff_subgrid'][grid_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][grid_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][grid_index])
@@ -99,7 +58,7 @@ except:
 
 # ### Below we define how to broaden a spectrum with a certain vsini value
 
-# In[ ]:
+# In[5]:
 
 
 def integrate_flux(mu, inten, deltav, vsini, vrt, osamp=1):
@@ -345,7 +304,7 @@ def integrate_flux(mu, inten, deltav, vsini, vrt, osamp=1):
     return flux
 
 
-# In[ ]:
+# In[6]:
 
 
 def broaden_spectrum(wint_seg, sint_seg, wave_seg, cmod_seg, vsini=0, vmac=0, debug=False):
@@ -385,19 +344,23 @@ def broaden_spectrum(wint_seg, sint_seg, wave_seg, cmod_seg, vsini=0, vmac=0, de
 
     if debug:
         print(vstep1,len(wave_equi))
-    
+
     return(wave_equi,y_seg/c_seg)
 
 
-# In[ ]:
+# In[7]:
 
 
-vsini_values = np.array([1.5, 3.0, 6.0, 9.0, 12.0, 24.0]) # km/s
+vsini_values = np.array([1.5, 3.0, 6.0, 9.0, 12.0, 18.0]) # km/s
+if grids['teff_subgrid'][grid_index] >= 5000:
+    vsini_values = np.array([1.5, 3.0, 6.0, 9.0, 12.0, 18.0, 24.0]) # km/s
+if grids['teff_subgrid'][grid_index] >= 6000:
+    vsini_values = np.array([1.5, 3.0, 6.0, 9.0, 12.0, 18.0, 24.0, 36.0]) # km/s
 
 
 # # Gradient Spectra and Masks
 
-# In[ ]:
+# In[8]:
 
 
 null_spectrum_broad = dict()
@@ -413,14 +376,14 @@ for ccd in [1,2,3,4]:
 print('The synthetic spectra come with keywords ',null_spectrum.dtype.names)
 
 
-# In[ ]:
+# In[9]:
 
 
 labels = np.array(training_set_vsini0.keys()[2:-1])
 labels
 
 
-# In[ ]:
+# In[10]:
 
 
 fancy_labels = []
@@ -442,7 +405,7 @@ for label in labels:
 print(fancy_labels)
 
 
-# In[ ]:
+# In[11]:
 
 
 gradient_spectra_up = Table()
@@ -454,7 +417,7 @@ gradient_spectra_down['wave'] = np.concatenate(([null_spectrum_broad['wave_null_
 gradient_spectra_down['median'] = np.concatenate(([null_spectrum_broad['spectrum_null_ccd'+str(ccd)] for ccd in [1,2,3,4]]))
 
 
-# In[ ]:
+# In[12]:
 
 
 for label_index, label in enumerate(labels):
@@ -500,14 +463,17 @@ for label_index, label in enumerate(labels):
                 print('No gradient spectrum for Teff available (possible for grid edges e.g. 8000K) - fixing by returning 1s')
                 gradient_up.append(np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
                 gradient_down.append(-np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
+            
             elif label == 'logg':
                 print('No gradient spectrum for logg available (possible for grid edges e.g. 5.0) - fixing by returning 1s')
                 gradient_up.append(np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
                 gradient_down.append(-np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
+            
             elif label == 'o_fe':
                 print('No gradient spectrum for ofe available (possible for cool stars) - fixing by returning 1s')
                 gradient_up.append(np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
                 gradient_down.append(-np.ones(len(null_spectrum_broad['wave_null_ccd'+str(ccd)])))
+            
             else:
                 print(label)
             
@@ -515,7 +481,25 @@ for label_index, label in enumerate(labels):
     gradient_spectra_down[label] = np.concatenate((gradient_down))
 
 
-# In[ ]:
+# In[13]:
+
+
+h_beta = (gradient_spectra_up['wave'] >= 4860.90 - 1) & (gradient_spectra_up['wave'] <= 4861.77 + 1)
+h_alpha = (gradient_spectra_up['wave'] >= 6562.00 - 1) & (gradient_spectra_up['wave'] <= 6563.60 + 1)
+usual_galah_wavelength_range = (
+    ((gradient_spectra_up['wave'] > 4710) & (gradient_spectra_up['wave'] < 4905)) |
+    ((gradient_spectra_up['wave'] > 5645) & (gradient_spectra_up['wave'] < 5880)) |
+    ((gradient_spectra_up['wave'] > 6470) & (gradient_spectra_up['wave'] < 6750)) |
+    ((gradient_spectra_up['wave'] > 7670) & (gradient_spectra_up['wave'] < 7900))
+)
+usual_galah_range_without_balmer_cores = (~h_beta) & (~h_alpha) & usual_galah_wavelength_range
+
+total = len(gradient_spectra_up)
+total_usual = len(gradient_spectra_up[usual_galah_range_without_balmer_cores])
+print('Total points: '+str(total)+', within GALAH range (exluding Balmer cores): '+str(total_usual))
+
+
+# In[14]:
 
 
 grid_masks = Table()
@@ -526,21 +510,21 @@ Path('gradient_spectra/'+teff_logg_feh_name).mkdir(parents=True, exist_ok=True)
 
 for label_index, label in enumerate(labels):
     print(label, training_set_vsini0[label][2+label_index]-training_set_vsini0[label][0])
-    
+       
     threshold1 = 0.0001
     threshold2 = 0.001
     
-    total = len(gradient_spectra_up)
-    below_threshold1 = len(np.where(np.max([np.abs(gradient_spectra_up[label]),np.abs(gradient_spectra_down[label])],axis=0) >= threshold1)[0])
-    below_threshold2 = len(np.where(np.max([np.abs(gradient_spectra_up[label]),np.abs(gradient_spectra_down[label])],axis=0) >= threshold2)[0])
+
+    below_threshold1 = len(np.where(np.max([np.abs(gradient_spectra_up[label][usual_galah_range_without_balmer_cores]),np.abs(gradient_spectra_down[label][usual_galah_range_without_balmer_cores])],axis=0) >= threshold1)[0])
+    below_threshold2 = len(np.where(np.max([np.abs(gradient_spectra_up[label][usual_galah_range_without_balmer_cores]),np.abs(gradient_spectra_down[label][usual_galah_range_without_balmer_cores])],axis=0) >= threshold2)[0])
     
-    print(str(threshold1)+':   ',"{:.1f}".format(100*below_threshold1/total)+'%',below_threshold1)
-    print(str(threshold2)+':   ',"{:.1f}".format(100*below_threshold2/total)+'%',below_threshold2)
+    print(str(threshold1)+':   ',"{:.1f}".format(100*below_threshold1/total_usual)+'%',below_threshold1)
+    print(str(threshold2)+':   ',"{:.1f}".format(100*below_threshold2/total_usual)+'%',below_threshold2)
     
-    percentage_used.append([fancy_labels[label_index], r'$\pm$'+str(training_set_vsini0[label][2+label_index]-training_set_vsini0[label][0]), "{:.1f}".format(100*below_threshold1/total),"{:.1f}".format(100*below_threshold2/total)])
+    percentage_used.append([fancy_labels[label_index], r'$\pm$'+str(training_set_vsini0[label][2+label_index]-training_set_vsini0[label][0]), "{:.1f}".format(100*below_threshold1/total_usual),"{:.1f}".format(100*below_threshold2/total_usual)])
     
-    above_threshold1 = (np.max([np.abs(gradient_spectra_up[label]),np.abs(gradient_spectra_down[label])],axis=0) >= threshold1)
-    above_threshold2 = (np.max([np.abs(gradient_spectra_up[label]),np.abs(gradient_spectra_down[label])],axis=0) >= threshold2)
+    above_threshold1 = (np.max([np.abs(gradient_spectra_up[label]),np.abs(gradient_spectra_down[label])],axis=0) >= threshold1) & usual_galah_range_without_balmer_cores
+    above_threshold2 = (np.max([np.abs(gradient_spectra_up[label]),np.abs(gradient_spectra_down[label])],axis=0) >= threshold2) & usual_galah_range_without_balmer_cores
 
     grid_masks[label] = above_threshold2
     
@@ -551,6 +535,10 @@ for label_index, label in enumerate(labels):
             plot_label = r'$\Delta f$ for $\Delta$'+fancy_labels[label_index]+' = '+str(training_set_vsini0[label][2+label_index]-training_set_vsini0[label][0])
         in_ccd = (gradient_spectra_up['wave'] > (3+ccd)*1000) & (gradient_spectra_up['wave'] < (4+ccd)*1000)
         ax=gs[ccd-1]
+        if ccd == 1:
+            ax.axvspan(4860.90, 4861.77, color='purple',alpha=0.3)
+        if ccd == 3:
+            ax.axvspan(6562.00, 6563.60, color='purple',alpha=0.3)
         ax.plot(
             gradient_spectra_up['wave'][in_ccd],
             gradient_spectra_up[label][in_ccd],
@@ -595,12 +583,16 @@ for label_index, label in enumerate(labels):
     plt.tight_layout()
     plt.savefig('gradient_spectra/'+teff_logg_feh_name+'/gradient_spectrum_'+teff_logg_feh_name+'_'+label+'.png',dpi=200,bbox_inches='tight')
     if grid_index in [1931]:
-        plt.savefig('../galah_dr4_paper/figures/gradient_spectrum_'+teff_logg_feh_name+'_'+label+'.png',dpi=200,bbox_inches='tight')
-        plt.show()
+        if sys.argv[1] == '-f':
+            plt.show()
+        try:
+            plt.savefig('../galah_dr4_paper/figures/gradient_spectrum_'+teff_logg_feh_name+'_'+label+'.png',dpi=200,bbox_inches='tight')
+        except:
+            pass
     plt.close()
 
 
-# In[ ]:
+# In[15]:
 
 
 if grid_index in [1931]:
@@ -620,10 +612,13 @@ if grid_index in [1931]:
     table_text.append([r'    \end{tabular}'])
     table_text.append([r'\end{table}'])
 
-    np.savetxt('../galah_dr4_paper/tables/mask_percentage_1931.tex',np.array(table_text),fmt='%s')
+    try:
+        np.savetxt('../galah_dr4_paper/tables/mask_percentage_1931.tex',np.array(table_text),fmt='%s')
+    except:
+        pass
 
 
-# In[ ]:
+# In[16]:
 
 
 Path('training_input/'+teff_logg_feh_name).mkdir(parents=True, exist_ok=True)
@@ -635,7 +630,7 @@ grid_masks.write('training_input/'+teff_logg_feh_name+'/'+teff_logg_feh_name+'_m
 
 # # Trainingset flux and ivar at different vsini values
 
-# In[ ]:
+# In[17]:
 
 
 # Prepare the full trainingset (including vsini sampled from vsini_values)
@@ -648,7 +643,7 @@ for label in training_set_vsini0.keys()[6:]:
     full_trainingset[label] = np.concatenate((np.array([training_set_vsini0[label] for vsini in vsini_values])))
 
 
-# In[ ]:
+# In[18]:
 
 
 # Prepare the wavelength array, if not yet available
@@ -661,7 +656,7 @@ if not os.path.isfile(wavelength_file):
     wavelength_file_opener.close()
 
 
-# In[ ]:
+# In[19]:
 
 
 def prepare_normalised_spectra(spectrum_index, vsini):
@@ -697,7 +692,7 @@ def prepare_normalised_spectra(spectrum_index, vsini):
     return(normalised_flux_for_index, spectrum_available)
 
 
-# In[ ]:
+# In[20]:
 
 
 def populate_normalised_flux_and_ivar_matrix(index):
@@ -728,13 +723,13 @@ now = time.time()
 print(index,time.time()-now,time.time()-start)
 
 
-# In[ ]:
+# In[21]:
 
 
 (full_trainingset[spectra_available]).write('training_input/'+teff_logg_feh_name+'/galah_dr4_trainingset_'+teff_logg_feh_name+'_incl_vsini.fits',overwrite=True)
 
 
-# In[ ]:
+# In[22]:
 
 
 flux_ivar_file = 'training_input/'+teff_logg_feh_name+'/galah_dr4_trainingset_'+teff_logg_feh_name+'_incl_vsini_flux_ivar.pickle'
@@ -744,19 +739,23 @@ pickle.dump((normalized_flux[spectra_available]),flux_ivar_file_opener)
 flux_ivar_file_opener.close()
 
 
-# In[ ]:
+# In[24]:
 
 
 try:
-    import os
-    os.system('rm -rf /avatar/buder/GALAH_DR4/spectrum_grids/3d_bin_subgrids/'+teff_logg_feh_name)
-    print('Removed /avatar/buder/GALAH_DR4/spectrum_grids/3d_bin_subgrids/'+teff_logg_feh_name)
+    if grid_index not in [
+        1832,1833,1834,
+        1844,1845,1846,
+        1918,1919,1920,
+        1930,1931,1932,
+        2001,2002,2003,
+        2013,2014,2015
+    ]:
+        os.system('rm -rf /avatar/buder/GALAH_DR4/spectrum_grids/3d_bin_subgrids/'+teff_logg_feh_name)
+        print('Removed /avatar/buder/GALAH_DR4/spectrum_grids/3d_bin_subgrids/'+teff_logg_feh_name)
+    os.system('ipython galah_dr4_grid_interpolation_recommend_labels.py '+str(grid_index))
+    print('Recommended labels for '+str(grid_index))
 except:
     print('Could not remove /avatar/buder/GALAH_DR4/spectrum_grids/3d_bin_subgrids/'+teff_logg_feh_name)
-
-
-# In[ ]:
-
-
-
+    print('Could not recommend labels to fit for '+str(grid_index))
 
