@@ -164,11 +164,11 @@ else:
 #     sobject_id = 170516000601359 # dRV 22
 #     sobject_id = 171228001601213 # dRV -27
 #     sobject_id = 170723002601105 # dRV -30
-    sobject_id = 131216001101015 # Test case with maximum_loop reached
+#     sobject_id = 131216001101015 # Test case with maximum_loop reached
 #     sobject_id = 131216001101059 # Binary, but with only close separation
-    sobject_id = 140607000701060 # Test Eu6645 fitting
-    sobject_id = 140823002701208 # Test of cool star with too many points masked
-    sobject_id = 171205002101255 # Test RV with Balmer lines for metal-poor stars
+#     sobject_id = 140607000701060 # Test Eu6645 fitting
+#     sobject_id = 140823002701208 # Test of cool star with too many points masked
+#     sobject_id = 171205002101255 # Test RV with Balmer lines for metal-poor stars
 
 print('sobject_id: ',sobject_id)
 print()
@@ -433,6 +433,7 @@ if len(spectrum['available_ccds']) != 4:
 
 # Load spectrum masks
 masks = Table.read('spectrum_masks/solar_spectrum_mask.fits')
+vital_lines = Table.read('spectrum_masks/vital_lines.fits')
 
 # Load wavelength array of synthetic spectra
 wavelength_file = '../spectrum_interpolation/training_input/galah_dr4_3dbin_wavelength_array.pickle'
@@ -1315,12 +1316,31 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
             else:
                 model_labels.insert(6,'c_fe')
             model_labels = np.array(model_labels)
+            
+    if 4 not in spectrum['available_ccds']:
+        print('CCD4 not available, cannot fit N, O, K, and Rb.')
+        for label in ['n_fe','o_fe','k_fe','rb_fe']:
+            model_labels = np.delete(model_labels, model_labels == label)
+
     print('')
     print('Fitting the following labels:')
     print(model_labels)
     print('')
     
     return(neural_network_model, closest_model, used_model, model_labels)
+
+
+# In[ ]:
+
+
+import numpy as np
+used_model = '5750_4.50_0.00'
+model_labels = np.loadtxt('../spectrum_interpolation/gradient_spectra/'+used_model+'/recommended_fit_labels_'+used_model+'.txt',usecols=(0,),dtype=str)
+
+for label in ['n_fe','o_fe','k_fe','rb_fe']:
+    model_labels = np.delete(model_labels, model_labels == label)
+    
+model_labels
 
 
 # In[ ]:
@@ -1620,9 +1640,16 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
         # Create model flux for finding best mask for this optimisation loop
         (wave_opt,data_opt,sigma2_opt,model_flux_opt) = match_observation_and_model(model_parameters_opt, model_labels_opt, spectrum, neural_network_model_opt, True, False)
         unmasked_opt = (
-            (~((np.abs(data_opt-model_flux_opt)/np.sqrt(sigma2_opt) > 5) & (np.abs(data_opt-model_flux_opt) > 0.4))) & 
-            (~np.any(np.array([((wave_opt >= mask_beginning) & (wave_opt <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0))
+            (
+                # Not too large difference between obs and synthesis
+                (~((np.abs(data_opt-model_flux_opt)/np.sqrt(sigma2_opt) > 5) & (np.abs(data_opt-model_flux_opt) > 0.4))) & 
+                # Not in unreliable synthesis region
+                (~np.any(np.array([((wave_opt >= mask_beginning) & (wave_opt <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0))
+            ) |
+            # or is in vital line wavelengths
+            np.any(np.array([((wave_opt >= line_beginning) & (wave_opt <= line_end)) for (line_beginning, line_end) in zip(vital_lines['line_begin'],vital_lines['line_end'])]),axis=0)
         )
+        
                 
         print('Initial Nr. Wavelength Points: '+str(len(np.where(unmasked_opt==True)[0]))+' ('+str(int(np.round(100*len(np.where(unmasked_opt==True)[0])/len(unmasked_opt))))+'%)')
     # For Major loops > 0: We already have a model flux to use for the RV optimisation
@@ -1633,11 +1660,15 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
     # Find new mask based on optimised RV
     (wave_opt,data_opt,sigma2_opt,model_flux_opt) = match_observation_and_model(model_parameters_opt, model_labels_opt, spectrum, neural_network_model_opt, True, False)
     unmasked_opt = (
-        (~((np.abs(data_opt-model_flux_opt)/np.sqrt(sigma2_opt) > 5) & (np.abs(data_opt-model_flux_opt) > 0.3))) & 
-        (~np.any(np.array([((wave_opt >= mask_beginning) & (wave_opt <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0))
-    )
-    # fix issues with Eu6645 lines
-    unmasked_opt[(wave_opt > 6644) & (wave_opt < 6646)] = True
+            (
+                # Not too large difference between obs and synthesis
+                (~((np.abs(data_opt-model_flux_opt)/np.sqrt(sigma2_opt) > 5) & (np.abs(data_opt-model_flux_opt) > 0.3))) & 
+                # Not in unreliable synthesis region
+                (~np.any(np.array([((wave_opt >= mask_beginning) & (wave_opt <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0))
+            ) |
+            # or is in vital line wavelengths
+            np.any(np.array([((wave_opt >= line_beginning) & (wave_opt <= line_end)) for (line_beginning, line_end) in zip(vital_lines['line_begin'],vital_lines['line_end'])]),axis=0)
+        )
 
     print('Loop '+str(spectrum['opt_loop'])+' Nr. Wavelength Points: '+str(len(np.where(unmasked_opt==True)[0]))+' ('+str(int(np.round(100*len(np.where(unmasked_opt==True)[0])/len(unmasked_opt))))+'%) \n')
 
