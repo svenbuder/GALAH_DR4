@@ -1333,19 +1333,6 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
 # In[ ]:
 
 
-import numpy as np
-used_model = '5750_4.50_0.00'
-model_labels = np.loadtxt('../spectrum_interpolation/gradient_spectra/'+used_model+'/recommended_fit_labels_'+used_model+'.txt',usecols=(0,),dtype=str)
-
-for label in ['n_fe','o_fe','k_fe','rb_fe']:
-    model_labels = np.delete(model_labels, model_labels == label)
-    
-model_labels
-
-
-# In[ ]:
-
-
 def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for_rv, model_input_for_rv):
 
     text = '\n Assessing RVs: Red Pipeline = '
@@ -1525,7 +1512,7 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
 # In[ ]:
 
 
-def optimise_labels(input_model_parameters, input_model, input_model_name, input_model_labels, input_wave, input_data, input_sigma, input_unmasked):
+def optimise_labels(input_model_parameters, input_model, input_model_name, input_model_labels, input_wave, input_data, input_sigma, input_unmasked, last_iteration):
     
     # Make sure we have some reasonable initial abundances
     # Start by setting abundances of hot stars > 6000K back to 0
@@ -1568,36 +1555,67 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
     (output_wave,output_data,output_sigma,output_flux) = match_observation_and_model(output_model_parameters, input_model_labels, spectrum, input_model, True, False)
     
     # Test what should be the next model for a new round of label optimisation
-    output_model, closest_model, output_model_name, output_model_labels = find_best_available_neutral_network_model(
+    new_output_model, new_closest_model, new_output_model_name, new_output_model_labels = find_best_available_neutral_network_model(
         1000*output_model_parameters[input_model_labels == 'teff'][0],
         output_model_parameters[input_model_labels == 'logg'][0],
         output_model_parameters[input_model_labels == 'fe_h'][0]
     )
-    if not output_model_name == closest_model:
-        spectrum['flag_sp'] = flag_sp_closest_model_not_available
-
-    # Test if output and input model have same labels
     
-    same_model_labels = True
-    if len(input_model_labels) == len(output_model_labels):
-        for label_index, label in enumerate(input_model_labels):
-            if output_model_labels[label_index] != label:
-                same_model_labels = False
-    else:
-        same_model_labels = False
-    if same_model_labels:
-        print('Model_labels are the same! Continuing with same model_parameters')
-    else:
-        print('Model_labels changed! Updating model_parameters')
-        model_parameters_new = []
-        # Match old labels if possible, otherwise add [X/Fe] = 0
-        for label in output_model_labels:
-            if label in input_model_labels:
-                model_parameters_new.append(output_model_parameters[input_model_labels==label][0])
-            else:
-                model_parameters_new.append(0) # If label not available for any [X/Fe], set it to 0
+    # Decide what parameters to return
+    if (input_model_name == new_output_model_name) | last_iteration:
         
-        output_model_parameters = np.array(model_parameters_new)
+        # If the a new iteration would use the same model or we are in the last iteration:
+
+        # output_flux -> stays the same
+        # output_model_parameters -> stays the same
+        # output_model_covariances -> stays the same
+        output_model = input_model
+        output_model_name = input_model_name
+        output_model_labels = input_model_labels
+        # output_wave -> stays the same
+        # output_data -> stays the same 
+        # output_sigma -> stays the same
+
+    else:
+        # This is neither the final iteration, nor did the model stay the same
+        
+        # output_flux -> stays the same
+        # output_model_covariances -> stays the same
+        # output_wave -> stays the same
+        # output_data -> stays the same 
+        # output_sigma -> stays the same
+
+        # Updating output_models_opt
+        if not new_output_model_name == closest_model:
+            spectrum['flag_sp'] = flag_sp_closest_model_not_available
+
+        # Test if output and input model have same labels
+        same_model_labels = True
+        if len(input_model_labels) == len(output_model_labels):
+            for label_index, label in enumerate(input_model_labels):
+                if output_model_labels[label_index] != label:
+                    same_model_labels = False
+        else:
+            same_model_labels = False
+        if same_model_labels:
+            print('Model_labels are the same! Continuing with same model_parameters')
+        else:
+            print('Model_labels changed! Updating model_parameters')
+            model_parameters_new = []
+            # Match old labels if possible, otherwise add [X/Fe] = 0
+            for label in output_model_labels:
+                if label in input_model_labels:
+                    model_parameters_new.append(output_model_parameters[input_model_labels==label][0])
+                else:
+                    model_parameters_new.append(0) # If label not available for any [X/Fe], set it to 0
+
+            output_model_parameters = np.array(model_parameters_new)
+            
+        # update the next iteration model
+        output_model = new_output_model
+        output_model_name = new_output_model_name
+        output_model_labels = new_output_model_labels
+
 
     # Test if the a new iteration of labels would happen with the same neutral network.
     # If yes: we converged on a model
@@ -1650,7 +1668,6 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
             np.any(np.array([((wave_opt >= line_beginning) & (wave_opt <= line_end)) for (line_beginning, line_end) in zip(vital_lines['line_begin'],vital_lines['line_end'])]),axis=0)
         )
         
-                
         print('Initial Nr. Wavelength Points: '+str(len(np.where(unmasked_opt==True)[0]))+' ('+str(int(np.round(100*len(np.where(unmasked_opt==True)[0])/len(unmasked_opt))))+'%)')
     # For Major loops > 0: We already have a model flux to use for the RV optimisation
     
@@ -1672,30 +1689,32 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
 
     print('Loop '+str(spectrum['opt_loop'])+' Nr. Wavelength Points: '+str(len(np.where(unmasked_opt==True)[0]))+' ('+str(int(np.round(100*len(np.where(unmasked_opt==True)[0])/len(unmasked_opt))))+'%) \n')
 
-    # Call optimisation routine
-    converged, model_flux_opt, model_parameters_opt, output_model_covariances, neural_network_model_opt, model_name_opt, model_labels_opt, wave_opt, data_opt, sigma2_opt = optimise_labels(model_parameters_opt, neural_network_model_opt, model_name_opt, model_labels_opt, wave_opt, data_opt, sigma2_opt, unmasked_opt)
-
-    if converged != True:
-        print('Not converged at the end of loop '+str(spectrum['opt_loop'])+' \n')
+    # Is this the last iteration? Important to decide what model_parameters and model_labels to give back
+    if spectrum['opt_loop'] == maximum_loops - 1:
+        last_iteration = True
     else:
-        if spectrum['opt_loop'] == 0:
-            # We run at least 2 loops
-            converged = False
-            print('\n Converged at the end of loop '+str(spectrum['opt_loop'])+' (but running 1 more optimisation) \n')
-        else:
-            print('\n Converged at the end of loop '+str(spectrum['opt_loop'])+' \n')
-            print(
-                'Teff='+str(int(1000*model_parameters_opt[model_labels_opt == 'teff'][0]))+'K, '+ \
-                'logg='+str(np.round(model_parameters_opt[model_labels_opt == 'logg'][0],decimals=2))+', '+ \
-                '[Fe/H]='+str(np.round(model_parameters_opt[model_labels_opt == 'fe_h'][0],decimals=2))+', '+ \
-                'vmic='+str(np.round(model_parameters_opt[model_labels_opt == 'vmic'][0],decimals=2))+'km/s, '+ \
-                'vsini='+str(np.round(model_parameters_opt[model_labels_opt == 'vsini'][0],decimals=1))+'km/s'
-            )
+        last_iteration = False
+        
+    # Call optimisation routine
+    converged, model_flux_opt, model_parameters_opt, model_covariances_opt, neural_network_model_opt, model_name_opt, model_labels_opt, wave_opt, data_opt, sigma2_opt = optimise_labels(model_parameters_opt, neural_network_model_opt, model_name_opt, model_labels_opt, wave_opt, data_opt, sigma2_opt, unmasked_opt, last_iteration)
+
+    if (converged != True) & (spectrum['opt_loop'] < maximum_loops - 1):
+        print('Not converged at the end of loop '+str(spectrum['opt_loop'])+'. Will start another loop \n')
+    elif (converged == True):
+        print('Converged at the end of loop '+str(spectrum['opt_loop'])+'. \n')
+    else:
+        print('Not converged at the end of final loop '+str(spectrum['opt_loop'])+'! \n')
+        success = False
+        
+    print(
+        'Teff='+str(int(1000*model_parameters_opt[model_labels_opt == 'teff'][0]))+'K, '+ \
+        'logg='+str(np.round(model_parameters_opt[model_labels_opt == 'logg'][0],decimals=2))+', '+ \
+        '[Fe/H]='+str(np.round(model_parameters_opt[model_labels_opt == 'fe_h'][0],decimals=2))+', '+ \
+        'vmic='+str(np.round(model_parameters_opt[model_labels_opt == 'vmic'][0],decimals=2))+'km/s, '+ \
+        'vsini='+str(np.round(model_parameters_opt[model_labels_opt == 'vsini'][0],decimals=1))+'km/s'
+    )
 
     spectrum['opt_loop'] += 1
-    if (spectrum['opt_loop'] == maximum_loops) & (converged != True):
-        success = False
-        print('Label optimisation falied within '+str(maximum_loops)+' loops')         
 
 
 # # The end: plot full spectrum
@@ -1783,9 +1802,9 @@ save_spectrum.write(file_directory+str(spectrum['sobject_id'])+'_single_fit_spec
 np.savez(
     file_directory+str(spectrum['sobject_id'])+'_single_fit_covariances.npz',
     model_labels = model_labels_opt,
-    model_parameters_optimised = model_parameters_opt,
-    covariances_optimised = output_model_covariances,
-    default_model_name = model_name_opt
+    model_name = model_name_opt
+    model_parameters = model_parameters_opt,
+    model_covariances = model_covariances_opt,
 )
 
 
@@ -1864,7 +1883,7 @@ for peak in ['rv_peak_1','rv_peak_2']:
         unit='')
     output.add_column(col)
     
-diagonal_covariance_entries_sqrt = np.sqrt(np.diag(output_model_covariances))
+diagonal_covariance_entries_sqrt = np.sqrt(np.diag(model_covariances_opt))
 
 # These are the labels that our interpolation routine was trained on
 model_interpolation_labels = np.array(['teff', 'logg', 'fe_h', 'vmic', 'vsini', 'li_fe', 'c_fe', 'n_fe', 'o_fe', 'na_fe', 'mg_fe', 'al_fe', 'si_fe', 'k_fe', 'ca_fe', 'sc_fe', 'ti_fe', 'v_fe', 'cr_fe', 'mn_fe', 'co_fe', 'ni_fe', 'cu_fe', 'zn_fe', 'rb_fe', 'sr_fe', 'y_fe', 'zr_fe', 'mo_fe', 'ru_fe', 'ba_fe', 'la_fe', 'ce_fe', 'nd_fe', 'sm_fe', 'eu_fe'])
@@ -1921,24 +1940,16 @@ for label in model_interpolation_labels:
             unit=units[label])
         output.add_column(col)
     
-        if success | (label in ['teff','logg','fe_h','vmic','vsini']):
-            label_value = diagonal_covariance_entries_sqrt[label_index]
-            if label == 'teff':
-                label_value *= 1000
+        label_value = diagonal_covariance_entries_sqrt[label_index]
+        if label == 'teff':
+            label_value *= 1000
 
-            col = Table.Column(
-                name='cov_e_'+label,
-                data = [np.float32(label_value)],
-                description='Diagonal Covariance Error (raw) for '+description[label],
-                unit=units[label])
-            output.add_column(col)
-        else:
-            col = Table.Column(
-                name='cov_e_'+label,
-                data = [np.float32(np.NaN)],
-                description='Diagonal Covariance Error (raw) for '+description[label],
-                unit=units[label])
-            output.add_column(col)
+        col = Table.Column(
+            name='cov_e_'+label,
+            data = [np.float32(label_value)],
+            description='Diagonal Covariance Error (raw) for '+description[label],
+            unit=units[label])
+        output.add_column(col)
 
         # For [Fe/H] and [X/Fe], we do an additional test, if the lines are actually sufficiently detected
         if ((label == 'fe_h') | (label[-3:] == '_fe')):
