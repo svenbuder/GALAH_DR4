@@ -65,7 +65,7 @@ try:
     print('Using '+str(number_grid_points)+' grid points')
 
 except:
-    grid_index = 1931
+    grid_index = 2002
     print('Using default grid index ',grid_index)
 
     # 3 dimensional points == 27
@@ -112,6 +112,14 @@ if fe_h_middle <= -1.5:
     fe_h_higher = fe_h_middle + 0.5
 else:
     fe_h_higher = fe_h_middle + 0.25
+
+
+# In[ ]:
+
+
+print(teff_middle, teff_lower, teff_higher)
+print(logg_middle, logg_lower, logg_higher)
+print(fe_h_middle, fe_h_lower, fe_h_higher)
 
 
 # In[ ]:
@@ -168,8 +176,8 @@ for subset_index, subset_name in enumerate(subset_names):
         print(subset_name)
         available.append(subset_name)
     except:
-        print(subset_name+' n/a, using middle grid '+teff_logg_feh_name)
-        available.append(teff_logg_feh_name)
+        print(subset_name+' n/a')
+        # available.append(teff_logg_feh_name)
 subset_names = available
 
 
@@ -187,96 +195,50 @@ wavelength_file_opener.close()
 for subset_index, subset_name in enumerate(subset_names):
     
     training_labels_subset_index = Table.read('../training_input/'+subset_name+'/galah_dr4_trainingset_'+subset_name+'_incl_vsini.fits')
+    flux_ivar_file = '../training_input/'+subset_name+'/galah_dr4_trainingset_'+subset_name+'_incl_vsini_flux_ivar.pickle'
+    flux_ivar_file_opener = open(flux_ivar_file,'rb')
 
     if subset_index == 0:
         labels = tuple(training_labels_subset_index.keys()[2:-1])
+        
+        print(subset_index,subset_name,'Using '+str(len(training_labels_subset_index['fe_h']))+' of '+str(len(training_labels_subset_index['fe_h']))+' spectra')
+        training_labels.append(np.array([training_labels_subset_index[label] for label in labels]).T)
+        training_set_flux.append(pickle.load(flux_ivar_file_opener))
 
-    else:
+    elif number_grid_points == 27:
         # If we go with the 3x3x3 version, we will only use those with teff_lower <= teff <= teff_higher
-        if number_grid_points == 27:
-            # If we use the 3x3x3 subsets, but some subset was not available,
-            # we have to make sure to only include the stars that were not sampled.
-            if (subset_name == teff_logg_feh_name):
 
-                # check teff limits
-                if subset_index in np.arange(0,9):
-                    teff_limits = (
-                        (training_labels_subset_index['teff'] > teff_lower) &
-                        (training_labels_subset_index['teff'] < teff_higher)
-                    )
-                if subset_index in np.arange(9,18):
-                    teff_limits = (
-                        (training_labels_subset_index['teff'] > teff_lower) &
-                        (training_labels_subset_index['teff'] < teff_middle)
-                    )
-                if subset_index in np.arange(18,27):
-                    teff_limits = (
-                        (training_labels_subset_index['teff'] > teff_middle) &
-                        (training_labels_subset_index['teff'] < teff_higher)
-                    )
+        # If we use the 3x3x3 subsets, but some subset was not available,
+        # we have to make sure to only include the stars that were not sampled.
+        within_teff_logg_fe_h_limits = (
+            (training_labels_subset_index['teff'] > teff_lower) &
+            (training_labels_subset_index['teff'] < teff_higher) &
+            (training_labels_subset_index['logg'] > logg_lower) &
+            (training_labels_subset_index['logg'] < logg_higher) &
+            (training_labels_subset_index['fe_h'] > fe_h_lower) &
+            (training_labels_subset_index['fe_h'] < fe_h_higher)
+        )
 
-                # check logg limits
-                if subset_index in [0,1,2,9,10,11,18,19,20]:
-                    logg_limits = (
-                        (training_labels_subset_index['logg'] > logg_lower) &
-                        (training_labels_subset_index['logg'] < logg_higher)
-                    )
-                if subset_index in [3,4,5,12,13,14,21,22,23]:
-                    logg_limits = (
-                        (training_labels_subset_index['logg'] > logg_lower) &
-                        (training_labels_subset_index['logg'] < logg_middle)
-                    )
-                if subset_index in [6,7,8,15,16,17,24,25,26]:
-                    logg_limits = (
-                        (training_labels_subset_index['logg'] > logg_middle) &
-                        (training_labels_subset_index['logg'] < logg_higher)
-                    )
-
-                # check fe_h limits
-                if subset_index in np.arange(1,28,3):
-                    fe_h_limits = (
-                        (training_labels_subset_index['fe_h'] > fe_h_lower) &
-                        (training_labels_subset_index['fe_h'] < fe_h_higher)
-                    )
-                if subset_index in np.arange(1,28,3):
-                    fe_h_limits = (
-                        (training_labels_subset_index['fe_h'] > fe_h_lower) &
-                        (training_labels_subset_index['fe_h'] < fe_h_middle)
-                    )
-                if subset_index in np.arange(2,28,3):
-                    fe_h_limits = (
-                        (training_labels_subset_index['fe_h'] > fe_h_middle) &
-                        (training_labels_subset_index['fe_h'] < fe_h_higher)
-                    )
-
-                within_teff_logg_fe_h_limits = (teff_limits & logg_limits & fe_h_limits)
-
-                training_labels_subset_index = training_labels_subset_index[within_teff_logg_fe_h_limits]
-
-            else:
-                within_teff_logg_fe_h_limits = (
-                    (training_labels_subset_index['teff'] > teff_lower) &
-                    (training_labels_subset_index['teff'] < teff_higher) &
-                    (training_labels_subset_index['logg'] > logg_lower) &
-                    (training_labels_subset_index['logg'] < logg_higher) &
-                    (training_labels_subset_index['fe_h'] > fe_h_lower) &
-                    (training_labels_subset_index['fe_h'] < fe_h_higher)
-                )
-
-    training_labels.append(np.array([training_labels_subset_index[label] for label in labels]).T)
-
-    flux_ivar_file = '../training_input/'+subset_name+'/galah_dr4_trainingset_'+subset_name+'_incl_vsini_flux_ivar.pickle'
-    flux_ivar_file_opener = open(flux_ivar_file,'rb')
-    
-    if (number_grid_points == 27) & (subset_index != 0):
+        print(subset_index,subset_name,'Using '+str(len(training_labels_subset_index['fe_h'][within_teff_logg_fe_h_limits]))+' of '+str(len(training_labels_subset_index['fe_h']))+' spectra')
+        training_labels.append(np.array([training_labels_subset_index[label][within_teff_logg_fe_h_limits] for label in labels]).T)
         training_set_flux.append(pickle.load(flux_ivar_file_opener)[within_teff_logg_fe_h_limits])
+
     else:
+        print(subset_index,subset_name,'Using '+str(len(training_labels_subset_index['fe_h']))+' of '+str(len(training_labels_subset_index['fe_h']))+' spectra')
+        training_labels.append(np.array([training_labels_subset_index[label] for label in labels]).T)
         training_set_flux.append(pickle.load(flux_ivar_file_opener))
     
     flux_ivar_file_opener.close()
 
 training_labels = np.concatenate((training_labels))
 training_set_flux = np.concatenate((training_set_flux))
+
+
+# In[ ]:
+
+
+print('Shapes of training set labels and flxues:')
+print(np.shape(training_labels),np.shape(training_set_flux))
 
 
 # In[ ]:
