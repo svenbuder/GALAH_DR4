@@ -1529,20 +1529,37 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
     if input_model_parameters[0] > 6.:
         print('Star has Teff > 6000 K, nulling abundances (exepct for Li)')
         # We will actually apply that further down
-    # Some abundance values may be extreme at the beginning - let's bring them back closer to 0 in this case
+
+    # Some abundance values may be extreme at the beginning - let's bring them back within the narrow training edges in this case
     for parameter_index, value in enumerate(input_model_parameters):
-        if input_model_labels[parameter_index] not in ['teff', 'logg', 'fe_h', 'vmic', 'vsini','li_fe']:
+        if input_model_labels[parameter_index] not in ['teff', 'logg', 'fe_h', 'vmic', 'vsini']:
             if input_model_parameters[0] > 6.:
-                # Null abundances (except Li), if Teff > 6000K
-                input_model_parameters[parameter_index] = 0.0
-            if input_model_labels[parameter_index] in ['o_fe','ba_fe','y_fe']:
-                if np.abs(input_model_parameters[parameter_index]) > 1.5:
-                    print('Extreme value for '+input_model_labels[parameter_index]+' detected, setting back to +- 1.5')
-                    input_model_parameters[parameter_index].clip(min=-1.5,max=1.5)
+                if input_model_labels[parameter_index] not in ['li_fe']:
+                    # Null abundances (except Li), if Teff > 6000K
+                    input_model_parameters[parameter_index] = 0.0
+            if input_model_labels[parameter_index] in ['li_fe']:
+                # print('[Li/Fe]',input_model_parameters[parameter_index])
+                # print('A(Li)',input_model_parameters[parameter_index] + input_model_parameters[2] + 1.05)
+                if input_model_parameters[parameter_index] + input_model_parameters[2] + 1.05 < 0.0:
+                    print('Extreme value of A(Li) < 0 detected, setting back to 1.05')
+                    input_model_parameters[parameter_index] = - input_model_parameters[2]
+                if input_model_parameters[parameter_index] + input_model_parameters[2] + 1.05 > 4.0:
+                    print('Extreme value of A(Li) > 4 detected, setting back to 3.26')
+                    input_model_parameters[parameter_index] = (3.26 - 1.05) - input_model_parameters[2] 
+            elif input_model_labels[parameter_index] in ['c_fe','n_fe','o_fe','y_fe','ba_fe','la_fe','ce_fe','nd_fe']:
+                if input_model_parameters[parameter_index] < -0.5:
+                    print('Extreme value for '+input_model_labels[parameter_index]+' < -0.5 detected, setting back to -0.5')
+                    input_model_parameters[parameter_index] = -0.5
+                if input_model_parameters[parameter_index] > 1.0:
+                    print('Extreme value for '+input_model_labels[parameter_index]+' > 1.0 detected, setting back to +1.0')
+                    input_model_parameters[parameter_index] = 1.0
             else:
-                if np.abs(input_model_parameters[parameter_index]) > 0.75:
-                    print('Extreme value for '+input_model_labels[parameter_index]+' detected, setting back to +- 0.75')
-                    input_model_parameters[parameter_index].clip(min=-0.75,max=0.75)
+                if input_model_parameters[parameter_index] < -0.5:
+                    print('Extreme value for '+input_model_labels[parameter_index]+' < -0.5 detected, setting back to -0.5')
+                    input_model_parameters[parameter_index] = -0.5
+                if input_model_parameters[parameter_index] > 0.5:
+                    print('Extreme value for '+input_model_labels[parameter_index]+' > 0.5 detected, setting back to +0.5')
+                    input_model_parameters[parameter_index] = 0.5
     
     def get_flux_only(input_wave,*model_parameters):
         """
