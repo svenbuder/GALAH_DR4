@@ -169,6 +169,7 @@ else:
 #     sobject_id = 140607000701060 # Test Eu6645 fitting
 #     sobject_id = 140823002701208 # Test of cool star with too many points masked
 #     sobject_id = 171205002101255 # Test RV with Balmer lines for metal-poor stars
+#     sobject_id = 131216001601172 # star in grid 2002 to test new neural network
 
 print('sobject_id: ',sobject_id)
 print()
@@ -190,7 +191,6 @@ else:
     raise FileNotFoundError('You need to either work on /avatar, /Users/svenbuder, or /Users/sven to execute this code')
 
 spectra_directory = working_directory+'observations/'
-model_directory = working_directory+'spectrum_interpolation/NN_models/models/'
 
 
 # # Setup our output data
@@ -1278,22 +1278,33 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
     print('Searching for closest neutral network')
     print('Need: '+str(int(teff)), "{:.2f}".format(logg), "{:.2f}".format(fe_h))
     
-    model_name = model_directory+'/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
+    model_name = working_directory+'spectrum_interpolation/neural_networks/models/galah_dr4_neutral_network_3x3x3_'+model_teff_logg_feh+'_36labels.npz'
+    
     try:
         tmp = np.load(model_name)
 
         used_model = closest_model
-        print('Using '+model_teff_logg_feh+' (closest)')
-        
+        print('Using 3x3x3 model '+model_teff_logg_feh+' (closest)')
     except:
-        print('Could not load '+closest_model+' (closest)')
-        model_index = grid_avail_index_tree.query([teff/1000.,logg,fe_h],k=1)[1]
-        model_teff_logg_feh = str(int(grids_avail['teff_subgrid'][model_index]))+'_'+"{:.2f}".format(grids_avail['logg_subgrid'][model_index])+'_'+"{:.2f}".format(grids_avail['fe_h_subgrid'][model_index])
-        model_name = model_directory+'/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
-        print('Using '+model_teff_logg_feh+' instead')
-        tmp = np.load(model_name)
+    
+        print('Could not load 3x3x3 model '+model_teff_logg_feh+' (closest)')
+        
+        model_name = working_directory+'spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
+        try:
+            tmp = np.load(model_name)
 
-        used_model = model_teff_logg_feh
+            used_model = closest_model
+            print('Using old extra6 model '+model_teff_logg_feh+' (closest)')
+
+        except:
+            print('Could not load old extra6 model '+model_teff_logg_feh+' (closest)')
+            model_index = grid_avail_index_tree.query([teff/1000.,logg,fe_h],k=1)[1]
+            model_teff_logg_feh = str(int(grids_avail['teff_subgrid'][model_index]))+'_'+"{:.2f}".format(grids_avail['logg_subgrid'][model_index])+'_'+"{:.2f}".format(grids_avail['fe_h_subgrid'][model_index])
+            model_name = model_directory+'/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
+            print('Using closest available old extra6 model '+model_teff_logg_feh+' instead')
+            tmp = np.load(model_name)
+
+            used_model = model_teff_logg_feh
 
     w_array_0 = tmp["w_array_0"]
     w_array_1 = tmp["w_array_1"]
