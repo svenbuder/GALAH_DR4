@@ -1512,7 +1512,17 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
 # In[ ]:
 
 
-def optimise_labels(input_model_parameters, input_model, input_model_name, input_model_labels, input_wave, input_data, input_sigma, input_unmasked, last_iteration):
+# Initialise important global parameters
+
+spectrum['opt_loop'] = 0
+converged = False
+maximum_loops = 4
+
+
+# In[ ]:
+
+
+def optimise_labels(input_model_parameters, input_model, input_model_name, input_model_labels, input_wave, input_data, input_sigma, input_unmasked, iteration):
     
     # Make sure we have some reasonable initial abundances
     # Start by setting abundances of hot stars > 6000K back to 0
@@ -1562,7 +1572,10 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
     )
     
     # Decide what parameters to return
-    if (input_model_name == new_output_model_name) | last_iteration:
+    # Casse 1) return input model and its optimised parameters
+    # 1a) not first iteration, but same model or 
+    # 1b) final iteration
+    if (((input_model_name == new_output_model_name) & iteration!= 0) | iteration == maximum_loops - 1):
         
         # If the a new iteration would use the same model or we are in the last iteration:
 
@@ -1576,6 +1589,8 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
         # output_data -> stays the same 
         # output_sigma -> stays the same
 
+    # Case 2) return next_iteration model and its parameter array adjusted to it
+    # for iteration 0 or where not converged, but also not yet final iteration
     else:
         # This is neither the final iteration, nor did the model stay the same
         
@@ -1591,9 +1606,9 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
 
         # Test if output and input model have same labels
         same_model_labels = True
-        if len(input_model_labels) == len(output_model_labels):
+        if len(input_model_labels) == len(new_output_model_labels):
             for label_index, label in enumerate(input_model_labels):
-                if output_model_labels[label_index] != label:
+                if new_output_model_labels[label_index] != label:
                     same_model_labels = False
         else:
             same_model_labels = False
@@ -1601,15 +1616,15 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
             print('Model_labels are the same! Continuing with same model_parameters')
         else:
             print('Model_labels changed! Updating model_parameters')
-            model_parameters_new = []
+            new_model_parameters = []
             # Match old labels if possible, otherwise add [X/Fe] = 0
-            for label in output_model_labels:
+            for label in new_output_model_labels:
                 if label in input_model_labels:
-                    model_parameters_new.append(output_model_parameters[input_model_labels==label][0])
+                    new_model_parameters.append(output_model_parameters[input_model_labels==label][0])
                 else:
-                    model_parameters_new.append(0) # If label not available for any [X/Fe], set it to 0
+                    new_model_parameters.append(0) # If label not available for any [X/Fe], set it to 0
 
-            output_model_parameters = np.array(model_parameters_new)
+            output_model_parameters = np.array(new_model_parameters)
             
         # update the next iteration model
         output_model = new_output_model
@@ -1619,7 +1634,7 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
 
     # Test if the a new iteration of labels would happen with the same neutral network.
     # If yes: we converged on a model
-    if output_model_name == input_model_name:
+    if (output_model_name == input_model_name) & (iteration != 0):
         converged = True
     else:
         converged = False
@@ -1629,11 +1644,6 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
 
 # In[ ]:
 
-
-spectrum['opt_loop'] = 0
-converged = False
-
-maximum_loops = 4
 
 # We loop up to maximum_loops times over the major iteration step
 while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
@@ -1689,14 +1699,8 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
 
     print('Loop '+str(spectrum['opt_loop'])+' Nr. Wavelength Points: '+str(len(np.where(unmasked_opt==True)[0]))+' ('+str(int(np.round(100*len(np.where(unmasked_opt==True)[0])/len(unmasked_opt))))+'%) \n')
 
-    # Is this the last iteration? Important to decide what model_parameters and model_labels to give back
-    if spectrum['opt_loop'] == maximum_loops - 1:
-        last_iteration = True
-    else:
-        last_iteration = False
-        
     # Call optimisation routine
-    converged, model_flux_opt, model_parameters_opt, model_covariances_opt, neural_network_model_opt, model_name_opt, model_labels_opt, wave_opt, data_opt, sigma2_opt = optimise_labels(model_parameters_opt, neural_network_model_opt, model_name_opt, model_labels_opt, wave_opt, data_opt, sigma2_opt, unmasked_opt, last_iteration)
+    converged, model_flux_opt, model_parameters_opt, model_covariances_opt, neural_network_model_opt, model_name_opt, model_labels_opt, wave_opt, data_opt, sigma2_opt = optimise_labels(model_parameters_opt, neural_network_model_opt, model_name_opt, model_labels_opt, wave_opt, data_opt, sigma2_opt, unmasked_opt, spectrum['opt_loop'])
 
     if (converged != True) & (spectrum['opt_loop'] < maximum_loops - 1):
         print('Not converged at the end of loop '+str(spectrum['opt_loop'])+'. Will start another loop \n')
@@ -1802,7 +1806,7 @@ save_spectrum.write(file_directory+str(spectrum['sobject_id'])+'_single_fit_spec
 np.savez(
     file_directory+str(spectrum['sobject_id'])+'_single_fit_covariances.npz',
     model_labels = model_labels_opt,
-    model_name = model_name_opt
+    model_name = model_name_opt,
     model_parameters = model_parameters_opt,
     model_covariances = model_covariances_opt,
 )
