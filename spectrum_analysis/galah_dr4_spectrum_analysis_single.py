@@ -1300,7 +1300,7 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
             print('Could not load old extra6 model '+model_teff_logg_feh+' (closest)')
             model_index = grid_avail_index_tree.query([teff/1000.,logg,fe_h],k=1)[1]
             model_teff_logg_feh = str(int(grids_avail['teff_subgrid'][model_index]))+'_'+"{:.2f}".format(grids_avail['logg_subgrid'][model_index])+'_'+"{:.2f}".format(grids_avail['fe_h_subgrid'][model_index])
-            model_name = model_directory+'/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
+            model_name = working_directory+'spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
             print('Using closest available old extra6 model '+model_teff_logg_feh+' instead')
             tmp = np.load(model_name)
 
@@ -2047,5 +2047,5 @@ output.add_column(col)
 # And save!
 output.write(file_directory+str(spectrum['sobject_id'])+'_single_fit_results.fits',overwrite=True)
 
-print('Duration: '+str(np.round(end_time,decimals=1)))
+print('Duration: '+str(np.round(end_time,decimals=1))+' for sobjec_id '+str(spectrum['sobject_id']))
 
