@@ -219,9 +219,10 @@ spectrum = dict()
 spectrum['sobject_id'] = sobject_id
 
 spectrum['flag_sp'] = int(0)
-flag_sp_closest_model_not_available = int(1)
-flag_sp_no_successful_convergence_within_maximum_loops = int(2)
-flag_sp_not_all_ccds_available = int(4)
+flag_sp_closest_3x3x3_model_not_available = int(1)
+flag_sp_closest_extra6_model_not_available = int(2)
+flag_sp_no_successful_convergence_within_maximum_loops = int(4)
+flag_sp_not_all_ccds_available = int(8)
 
 init_values_table = Table.read('galah_dr4_initial_parameters_220714_lite.fits')
 sobject_id_initial_index = np.where(init_values_table['sobject_id'] == sobject_id)[0]
@@ -423,7 +424,8 @@ if (spectrum['init_teff'] < 4.1) & (1 in spectrum['available_ccds']):
     spectrum['counts_unc_ccd1'] *= 2
     
 if len(spectrum['available_ccds']) != 4:
-    spectrum['flag_sp'] += flag_sp_not_all_ccds_available
+    if (spectrum['flag_sp'] & flag_sp_not_all_ccds_available) == 0:
+        spectrum['flag_sp'] += flag_sp_not_all_ccds_available
 
 
 # # Prepare spectroscopic analysis
@@ -1289,6 +1291,9 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
     
         print('Could not load 3x3x3 model '+model_teff_logg_feh+' (closest)')
         
+        if (spectrum['flag_sp'] & flag_sp_closest_3x3x3_model_not_available,) == 0:
+            spectrum['flag_sp'] += flag_sp_closest_3x3x3_model_not_available
+        
         model_name = working_directory+'spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
         try:
             tmp = np.load(model_name)
@@ -1297,7 +1302,12 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
             print('Using old extra6 model '+model_teff_logg_feh+' (closest)')
 
         except:
+            
             print('Could not load old extra6 model '+model_teff_logg_feh+' (closest)')
+            
+            if (spectrum['flag_sp'] & flag_sp_closest_extra6_model_not_available) == 0:
+                spectrum['flag_sp'] += flag_sp_closest_extra6_model_not_available
+            
             model_index = grid_avail_index_tree.query([teff/1000.,logg,fe_h],k=1)[1]
             model_teff_logg_feh = str(int(grids_avail['teff_subgrid'][model_index]))+'_'+"{:.2f}".format(grids_avail['logg_subgrid'][model_index])+'_'+"{:.2f}".format(grids_avail['fe_h_subgrid'][model_index])
             model_name = working_directory+'spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
@@ -1628,10 +1638,6 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
         # output_data -> stays the same 
         # output_sigma -> stays the same
 
-        # Updating output_models_opt
-        if not new_output_model_name == closest_model:
-            spectrum['flag_sp'] = flag_sp_closest_model_not_available
-
         # Test if output and input model have same labels
         same_model_labels = True
         if len(input_model_labels) == len(new_output_model_labels):
@@ -1687,8 +1693,6 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
             spectrum['init_logg'],
             spectrum['init_fe_h']
         )
-        if model_name_opt != closest_model:
-            spectrum['flag_sp'] = flag_sp_closest_model_not_available
         
         # Feed initial values into array
         model_parameters_opt = [spectrum['init_'+label] for label in model_labels_opt]
@@ -1759,8 +1763,10 @@ if success:
 else:
     info_line_1 = str(sobject_id)+': not successful, Model '+model_name_opt
 
-if (spectrum['flag_sp'] & 2**flag_sp_closest_model_not_available) > 0:
-    info_line_1 = info_line_1+' (extrap.)'
+if (spectrum['flag_sp'] & flag_sp_closest_3x3x3_model_not_available) > 0:
+    info_line_1 = info_line_1+' (extrap. 3x3x3)'
+if (spectrum['flag_sp'] & flag_sp_closest_extra6_model_not_available) > 0:
+    info_line_1 = info_line_1+' (extrap. 1plus6)'
 
 if success:
     info_line_2 = 'Teff='+str(int(1000*model_parameters_opt[model_labels_opt == 'teff'][0]))+'K, '+         'logg='+str(np.round(model_parameters_opt[model_labels_opt == 'logg'][0],decimals=2))+', '+         '[Fe/H]='+str(np.round(model_parameters_opt[model_labels_opt == 'fe_h'][0],decimals=2))+', '+         'vmic='+str(np.round(model_parameters_opt[model_labels_opt == 'vmic'][0],decimals=2))+'km/s, '+         'vsini='+str(np.round(model_parameters_opt[model_labels_opt == 'vsini'][0],decimals=1))+'km/s'
