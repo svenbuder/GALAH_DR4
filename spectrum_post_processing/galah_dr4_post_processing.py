@@ -41,7 +41,7 @@ from scipy.optimize import curve_fit
 # In[ ]:
 
 
-dr60 = Table.read('../auxiliary_information/dr6.0.fits')
+dr60 = Table.read('../observations/dr6.0_220701.fits')
 dr60['date'] = np.array([str(x)[:6] for x in dr60['sobject_id']])
 
 
@@ -60,250 +60,6 @@ unique_dates = np.unique(dr60['date'])
 # date_nr
 
 
-# In[ ]:
-
-
-dates_run = [
-    '131216',
-    '131217',
-    '131220',
-    '140111',
-    '140112',
-    '140113',
-    '140114',
-    '140115',
-    '140116',
-    '140117',
-    '140118',
-    '140207',
-    '140208',
-    '140209',
-    '140210',
-    '140211',
-    '140212',
-    '140303',
-    '140304',
-    '140305',
-    '140307',
-    '140308',
-    '140309',
-    '140310',
-    '140312',
-    '140314',
-    '140315',
-    '140316',
-    '140409',
-    '140412',
-    '140413',
-    '140414',
-    '140607',
-    '140608',
-#     '140609',
-    '140610',
-#     '140611',
-#     '140707',
-#     '140708',
-    '140709',
-    '140710',
-#     '140822',
-    '140824',
-    '150109',
-    '150408',
-    '150409',
-    '150901',
-    '151225',
-    '161212',
-    '161213',
-    '161217',
-    '170205',
-    '170806',
-    '170828',
-    '170829',
-    '170830',
-    '170904',
-    '170912',
-    '180130',
-    '190207',
-    '190224',
-    '190225',
-    '190614',
-    '190615',
-    '191106',
-    '191107',
-    '191108',
-    '191109',
-    '191114',
-    '191115',
-    '191116',
-    '200213',
-    '200214',
-    '200215',
-    '200216',
-    '200511',
-    '200512',
-    '200513',
-    '200514',
-    '200515',
-    '200516',
-    '200517',
-    '200519',
-    '200521',
-    '200528',
-    '200529',
-    '200530',
-    '200531',
-    '200708',
-    '200709',
-    '200712',
-    '200714',
-    '200724',
-    '200728',
-    '200801',
-    '200802',
-    '200803',
-    '200804',
-    '200805',
-    '200810',
-    '200824',
-    '200825',
-    '200826',
-    '200831',
-    '200901',
-    '200902',
-    '200903',
-    '200904',
-    '200905',
-    '200906',
-    '200907',
-    '200926',
-    '200927',
-    '201001',
-    '201002',
-    '201003',
-    '201004',
-    '201005',
-    '201006',
-    '201007',
-    '201130',
-    '201201',
-    '201202',
-    '201204',
-    '201207',
-    '210113',
-    '210114',
-    '210115',
-    '210116',
-    '210117',
-    '210122',
-    '210123',
-    '210124',
-    '210125',
-    '210126',
-    '210202',
-    '210203',
-    '210324',
-    '210325',
-    '210327',
-    '210328',
-    '210329',
-    '210330',
-    '210331',
-    '210401',
-    '210402',
-    '210403',
-    '210404',
-    '210405',
-    '210422',
-    '210513',
-    '210514',
-    '210515',
-    '210516',
-    '210517',
-    '210518',
-    '210519',
-    '210520',
-    '210521',
-    '210522',
-    '210523',
-    '210524',
-    '210531',
-    '210602',
-    '210605',
-    '210606',
-    '210607',
-    '210608',
-    '210612',
-    '210614',
-    '210706',
-    '210707',
-    '210710',
-    '210711',
-    '210715',
-    '210716',
-    '210718',
-    '210719',
-    '210721',
-    '210725',
-    '210726',
-    '210727',
-    '210728',
-    '210729',
-    '210730',
-    '210731',
-    '210802',
-    '210803',
-    '210914',
-    '210915',
-    '210916',
-    '210918',
-    '210919',
-    '210920',
-    '210921',
-    '210922',
-    '210923',
-    '210925',
-    '210926',
-    '210927',
-    '211113',
-    '211114',
-    '211213',
-    '211214',
-    '211215',
-    '211216',
-    '211217',
-    '211219',
-    '211220',
-    '211221',
-    '220120',
-    '220121',
-    '220122',
-    '220123',
-    '220124',
-    '220125',
-    '220214',
-    '220215',
-    '220216',
-    '220217',
-    '220218',
-    '220219',
-    '220220',
-    '220221',
-    '220322',
-    '220324',
-    '220420',
-    '220422',
-]
-
-# for year in ['13','14','15','16','17','18','19','20','21','22']:
-#     dates_in_that_year = list(unique_dates[
-#         np.where([date[:2] == year for date in unique_dates])
-#     ])
-#     print('import os')
-#     print("dates = ['"+"','".join(dates_in_that_year)+"']")
-#     print('for date in dates:')
-#     print("    os.system('ipython galah_dr4_post_processing.py '+date)")
-
-
 # # Post process each date
 
 # In[ ]:
@@ -312,7 +68,10 @@ dates_run = [
 if sys.argv[1] != '-f':
     date = sys.argv[1]
 else:
-    date = '131216'
+#     date = '140307'
+#     date = '131216'
+    date = '140305' # OmegaCen
+
 print('Post-Processing '+date)
 
 
@@ -334,14 +93,15 @@ masks = Table.read('../spectrum_analysis/spectrum_masks/solar_spectrum_mask.fits
 
 
 flag_sp_dictionary = dict()
-flag_sp_dictionary['emission']    = [1,'Emission in Halpha/Hbeta detected']
-flag_sp_dictionary['vsini_warn']  = [2,'Broadening (vsini) warning']
-flag_sp_dictionary['vmic_warn']   = [4,'Microturbulence (vmic) warning']
-flag_sp_dictionary['chi2_3sigma'] = [8,'chi square unusually low/high by 3 sigma']
-flag_sp_dictionary['is_sb2']      = [16,'Double line splitting detected (SB2)']
-flag_sp_dictionary['ccd_missing'] = [32,'Not all 4 CCDs available']
-flag_sp_dictionary['no_model']    = [64,'Extrapolating spectrum model']
-flag_sp_dictionary['no_results']  = [128,'No spectroscopic analysis results available']
+flag_sp_dictionary['emission']      = [1,'Emission in Halpha/Hbeta detected']
+flag_sp_dictionary['vsini_warn']    = [2,'Broadening (vsini) warning']
+flag_sp_dictionary['vmic_warn']     = [4,'Microturbulence (vmic) warning']
+flag_sp_dictionary['chi2_3sigma']   = [8,'chi square unusually low/high by 3 sigma']
+flag_sp_dictionary['is_sb2']        = [16,'Double line splitting detected (SB2)']
+flag_sp_dictionary['ccd_missing']   = [32,'Not all 4 CCDs available']
+flag_sp_dictionary['not_converged'] = [64,'Not converged within 4 iterations']
+flag_sp_dictionary['no_model']      = [128,'Extrapolating spectrum model']
+flag_sp_dictionary['no_results']    = [256,'No spectroscopic analysis results available']
 
 # a_file = open("final_flag_sp_dictionary.pkl", "wb")
 # pickle.dump(flag_sp_dictionary,a_file)
@@ -394,12 +154,16 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
                 if emission_info['any_emission']:
                     intermediate_flag_sp += flag_sp_dictionary['emission'][0]
 
+            if reason == 'not_converged':
+                if((results['flag_sp_fit'][0] & 2) == 2):
+                    intermediate_flag_sp += flag_sp_dictionary['not_converged'][0]
+
             if reason == 'ccd_missing':
-                if((results['flag_sp'][0] & 2) == 2):
+                if((results['flag_sp_fit'][0] & 4) == 4):
                     intermediate_flag_sp += flag_sp_dictionary['ccd_missing'][0]
 
             if reason == 'no_model':
-                if((results['flag_sp'][0] & 1) == 1):
+                if((results['flag_sp_fit'][0] & 1) == 1):
                     intermediate_flag_sp += flag_sp_dictionary['no_model'][0]
 
     return(intermediate_flag_sp)
@@ -428,8 +192,8 @@ def create_final_dr40_table():
         empty_final_dr40_table[label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
     for label in ['model_name']:
         empty_final_dr40_table[label] = np.array([' teff_logg_fe_h ' for x in range(table_length)])
-
-    for label in ['teff','logg','fe_h','vmic','vsini']:
+        
+    for label in ['rv','teff','logg','fe_h','vmic','vsini']:
         empty_final_dr40_table[label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
         empty_final_dr40_table['e_'+label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table['e_'+label][:] = np.NaN
         if label == 'fe_h':
@@ -449,8 +213,8 @@ def create_final_dr40_table():
         
     # Positions
     empty_final_dr40_table['v_bary_eff'] = np.array(dr60['v_bary_eff'], dtype=np.float64)
-    empty_final_dr40_table['red_rv_ccd'] = dr60['rv']
-    empty_final_dr40_table['red_e_rv_ccd'] = dr60['e_rv']
+    #empty_final_dr40_table['red_rv_ccd'] = dr60['rv']
+    #empty_final_dr40_table['red_e_rv_ccd'] = dr60['e_rv']
     empty_final_dr40_table['red_rv_com'] = np.array(dr60['rv_com'], dtype=np.float64)
     empty_final_dr40_table['red_e_rv_com'] = np.array(dr60['e_rv_com'], dtype=np.float64)
     empty_final_dr40_table['red_teff'] = np.array(dr60['teff_r'], dtype=np.float64)
@@ -468,12 +232,13 @@ def create_final_dr40_table():
         'ew_k_is', 'sigma_k_is', 'rv_k_is'
         ]:
         empty_final_dr40_table[label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
-    for line in [5780.,5797.,6613.]:
+    for line in [5780.59,5797.19,6613.66]:
         for label in ['ew_dib'+str(int(line)),'sigma_dib'+str(int(line)),'rv_dib'+str(int(line))]:
             empty_final_dr40_table[label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
 
     # Additional information from spectrum_analysis
-    empty_final_dr40_table['snr'] = dr60['snr']
+    for ccd in [1,2,3,4]:
+        empty_final_dr40_table['snr_px_ccd'+str(ccd)] = dr60['snr'][:,ccd-1]
     
     return(empty_final_dr40_table)
 
@@ -509,12 +274,14 @@ def identify_possible_RV_shifts(
     final = False,
     debug = False,
     ):
-    
+        
     possible_line_splitting_peaks = []
     
     # We have to make sure that the regions that are always masked (never fitted) are actually not used for estimating binarity
     not_modelled = np.any(np.array([((spectra['wave'] >= mask_beginning) & (spectra['wave'] <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0)
-    spectra['smod'][not_modelled] = spectra['sob'][not_modelled]
+    
+    smod_for_binarity_test = np.array(spectra['smod'])
+    smod_for_binarity_test[not_modelled] = spectra['sob'][not_modelled]
     
     for line in spectral_lines_to_assess:
         wave_km_s = ((spectra['wave']/line - 1)*c.c).to(u.km/u.s).value
@@ -524,7 +291,7 @@ def identify_possible_RV_shifts(
         # We will work with the difference of observed and synthetic spectra
         # To avoid low SNR to introduce issues, we will only allow differences above 
         # certain thresholds to be used
-        adjusted_flux_difference = (spectra['sob'][within_rv_shift_km_s] - spectra['smod'][within_rv_shift_km_s])
+        adjusted_flux_difference = (spectra['sob'][within_rv_shift_km_s] - smod_for_binarity_test[within_rv_shift_km_s])
         adjusted_flux_difference[adjusted_flux_difference>-0.05] = 0.00
         
         # Let's interpolate the difference onto an equidistance velocity array
@@ -692,16 +459,15 @@ def assess_binarity(spectra,results,debug=False):
 # In[ ]:
 
 
-def assess_emission(spectra, wavelength_window = 2, debug=False):
+def assess_emission(spectra, debug=False):
     """
-    
     Examples sobject_ids:
     131216001101315
     """
-    
+
     emission_indicators = dict()
     emission_indicators['ew_h_beta'] = 4861.3230
-    emission_indicators['ew_h_alpha'] = 6562.7970
+    emission_indicators['ew_h_alpha'] = 6562.7970   
     
     emission_info = dict()
     
@@ -719,6 +485,12 @@ def assess_emission(spectra, wavelength_window = 2, debug=False):
         # now test if the observed flux of the line core is above the continuum flux of 1:
         if np.median(spectra['sob'][line_core]) > 1:
             any_indicator_in_emission = 1
+            wavelength_window = 5.0
+        else:
+            if line_name == 'ew_h_alpha':
+                wavelength_window = 1.25
+            if line_name == 'ew_h_beta':
+                wavelength_window = 0.75
 
         in_wavelength_bin = np.abs(spectra['wave'] - line) < wavelength_window
 
@@ -727,18 +499,26 @@ def assess_emission(spectra, wavelength_window = 2, debug=False):
 
         if debug:
             ax = gs[index]
+            ax.set_title(line_name)
             ax.plot(
                 spectra['wave'][in_wavelength_bin],
-                spectra['sob'][in_wavelength_bin]
+                spectra['sob'][in_wavelength_bin],
+                label = 'sob'
             )
             ax.plot(
                 spectra['wave'][in_wavelength_bin],
-                spectra['smod'][in_wavelength_bin]
+                spectra['smod'][in_wavelength_bin],
+                label = 'smod'
             )
             ax.plot(
                 spectra['wave'][in_wavelength_bin],
-                spectra['smod'][in_wavelength_bin] - spectra['sob'][in_wavelength_bin]
+                spectra['smod'][in_wavelength_bin] - spectra['sob'][in_wavelength_bin],
+                label = 'smod-sob'
             )
+            ax.legend()
+    if debug:
+        plt.show()
+        plt.close()
     
     if any_indicator_in_emission:
         emission_info['any_emission'] = True
@@ -779,21 +559,30 @@ def assess_interstellar_k_absorption(spectra,debug=True):
         p0 = [
             1,
             spectra['wave'][around_k_line][np.argmin(spectra['sob'][around_k_line]-spectra['smod'][around_k_line])],
-            0.4]
+            0.2],
+        bounds = ((0,spectra['wave'][around_k_line][0],0.05),(100,spectra['wave'][around_k_line][-1],5))
     )
-
+    
     if debug:
         plt.plot(
             spectra['wave'][around_k_line],
             spectra['smod'][around_k_line] + gauss_func(spectra['wave'][around_k_line], *popt),
             c = 'C1', ls='dashed'
         )
+        plt.axvline(popt[1])
+        plt.axvline(spectra['wave'][around_k_line][np.argmin(spectra['sob'][around_k_line]-spectra['smod'][around_k_line])])
+        plt.ylim(-0.1,1.2)
+        plt.show()
+        plt.close()
 
-    return(
-        np.float32(popt[0] * popt[2] * np.sqrt(2*np.pi)),
-        np.float32(np.abs(popt[2])),
-        np.float32(((popt[1] - 7698.9643)/7698.9643*c.c).to(u.km/u.s).value)
-    )
+    if popt[2] < 0.1:
+        return(np.NaN, np.NaN, np.NaN)            
+    else:
+        return(
+            np.float32(np.abs(popt[0] * popt[2] * np.sqrt(2*np.pi))),
+            np.float32(np.abs(popt[2])),
+            np.float32(((popt[1] - 7698.9643)/7698.9643*c.c).to(u.km/u.s).value)
+        )
 
 
 # In[ ]:
@@ -801,17 +590,21 @@ def assess_interstellar_k_absorption(spectra,debug=True):
 
 def assess_dib_absorption(spectra, wavelength = 5780, debug=True):
     """
+    Based on results from Vogrinčič et al. (2022, in prep.)
     
-    Could use https://ui.adsabs.harvard.edu/abs/1994A%26AS..106...39J/abstract like de Silva et al. (2015)
-
-    OR:
-
-    λλ4963.9, 5779.6, 5780.6, 5797.2, 5849.8, 6203.6, 6284.1, and 6613.7 
-    λλ4727.0, 6089.9, 6196.0, 6439.5, and 6660.7
-    λλ6376.1, 6379.3, 6449.3, and 6993.1
-    
-    from https://ui.adsabs.harvard.edu/abs/2019ApJ...878..151F/abstract
-    
+    4726.40 ± 0.07 # 46
+    4762.57 ± 0.06 # 60
+    4855.25 ± 0.12 # 59
+    4859.89 ± 0.01 # 59
+    5705.21 ± 0.16 # 49
+    5747.62 ± 0.35 # 55
+    5780.59 ± 0.01 # 284
+    5784.78 ± 0.03 # 51
+    5797.19 ± 0.03 # 110
+    6496.67 ± 0.20 # 53
+    6530.17 ± 0.24 # 51
+    6589.97 ± 0.01 # 50
+    6613.66 ± 0.01 # 130
     """
     
     around_dib_line = np.abs(spectra['wave'] - wavelength) < 5
@@ -837,7 +630,8 @@ def assess_dib_absorption(spectra, wavelength = 5780, debug=True):
         gauss_func,
         xdata = spectra['wave'][around_dib_line],
         ydata = spectra['sob'][around_dib_line]-spectra['smod'][around_dib_line],
-        p0 = [1,wavelength,0.4]
+        p0 = [1,wavelength,0.4],
+        bounds = ((0,spectra['wave'][around_dib_line][0],0.05),(100,spectra['wave'][around_dib_line][-1],5))
     )
 
     if debug:
@@ -846,12 +640,20 @@ def assess_dib_absorption(spectra, wavelength = 5780, debug=True):
             spectra['smod'][around_dib_line] + gauss_func(spectra['wave'][around_dib_line], *popt),
             c = 'C1', ls='dashed'
         )
+        plt.ylim(-0.1,1.2)
+        if popt[2] > 0.1:
+            plt.show()
+            print(popt)
+        plt.close()
         
-    return(
-        np.float32(popt[0] * popt[2] * np.sqrt(2*np.pi)),
-        np.float32(np.abs(popt[2])),
-        np.float32(((popt[1] - wavelength)/wavelength*c.c).to(u.km/u.s).value)
-    )
+    if popt[2] < 0.1:
+        return(np.NaN, np.NaN, np.NaN)
+    else:
+        return(
+            np.float32(np.abs(popt[0] * popt[2] * np.sqrt(2*np.pi))),
+            np.float32(np.abs(popt[2])),
+            np.float32(((popt[1] - wavelength)/wavelength*c.c).to(u.km/u.s).value)
+        )
 
 
 # In[ ]:
@@ -901,18 +703,18 @@ galah_zeropoints['A_C']  = [np.float32(8.39+0.035)] # VESTA, GAS07: 8.39, DR3: 8
 galah_zeropoints['A_N']  = [np.float32(7.78+0.150)]  # VESTA: 7.78+0.617, GAS07: 7.78, DR3:
 galah_zeropoints['A_O']  = [np.float32(8.66+0.070)] # -0.124 VESTA, GAS07: 8.66, DR3: 8.77
 galah_zeropoints['A_Na'] = [np.float32(6.17+0.204)] # VESTA, GAS07: 6.17, DR3: 6.06
-galah_zeropoints['A_Mg'] = [np.float32(7.53+0.082)] # +0.164 VESTA, GAS07: 7.53, DR3: 7.60
-galah_zeropoints['A_Al'] = [np.float32(6.37+0.205)] # VESTA, GAS07: 6.37, DR3: 6.41
-galah_zeropoints['A_Si'] = [np.float32(7.51+0.009)] # VESTA, GAS07: 7.51, DR3: 7.47
-galah_zeropoints['A_K']  = [np.float32(5.08-0.029)] # VESTA, GAS07: 5.08, DR3: 5.07
+galah_zeropoints['A_Mg'] = [np.float32(7.53+0.069)] # +0.164 VESTA, GAS07: 7.53, DR3: 7.60
+galah_zeropoints['A_Al'] = [np.float32(6.37+0.193)] # +0.205 VESTA, GAS07: 6.37, DR3: 6.41
+galah_zeropoints['A_Si'] = [np.float32(7.51+0.002)] # VESTA, GAS07: 7.51, DR3: 7.47
+galah_zeropoints['A_K']  = [np.float32(5.08-0.034)] # VESTA, GAS07: 5.08, DR3: 5.07
 galah_zeropoints['A_Ca'] = [np.float32(6.31+0.035)] # VESTA, GAS07: 6.31, DR3: 6.18
 galah_zeropoints['A_Sc'] = [np.float32(3.17-0.016)] # VESTA, GAS07: 3.17, DR3:
 galah_zeropoints['A_Ti'] = [np.float32(4.90+0.010)] # VESTA, GAS07: 4.90, DR3:
 galah_zeropoints['A_V']  = [np.float32(4.00-0.116)] # VESTA, GAS07: 4.00, DR3:
 galah_zeropoints['A_Cr'] = [np.float32(5.64+0.014)] # VESTA, GAS07: 5.64, DR3: 0.132
-galah_zeropoints['A_Mn'] = [np.float32(5.39+0.135)] # VESTA, GAS07: 5.39, DR3: 0.064
+galah_zeropoints['A_Mn'] = [np.float32(5.39+0.097)] # VESTA, GAS07: 5.39, DR3: 0.064
 galah_zeropoints['A_Co'] = [np.float32(4.92-0.095)] # VESTA, GAS07: 4.92, DR3: 0.072
-galah_zeropoints['A_Ni'] = [np.float32(6.23+0.016)] # VESTA, GAS07: 6.23, DR3: 6.23
+galah_zeropoints['A_Ni'] = [np.float32(6.23-0.005)] # VESTA, GAS07: 6.23, DR3: 6.23
 galah_zeropoints['A_Cu'] = [np.float32(4.21-0.154)] # VESTA, GAS07: 4.21, DR3: 4.06
 galah_zeropoints['A_Zn'] = [np.float32(4.60-0.050)] # VESTA, GAS07: 4.60, DR3:
 galah_zeropoints['A_Rb'] = [np.float32(2.60)] # GAS07: 2.60, DR3: 2.60
@@ -929,7 +731,7 @@ galah_zeropoints['A_Sm'] = [np.float32(1.00+0.130)] # GAS07: 1.00, DR3:
 galah_zeropoints['A_Eu'] = [np.float32(0.52+0.40)] # GAS07: 0.52, DR3: 0.57
 galah_zeropoints
 
-# galah_zeropoints.write('galah_dr4_zeropoints.fits',overwrite=True)
+galah_zeropoints.write('galah_dr4_zeropoints.fits',overwrite=True)
 
 
 # In[ ]:
@@ -963,8 +765,6 @@ def process_date(parameter_biases, debug = True):
     
     final_table = create_final_dr40_table()
     
-    #print(final_table)
-    
     for dr60_index, sobject_id in enumerate(dr60['sobject_id']):
         
         if dr60_index%250==0:
@@ -973,21 +773,25 @@ def process_date(parameter_biases, debug = True):
         has_results = False
         try:
             # Let's import the spectra
-            spectra = Table.read('../analysis_products/'+str(sobject_id)[:6]+'/'+str(sobject_id)+'/'+str(sobject_id)+'_simple_fit_spectrum.fits')
-            results = Table.read('../analysis_products/'+str(sobject_id)[:6]+'/'+str(sobject_id)+'/'+str(sobject_id)+'_simple_fit_results.fits')
+            spectra = Table.read('../analysis_products/'+str(sobject_id)[:6]+'/'+str(sobject_id)+'/'+str(sobject_id)+'_single_fit_spectrum.fits')
+            results = Table.read('../analysis_products/'+str(sobject_id)[:6]+'/'+str(sobject_id)+'/'+str(sobject_id)+'_single_fit_results.fits')
 
             has_results = True
-            
+
             # There are completely unreasonable outliers!
             if sobject_id in [200714001301248,140303000401330,200714001301055,140313003601295]:
+                print('Forgetting about '+sobject_id)
                 has_results = False
             
         except:
             spectra = []
             results = []
-            pass       
-        
+            pass
+
         if has_results:
+            
+            final_table['rv'][dr60_index] = results['rv_gauss']
+            final_table['e_rv'][dr60_index] = results['e_rv_gauss']
             
             # Populate the stellar parameters and apply parameter bias corrections
             for label in ['teff','logg','fe_h','vmic','vsini']:
@@ -1002,13 +806,12 @@ def process_date(parameter_biases, debug = True):
 
                 if label in ['fe_h']:
                     final_table['flag_'+label][dr60_index] = results['flag_'+label]
-                
+
             # Save the overall median chi-square for the spectrum
             final_table['chi2_sp'][dr60_index] = np.median(np.abs(spectra['sob'] - spectra['smod'])/spectra['uob'])
             
             # Save the model name of the neural network
             final_table['model_name'][dr60_index] = results['model_name'][0]
-
 
             for element in [
                 'Li','C','N','O',
@@ -1030,7 +833,7 @@ def process_date(parameter_biases, debug = True):
             
             # Assess emission in Halpha/Hbeta
             try:
-                emission_information = assess_emission(spectra)
+                emission_information = assess_emission(spectra, debug=debug)
                 for key in emission_information.keys():
                     if key[:3] == 'ew_':
                         final_table[key][dr60_index] = emission_information[key]
@@ -1040,16 +843,21 @@ def process_date(parameter_biases, debug = True):
             # Assess interstellar K absorption
             try:
                 final_table['ew_k_is'][dr60_index],final_table['sigma_k_is'][dr60_index],final_table['rv_k_is'][dr60_index] = assess_interstellar_k_absorption(spectra,debug)
+                if np.isfinite(final_table['rv_k_is'][dr60_index]):
+                    final_table['rv_k_is'][dr60_index] += final_table['rv'][dr60_index]
             except:
                 pass
             
             # Assess DIB features
-            for line in [5780.,5797.,6613.]:
+            # Using wavelengths from Vogrinčič et al. (2022, in prep.) based on GALAH analyses
+            for line in [5780.59,5797.19,6613.66]:
+                
                 try:
                     ew,sigma,rv = assess_dib_absorption(spectra, line, debug)
                     final_table['ew_dib'+str(int(line))][dr60_index] = ew
                     final_table['sigma_dib'+str(int(line))][dr60_index] = sigma
-                    final_table['rv_dib'+str(int(line))][dr60_index] = rv
+                    if np.isfinite(rv):
+                        final_table['rv_dib'+str(int(line))][dr60_index] = rv + final_table['rv'][dr60_index]
                 except:
                     pass
         else:
@@ -1064,6 +872,14 @@ def process_date(parameter_biases, debug = True):
 
 
 final_table = process_date(parameter_biases,debug=False)
+
+
+# In[ ]:
+
+
+is_fin = np.isfinite(final_table['teff'])
+final_table[is_fin]
+#[final_table['sobject_id'] == 140307001101272]
 
 
 # In[ ]:
