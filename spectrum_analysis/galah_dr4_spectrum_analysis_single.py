@@ -170,6 +170,10 @@ else:
 #     sobject_id = 140823002701208 # Test of cool star with too many points masked
 #     sobject_id = 171205002101255 # Test RV with Balmer lines for metal-poor stars
 #     sobject_id = 131216001601172 # star in grid 2002 to test new neural network
+    sobject_id = 160331004301396 # metal-poor star starting grid 1482 == 4750_2.00_-2.00
+    sobject_id = 161013003801353 # metal-poor star starting grid 1482 == 4750_2.00_-2.00
+    sobject_id = 160419003601126 # OmegaCen metal-poor star starting grid 1482 == 4750_2.00_-2.00
+    sobject_id = 140305003201336 # OmegaCen metal-poor star starting grid 1482 == 4750_2.00_-2.00
 
 print('sobject_id: ',sobject_id)
 print()
@@ -1282,6 +1286,13 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
     
     model_name = working_directory+'spectrum_interpolation/neural_networks/models/galah_dr4_neutral_network_3x3x3_'+model_teff_logg_feh+'_36labels.npz'
     
+    #if sobject_id in [140305003201336,160331004301396,160419003601126,161013003801353]:
+    #    print('Manual overwrite to grid 1482 (4750_2.00_-2.00)')
+    #    closest_model = '4750_2.00_-2.00'
+    #    model_teff_logg_feh = '4750_2.00_-2.00'
+    #    model_name = working_directory+'spectrum_interpolation/neural_networks/models/galah_dr4_neutral_network_3x3x3_'+closest_model+'_36labels.npz'
+    #    model_index = 1482
+    
     try:
         tmp = np.load(model_name)
 
@@ -1291,7 +1302,7 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
     
         print('Could not load 3x3x3 model '+model_teff_logg_feh+' (closest)')
         
-        if (spectrum['flag_sp'] & flag_sp_closest_3x3x3_model_not_available,) == 0:
+        if (spectrum['flag_sp'] & flag_sp_closest_3x3x3_model_not_available) == 0:
             spectrum['flag_sp'] += flag_sp_closest_3x3x3_model_not_available
         
         model_name = working_directory+'spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
