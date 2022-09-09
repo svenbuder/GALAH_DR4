@@ -174,13 +174,15 @@ else:
     sobject_id = 161013003801353 # metal-poor star starting grid 1482 == 4750_2.00_-2.00
     sobject_id = 160419003601126 # OmegaCen metal-poor star starting grid 1482 == 4750_2.00_-2.00
     sobject_id = 140305003201336 # OmegaCen metal-poor star starting grid 1482 == 4750_2.00_-2.00
+    sobject_id = 140305003201014 # OmegaCen metal-poor star
+    sobject_id = 140307003101282 # CRVAL CCD2 wrong. Missing entries in first half of CCD
 
 print('sobject_id: ',sobject_id)
 print()
 
 neglect_ir_beginning = True
 
-if interactive: print('Using default setting: neglect IR beginning \n')
+if sys.argv[1] == '-f': print('Using default setting: neglect IR beginning \n')
 
 debug = False
 success = True
@@ -250,9 +252,9 @@ if len(sobject_id_initial_index) > 0:
     spectrum['cdelt_flag'] = int(init_values_table['cdelt_flag'][sobject_id_initial_index])
     
     if spectrum['crval_flag'] > 0:
-        print('Warning: CRVAL outside of common range for CCD '+', '.join(np.array(['1','2','3','4'])[[(spectrum['crval_flag'] & 2**(ccd-1)) > 0 for ccd in [1,2,3,4]]]))
+        if sys.argv[1] == '-f': print('Warning: CRVAL outside of common range for CCD '+', '.join(np.array(['1','2','3','4'])[[(spectrum['crval_flag'] & 2**(ccd-1)) > 0 for ccd in [1,2,3,4]]]))
     if spectrum['cdelt_flag'] > 0:
-        print('Warning: CDELT outside of common range for CCD '+', '.join(np.array(['1','2','3','4'])[[(spectrum['cdelt_flag'] & 2**(ccd-1)) > 0 for ccd in [1,2,3,4]]]))       
+        if sys.argv[1] == '-f': print('Warning: CDELT outside of common range for CCD '+', '.join(np.array(['1','2','3','4'])[[(spectrum['cdelt_flag'] & 2**(ccd-1)) > 0 for ccd in [1,2,3,4]]]))       
 
     print()
     
@@ -263,11 +265,12 @@ if len(sobject_id_initial_index) > 0:
     spectrum['init_vmic']   = init_values_table['vmic'][sobject_id_initial_index]
     spectrum['init_vsini']  = init_values_table['vsini'][sobject_id_initial_index]
     
-    print('Initial values as per 220714_lite catalogue:')
-    print('RV = '+"{:.2f}".format(spectrum['init_vrad'])+' (dr60: '+"{:.2f}".format(init_values_table['vrad_red'][sobject_id_initial_index])+', Gaia: '+"{:.2f}".format(init_values_table['vrad_gaia'][sobject_id_initial_index])+')')
-    print('Teff, logg, fe_h, vmic, vsini')
-    print(str(int(1000*spectrum['init_teff']))+', '+"{:.2f}".format(spectrum['init_logg'])+', '+"{:.2f}".format(spectrum['init_fe_h'])+', '+"{:.2f}".format(spectrum['init_vmic'])+', '+"{:.2f}".format(spectrum['init_vsini']))
-    print()
+    if sys.argv[1] == '-f': 
+        print('Initial values as per 220714_lite catalogue:')
+        print('RV = '+"{:.2f}".format(spectrum['init_vrad'])+' (dr60: '+"{:.2f}".format(init_values_table['vrad_red'][sobject_id_initial_index])+', Gaia: '+"{:.2f}".format(init_values_table['vrad_gaia'][sobject_id_initial_index])+')')
+        print('Teff, logg, fe_h, vmic, vsini')
+        print(str(int(1000*spectrum['init_teff']))+', '+"{:.2f}".format(spectrum['init_logg'])+', '+"{:.2f}".format(spectrum['init_fe_h'])+', '+"{:.2f}".format(spectrum['init_vmic'])+', '+"{:.2f}".format(spectrum['init_vsini']))
+        print()
     
 # If we cannot find an entry in the initial parameter catalogue, it needs to be given through the sys.argv functionatlity
 elif len(sys.argv) < 6:
@@ -288,11 +291,12 @@ if len(sys.argv) >= 6:
     if isinstance(argv_vrad, float):
         spectrum['init_vrad'] = argv_vrad
     
-    print('Overwriting initial values:')
-    print('RV = '+"{:.2f}".format(spectrum['init_vrad'])+' from source '+str(spectrum['init_vrad_source']))
-    print('Teff, logg, fe_h, vmic, vsini')
-    print(str(int(1000*spectrum['init_teff']))+', '+"{:.2f}".format(spectrum['init_logg'])+', '+"{:.2f}".format(spectrum['init_fe_h'])+', '+"{:.2f}".format(spectrum['init_vmic'])+', '+"{:.2f}".format(spectrum['init_vsini']))
-    print()
+    if sys.argv[1] == '-f': 
+        print('Overwriting initial values:')
+        print('RV = '+"{:.2f}".format(spectrum['init_vrad'])+' from source '+str(spectrum['init_vrad_source']))
+        print('Teff, logg, fe_h, vmic, vsini')
+        print(str(int(1000*spectrum['init_teff']))+', '+"{:.2f}".format(spectrum['init_logg'])+', '+"{:.2f}".format(spectrum['init_fe_h'])+', '+"{:.2f}".format(spectrum['init_vmic'])+', '+"{:.2f}".format(spectrum['init_vsini']))
+        print()
 
 for element in ['Li','C','N','O','Na','Mg','Al','Si','K','Ca','Sc','Ti','V','Cr','Mn','Co','Ni','Cu','Zn','Rb','Sr','Y','Zr','Mo','Ru','Ba','La','Ce','Nd','Sm','Eu']:
     spectrum['init_'+element.lower()+'_fe'] = 0.0
@@ -300,10 +304,10 @@ for element in ['Li','C','N','O','Na','Mg','Al','Si','K','Ca','Sc','Ti','V','Cr'
 alpha_fe = np.max([0.0,np.min([0.4,-0.4*spectrum['init_fe_h']])])
 for each_alpha in ['o','mg','si','ca','ti']:
     spectrum['init_'+each_alpha+'_fe'] = alpha_fe
-print('Enhancing [X/Fe] to '+"{:.2f}".format(alpha_fe)+' based on [Fe/H] for O, Mg, Si, Ca, and Ti ▔\▁')
+if sys.argv[1] == '-f': print('Enhancing [X/Fe] to '+"{:.2f}".format(alpha_fe)+' based on [Fe/H] for O, Mg, Si, Ca, and Ti ▔\▁')
 
 if not isinstance(spectrum['ebv'], float):
-    print('No E(B-V) value available, assuming 0.0')
+    if sys.argv[1] == '-f': print('No E(B-V) value available, assuming 0.0')
     spectrum['ebv'] = 0.0
 
 
@@ -348,7 +352,7 @@ def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=
 
             bad_counts_unc = np.where(~(counts_relative_uncertainty > 0) == True)[0]
             if len(bad_counts_unc) > 0:
-                print('Relative counts uncertainties <= 0 detected for '+str(len(bad_counts_unc))+' pixels in CCD'+str(ccd)+', setting to 0.1 (SNR~10)')
+                if sys.argv[1] == '-f': print('Relative counts uncertainties <= 0 detected for '+str(len(bad_counts_unc))+' pixels in CCD'+str(ccd)+', setting to 0.1 (SNR~10)')
                 counts_relative_uncertainty[bad_counts_unc] = 0.1
 
             spectrum['counts_unc_ccd'+str(ccd)] = counts_relative_uncertainty * fits_file[0].data
@@ -399,8 +403,12 @@ def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=
                 spectrum['lsf_ccd'+str(ccd)]   = lsf_replacement_fits_file[7].data
                 lsf_replacement_fits_file.close()
 
-                print('No LSF reported for CCD'+str(ccd)+'. Replaced LSF and LSF-B for CCD '+str(ccd)+' with profile from '+str(closest_valid_sobject_id))
+                if sys.argv[1] == '-f': print('No LSF reported for CCD'+str(ccd)+'. Replaced LSF and LSF-B for CCD '+str(ccd)+' with profile from '+str(closest_valid_sobject_id))
 
+            zero_or_negative_flux = np.where(~(spectrum['counts_ccd'+str(ccd)] > 0))
+            if np.where(spectrum['counts_ccd'+str(ccd)] < 10)[0] > 10:
+                print('Missing flux in several pixels')
+                    
         fits_file.close()
 
         if (ccd == 4) & (ccd in spectrum['available_ccds']) & neglect_ir_beginning:
@@ -430,6 +438,16 @@ if (spectrum['init_teff'] < 4.1) & (1 in spectrum['available_ccds']):
 if len(spectrum['available_ccds']) != 4:
     if (spectrum['flag_sp'] & flag_sp_not_all_ccds_available) == 0:
         spectrum['flag_sp'] += flag_sp_not_all_ccds_available
+
+
+# In[ ]:
+
+
+plt.plot(
+    np.arange(len(spectrum['counts_ccd2'])),
+    spectrum['counts_ccd2']
+)
+plt.xlim(1200,1250)
 
 
 # # Prepare spectroscopic analysis
@@ -1281,8 +1299,9 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
 
     closest_model = model_teff_logg_feh
 
-    print('Searching for closest neutral network')
-    print('Need: '+str(int(teff)), "{:.2f}".format(logg), "{:.2f}".format(fe_h))
+    if sys.argv[1] == '-f': 
+        print('Searching for closest neutral network')
+        print('Need: '+str(int(teff)), "{:.2f}".format(logg), "{:.2f}".format(fe_h))
     
     model_name = working_directory+'spectrum_interpolation/neural_networks/models/galah_dr4_neutral_network_3x3x3_'+model_teff_logg_feh+'_36labels.npz'
     
@@ -1297,10 +1316,10 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
         tmp = np.load(model_name)
 
         used_model = closest_model
-        print('Using 3x3x3 model '+model_teff_logg_feh+' (closest)')
+        if sys.argv[1] == '-f': print('Using 3x3x3 model '+model_teff_logg_feh+' (closest)')
     except:
     
-        print('Could not load 3x3x3 model '+model_teff_logg_feh+' (closest)')
+        if sys.argv[1] == '-f': print('Could not load 3x3x3 model '+model_teff_logg_feh+' (closest)')
         
         if (spectrum['flag_sp'] & flag_sp_closest_3x3x3_model_not_available) == 0:
             spectrum['flag_sp'] += flag_sp_closest_3x3x3_model_not_available
@@ -1310,11 +1329,11 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
             tmp = np.load(model_name)
 
             used_model = closest_model
-            print('Using old extra6 model '+model_teff_logg_feh+' (closest)')
+            if sys.argv[1] == '-f': print('Using old extra6 model '+model_teff_logg_feh+' (closest)')
 
         except:
             
-            print('Could not load old extra6 model '+model_teff_logg_feh+' (closest)')
+            if sys.argv[1] == '-f': print('Could not load old extra6 model '+model_teff_logg_feh+' (closest)')
             
             if (spectrum['flag_sp'] & flag_sp_closest_extra6_model_not_available) == 0:
                 spectrum['flag_sp'] += flag_sp_closest_extra6_model_not_available
@@ -1322,7 +1341,7 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
             model_index = grid_avail_index_tree.query([teff/1000.,logg,fe_h],k=1)[1]
             model_teff_logg_feh = str(int(grids_avail['teff_subgrid'][model_index]))+'_'+"{:.2f}".format(grids_avail['logg_subgrid'][model_index])+'_'+"{:.2f}".format(grids_avail['fe_h_subgrid'][model_index])
             model_name = working_directory+'spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
-            print('Using closest available old extra6 model '+model_teff_logg_feh+' instead')
+            if sys.argv[1] == '-f': print('Using closest available old extra6 model '+model_teff_logg_feh+' instead')
             tmp = np.load(model_name)
 
             used_model = model_teff_logg_feh
@@ -1341,7 +1360,7 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
     model_labels = np.loadtxt('../spectrum_interpolation/gradient_spectra/'+used_model+'/recommended_fit_labels_'+used_model+'.txt',usecols=(0,),dtype=str)
     if fe_h < -1:
         if 'c_fe' not in model_labels:
-            print('[Fe/H] < -1, adding [C/Fe] to models')
+            if sys.argv[1] == '-f': print('[Fe/H] < -1, adding [C/Fe] to models')
             model_labels = list(model_labels)
             if 'li_fe' not in model_labels:
                 model_labels.insert(5,'c_fe')
@@ -1354,10 +1373,11 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
         for label in ['n_fe','o_fe','k_fe','rb_fe']:
             model_labels = np.delete(model_labels, model_labels == label)
 
-    print('')
-    print('Fitting the following labels:')
-    print(model_labels)
-    print('')
+    if sys.argv[1] == '-f': 
+        print('')
+        print('Fitting the following labels:')
+        print(model_labels)
+        print('')
     
     return(neural_network_model, closest_model, used_model, model_labels)
 
@@ -1401,7 +1421,7 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
 
     rv_adjustment_chi2 = np.min(rv_adjustment_chi2) / rv_adjustment_chi2
     suggested_shift_broad = rv_adjustment_array[np.argmax(rv_adjustment_chi2)]
-    print("{:.1f}".format(suggested_shift_broad)+' on grid covering '+"{:.1f}".format(neg_rv_corr)+'..('+"{:.1f}".format(rv_res)+')..'+"{:.1f}".format(pos_rv_corr))
+    if sys.argv[1] == '-f': print("{:.1f}".format(suggested_shift_broad)+' on grid covering '+"{:.1f}".format(neg_rv_corr)+'..('+"{:.1f}".format(rv_res)+')..'+"{:.1f}".format(pos_rv_corr))
 
     f, gs = plt.subplots(1,3,figsize=(9,3))
 
@@ -1422,7 +1442,7 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
         rv_adjustment_chi2,
         c = 'k', lw=1
     )
-    print('   ',rv_adjustment_array[peaks],'peaks found by scipy.signal.finds_peaks')
+    if sys.argv[1] == '-f': print('   ',rv_adjustment_array[peaks],'peaks found by scipy.signal.finds_peaks')
 
     spectrum['rv_peak_nr'] = int(len(peaks))
 
@@ -1431,8 +1451,8 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
         spectrum['rv_peak_1_h'] = float(peak_heights[0])
         spectrum['rv_peak_1_p'] = float(peak_prominence[0])
     else:
-        print('No peaks found. Assuming that initial RV must have been close to correct one')
-        print('Looking around '+"{:.2f}".format(current_rv))
+        if sys.argv[1] == '-f': print('No peaks found. Assuming that initial RV must have been close to correct one')
+        if sys.argv[1] == '-f': print('Looking around '+"{:.2f}".format(current_rv))
         suggested_shift_broad = current_rv
         spectrum['rv_peak_1'] = np.NaN
         spectrum['rv_peak_1_h'] = np.NaN
@@ -1441,7 +1461,7 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
         spectrum['rv_peak_2'] = float(rv_adjustment_array[peaks[1]])
         spectrum['rv_peak_2_h'] = float(peak_heights[1])
         spectrum['rv_peak_2_p'] = float(peak_prominence[1])
-        print('   ','Multiple peaks found! Suggest binary analysis and save 2 highest peaks')
+        if sys.argv[1] == '-f': print('   ','Multiple peaks found! Suggest binary analysis and save 2 highest peaks')
     else:
         spectrum['rv_peak_2'] = np.NaN
         spectrum['rv_peak_2_h'] = np.NaN
@@ -1490,7 +1510,7 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
     rv_adjustment_chi2 = np.min(rv_adjustment_chi2)/rv_adjustment_chi2
 
     suggested_shift_fine = rv_adjustment_array[np.argmax(rv_adjustment_chi2)]
-    print("{:.2f}".format(suggested_shift_fine)+' on grid covering '+"{:.2f}".format(neg_rv_corr)+'..('+"{:.2f}".format(rv_res)+')..'+"{:.2f}".format(pos_rv_corr))
+    if sys.argv[1] == '-f': print("{:.2f}".format(suggested_shift_fine)+' on grid covering '+"{:.2f}".format(neg_rv_corr)+'..('+"{:.2f}".format(rv_res)+')..'+"{:.2f}".format(pos_rv_corr))
 
     ax = gs[2]
     ax.set_xlabel(r'$v_\mathrm{rad}~/~\mathrm{km\,s^{-1}}$')
@@ -1528,11 +1548,10 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
 
     new_rv = gauss_popt[2]
     new_e_rv = np.sqrt(np.diag(gauss_pcov)[2])
-    print("{:.2f}".format(gauss_popt[2])+' ± '+"{:.2f}".format(np.sqrt(np.diag(gauss_pcov)[2]))+' km/s based on Gaussian fit. Updating to this value')
+    if sys.argv[1] == '-f': print("{:.2f}".format(gauss_popt[2])+' ± '+"{:.2f}".format(np.sqrt(np.diag(gauss_pcov)[2]))+' km/s based on Gaussian fit. Updating to this value')
 
     # show plot if working interactively
-    if sys.argv[1] == '-f':
-        plt.show()
+    if sys.argv[1] == '-f': plt.show()
     plt.close()
     
     return(new_rv, new_e_rv)
@@ -1593,6 +1612,8 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
                     print('Extreme value for '+input_model_labels[parameter_index]+' > 0.5 detected, setting back to +0.5')
                     input_model_parameters[parameter_index] = 0.5
     
+    if sys.argv[1] == '-f': print()
+        
     def get_flux_only(input_wave,*model_parameters):
         """
         This will be used as interpolation routine to give back a synthetic flux based on the curve_fit parameters
@@ -1658,9 +1679,9 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
         else:
             same_model_labels = False
         if same_model_labels:
-            print('Model_labels are the same! Continuing with same model_parameters')
+            if sys.argv[1] == '-f': print('Model_labels are the same! Continuing with same model_parameters')
         else:
-            print('Model_labels changed! Updating model_parameters')
+            if sys.argv[1] == '-f': print('Model_labels changed! Updating model_parameters')
             new_model_parameters = []
             # Match old labels if possible, otherwise add [X/Fe] = 0
             for label in new_output_model_labels:
@@ -1721,7 +1742,7 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
             np.any(np.array([((wave_opt >= line_beginning) & (wave_opt <= line_end)) for (line_beginning, line_end) in zip(vital_lines['line_begin'],vital_lines['line_end'])]),axis=0)
         )
         
-        print('Initial Nr. Wavelength Points: '+str(len(np.where(unmasked_opt==True)[0]))+' ('+str(int(np.round(100*len(np.where(unmasked_opt==True)[0])/len(unmasked_opt))))+'%)')
+        if sys.argv[1] == '-f': print('Initial Nr. Wavelength Points: '+str(len(np.where(unmasked_opt==True)[0]))+' ('+str(int(np.round(100*len(np.where(unmasked_opt==True)[0])/len(unmasked_opt))))+'%)')
     # For Major loops > 0: We already have a model flux to use for the RV optimisation
     
     # Optimise RV based on initial or previous RV
@@ -1746,11 +1767,11 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
     converged, model_flux_opt, model_parameters_opt, model_covariances_opt, neural_network_model_opt, model_name_opt, model_labels_opt, wave_opt, data_opt, sigma2_opt = optimise_labels(model_parameters_opt, neural_network_model_opt, model_name_opt, model_labels_opt, wave_opt, data_opt, sigma2_opt, unmasked_opt, spectrum['opt_loop'])
 
     if (converged != True) & (spectrum['opt_loop'] < maximum_loops - 1):
-        print('Not converged at the end of loop '+str(spectrum['opt_loop'])+'. Will start another loop \n')
+        if sys.argv[1] == '-f': print('Not converged at the end of loop '+str(spectrum['opt_loop'])+'. Will start another loop \n')
     elif (converged == True):
-        print('Converged at the end of loop '+str(spectrum['opt_loop'])+'. \n')
+        if sys.argv[1] == '-f': print('Converged at the end of loop '+str(spectrum['opt_loop'])+'. \n')
     else:
-        print('Not converged at the end of final loop '+str(spectrum['opt_loop'])+'! \n')
+        if sys.argv[1] == '-f': print('Not converged at the end of final loop '+str(spectrum['opt_loop'])+'! \n')
         success = False
         
     print(
@@ -1775,9 +1796,13 @@ else:
     info_line_1 = str(sobject_id)+': not successful, Model '+model_name_opt
 
 if (spectrum['flag_sp'] & flag_sp_closest_3x3x3_model_not_available) > 0:
-    info_line_1 = info_line_1+' (extrap. 3x3x3)'
-if (spectrum['flag_sp'] & flag_sp_closest_extra6_model_not_available) > 0:
-    info_line_1 = info_line_1+' (extrap. 1plus6)'
+    if (spectrum['flag_sp'] & flag_sp_closest_extra6_model_not_available) > 0:
+        info_line_1 = info_line_1+' (extrapol. 27+7)'
+    else:
+        info_line_1 = info_line_1+' (extrapol. 27)'
+elif (spectrum['flag_sp'] & flag_sp_closest_extra6_model_not_available) > 0:
+    info_line_1 = info_line_1+' (extrapol. 7)'
+
 
 if success:
     info_line_2 = 'Teff='+str(int(1000*model_parameters_opt[model_labels_opt == 'teff'][0]))+'K, '+         'logg='+str(np.round(model_parameters_opt[model_labels_opt == 'logg'][0],decimals=2))+', '+         '[Fe/H]='+str(np.round(model_parameters_opt[model_labels_opt == 'fe_h'][0],decimals=2))+', '+         'vmic='+str(np.round(model_parameters_opt[model_labels_opt == 'vmic'][0],decimals=2))+'km/s, '+         'vsini='+str(np.round(model_parameters_opt[model_labels_opt == 'vsini'][0],decimals=1))+'km/s'
