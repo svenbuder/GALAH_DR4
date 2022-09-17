@@ -63,8 +63,11 @@ start_time = time.time()
 
 if sys.argv[1] != '-f':
     sobject_id = int(sys.argv[1])
-    if sys.argv[2] == 'diff':
-        same_fe_h = False
+    if len(sys.argv) >= 3:
+        if sys.argv[2] == 'diff':
+            same_fe_h = False
+        else:
+            same_fe_h = True
     else:
         same_fe_h = True
 else:
@@ -128,6 +131,8 @@ else:
     sobject_id = 150411002601326 # Binary Traven
     sobject_id = 170114001601217 # Binary Traven, not easily picked up by RV
     sobject_id = 160518003401315 # Binary Traven, not easily picked up by RV
+    sobject_id = 131216001101026 # Binary to test final catalog
+    sobject_id = 131216001101101 # Binary to test final catalog
     
 #     sobject_id = 210115002201239 # VESTA
 
@@ -1399,6 +1404,35 @@ plt.close()
 # In[ ]:
 
 
+# Save covariances
+np.savez(
+    file_directory+str(spectrum['sobject_id'])+'_binary_fit_covariances.npz',
+    model_labels = model_labels,
+    model_parameters_optimised = model_iter1,
+    covariances_optimised = covariances_iter1
+)
+
+
+# In[ ]:
+
+
+# Save spectrum
+save_spectrum = Table()
+save_spectrum['wave'] = wave_iter1
+save_spectrum['sob'] = data_iter1
+save_spectrum['uob'] = np.sqrt(sigma2_iter1)
+save_spectrum['smod'] = model_iter1
+save_spectrum['mob'] = unmasked_iter1
+
+file_directory = working_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
+Path(file_directory).mkdir(parents=True, exist_ok=True)
+
+save_spectrum.write(file_directory+str(spectrum['sobject_id'])+'_binary_fit_spectrum.fits',overwrite=True)
+
+
+# In[ ]:
+
+
 # Save fits_results
 
 output = Table()
@@ -1436,7 +1470,7 @@ if len(spectrum['available_ccds']) != 4:
     flag_sp += 2
 
 col = Table.Column(
-    name='flag_sp',
+    name='flag_sp_fit',
     data = [int(flag_sp)],
     description=description['flag_sp'],
     unit='')
@@ -1486,46 +1520,23 @@ for label_index, label in enumerate(model_labels):
         unit=units[unit_label])
     output.add_column(col)
 
+end_time = time.time() - start_time
+
+col = Table.Column(
+    name='comp_time',
+    data = [float(end_time)],
+    description='Computational time used on this sobject_id',
+    unit='s')
+output.add_column(col)
+
 # And save!
 output.write(file_directory+str(spectrum['sobject_id'])+'_binary_fit_results.fits',overwrite=True)
 
-# Let's check what we got
-if sys.argv[1] == '-f':
-    output
+print('Duration: '+str(np.round(end_time,decimals=1))+' for sobject_id '+str(spectrum['sobject_id']))
 
 
 # In[ ]:
 
 
-# Save spectrum
-save_spectrum = Table()
-save_spectrum['wave'] = wave_iter1
-save_spectrum['sob'] = data_iter1
-save_spectrum['uob'] = np.sqrt(sigma2_iter1)
-save_spectrum['smod'] = model_iter1
-save_spectrum['mob'] = unmasked_iter1
 
-file_directory = working_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
-Path(file_directory).mkdir(parents=True, exist_ok=True)
-
-save_spectrum.write(file_directory+str(spectrum['sobject_id'])+'_binary_fit_spectrum.fits',overwrite=True)
-
-
-# In[ ]:
-
-
-# Save covariances
-np.savez(
-    file_directory+str(spectrum['sobject_id'])+'_binary_fit_covariances.npz',
-    model_labels = model_labels,
-    model_parameters_optimised = model_iter1,
-    covariances_optimised = covariances_iter1
-)
-
-
-# In[ ]:
-
-
-end_time = time.time() - start_time
-print('Duration: '+str(np.round(end_time,decimals=1)))
 
