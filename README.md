@@ -41,7 +41,7 @@ This is a trial of the analysis pipeline. While the pipeline is still under deve
 
 To allow the simultanious fitting of stellar parameters and abundances (a shortcoming of the previous data releases affecting especially blended regions), we have changed our fitting approach. We are now producing synthetic spectra for a limited random selection and train neural networks on them. This allows to fit all 5 stellar parameters (Teff, logg, [Fe/H], vmic, vsini) and up to 31 elemental abundances at the same time.
 <p align=center>
-    <img src="analysis_products/210115/210115002201239/210115002201239_simple_fit_comparison.png" alt="Observed and synthetic spectrum for VESTA" width="50%"/>
+    <img src="analysis_products/210115/210115002201239/210115002201239_single_fit_comparison.png" alt="Observed and synthetic spectrum for VESTA" width="50%"/>
 </p>
 
 ### What's new? CNO Abundances
