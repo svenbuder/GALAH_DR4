@@ -193,6 +193,31 @@ else:
 #     sobject_id = 140305003201051 # NGC~5139~/~OmegaCen
     sobject_id = 140305003201270 # Hot star beyond 8000K, negative vmic
     sobject_id = 140305003201268 # Hot star
+    
+#     sobject_id = 160421002101189 # EMP 1
+# #     sobject_id = 160415004601352 # EMP 2
+# #     sobject_id = 170711005101182 # EMP 3
+#     sobject_id = 170412004902987 # EMP 4
+#     160328004201328
+#     160514003301102
+#     140312003501132
+#     171208002602224
+#     170515005101325
+#     160519003601381
+#     171208002602224
+#     170515005101325
+#     171208002602224
+    sobject_id = 200214003001222 # cool dwarf
+    sobject_id = 131216001101211 # Failed in batch
+    
+    sobject_id = 140314005201392 # CN
+    sobject_id = 131216001101006 # issue with CCD1
+    sobject_id = 131216001101025 # bad fitt CCD1 -- cool star, extrapolated model
+    sobject_id = 131216001101042 # wrong CNO
+    sobject_id = 161211003901293 # Testing not fitting N to get better C.
+    sobject_id = 131216001101006 # Cool star with not enough low logg values - testing cKDTree
+    sobject_id = 150204002101256 # test snr
+    sobject_id = 140707003601337 # test grid edges
 
 print('sobject_id: ',sobject_id)
 print()
@@ -297,7 +322,7 @@ if len(sys.argv) >= 6:
         spectrum['init_vrad'] = argv_vrad
     
     print('Overwriting initial values:')
-    print('RV = '+"{:.2f}".format(spectrum['init_vrad'])+' from source '+str(spectrum['init_vrad_source']))
+    print('RV = '+"{:.2f}".format(spectrum['init_vrad']))
     print('Teff, logg, fe_h, vmic, vsini')
     print(str(int(1000*spectrum['init_teff']))+', '+"{:.2f}".format(spectrum['init_logg'])+', '+"{:.2f}".format(spectrum['init_fe_h'])+', '+"{:.2f}".format(spectrum['init_vmic'])+', '+"{:.2f}".format(spectrum['init_vsini']))
     print()
@@ -461,8 +486,8 @@ grids = Table.read('../spectrum_grids/galah_dr4_model_trainingset_gridpoints.fit
 grids_avail = Table.read('../spectrum_grids/galah_dr4_model_trainingset_gridpoints_trained.fits')
 grids_avail = grids_avail[grids_avail['has_model_3x3x3']]
 
-grid_index_tree = cKDTree(np.c_[grids['teff_subgrid']/1000.,grids['logg_subgrid'],grids['fe_h_subgrid']])
-grid_avail_index_tree = cKDTree(np.c_[grids_avail['teff_subgrid']/1000.,grids_avail['logg_subgrid'],grids_avail['fe_h_subgrid']])
+grid_index_tree = cKDTree(np.c_[grids['teff_subgrid']/250.,grids['logg_subgrid']/0.5,grids['fe_h_subgrid']/0.25])
+grid_avail_index_tree = cKDTree(np.c_[grids_avail['teff_subgrid']/250.,grids_avail['logg_subgrid']/0.5,grids_avail['fe_h_subgrid']/0.25])
 
 
 # In[ ]:
@@ -1283,8 +1308,11 @@ def match_observation_and_model(model_parameters, model_labels, spectrum, neural
 
 
 def find_best_available_neutral_network_model(teff, logg, fe_h):
-
-    model_index = grid_index_tree.query([teff/1000.,logg,fe_h],k=1)[1]
+    """
+    return(neural_network_model, closest_model, used_model, model_labels)
+    """
+    
+    model_index = grid_index_tree.query([teff/250.,logg/0.5,fe_h/0.25],k=1)[1]
 
     model_teff_logg_feh = str(int(grids['teff_subgrid'][model_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][model_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][model_index])
 
@@ -1318,7 +1346,7 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
         if (spectrum['flag_sp'] & flag_sp_closest_3x3x3_model_not_available) == 0:
             spectrum['flag_sp'] += flag_sp_closest_3x3x3_model_not_available
 
-        model_index = grid_avail_index_tree.query([teff/1000.,logg,fe_h],k=1)[1]
+        model_index = grid_avail_index_tree.query([teff/250.,logg/0.5,fe_h/0.25],k=1)[1]
         model_teff_logg_feh = str(int(grids_avail['teff_subgrid'][model_index]))+'_'+"{:.2f}".format(grids_avail['logg_subgrid'][model_index])+'_'+"{:.2f}".format(grids_avail['fe_h_subgrid'][model_index])
         model_name = galah_dr4_directory+'spectrum_interpolation/neural_networks/models/galah_dr4_neutral_network_3x3x3_'+model_teff_logg_feh+'_36labels.npz'
         print('Using closest available old 3x3x3 model '+model_teff_logg_feh+' instead')
@@ -1339,6 +1367,12 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
     
     model_labels = np.loadtxt(galah_dr4_directory+'spectrum_interpolation/gradient_spectra/'+used_model+'/recommended_fit_labels_'+used_model+'.txt',usecols=(0,),dtype=str)
     
+    #if teff >= 5750:
+    #    if 'n_fe' in model_labels:
+    #        print('Teff >= 5750 K and [N/Fe] would be fitted')
+    #        print('Overwriting to not fit [N/Fe]')
+    #        model_labels = np.delete(model_labels, model_labels == 'n_fe')
+
     # We tested also fitting c_fe for stars below [Fe/H] < -1; but if there is C2, it would be strong!
     #if fe_h < -1:
     #    if 'c_fe' not in model_labels:
@@ -1367,6 +1401,9 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
 
 
 def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for_rv, model_input_for_rv):
+    """
+    return(new_rv, new_e_rv)
+    """
 
     text = '\n Assessing RVs: Red Pipeline = '
     if np.isfinite(init_values_table['vrad_red'][sobject_id_initial_index]):
@@ -1510,13 +1547,23 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
     def gauss(x, H, A, x0, sigma):
         return H + A * np.exp(-(x - x0) ** 2 / (2 * sigma ** 2))
 
-    def gauss_fit(x, y):
+    def gauss_fit(x, y, overwrite_sigma = False):
         mean = sum(x * y) / sum(y)
         sigma = np.sqrt(sum(y * (x - mean) ** 2) / sum(y))
-        popt, pcov = curve_fit(gauss, x, y, p0=[min(y), max(y), mean, sigma])
+
+        if overwrite_sigma:
+            popt, pcov = curve_fit(gauss, x, y, p0=[min(y), max(y), mean, 20],maxfev=10000)
+        else:
+            popt, pcov = curve_fit(gauss, x, y, p0=[min(y), max(y), mean, sigma],maxfev=10000)
+
         return popt, pcov
 
-    gauss_popt, gauss_pcov = gauss_fit(rv_adjustment_array, rv_adjustment_chi2)
+    try:
+        gauss_popt, gauss_pcov = gauss_fit(rv_adjustment_array, rv_adjustment_chi2)
+    except:
+        print('RV with default sigma falied; using sigma = 20 now')
+        gauss_popt, gauss_pcov = gauss_fit(rv_adjustment_array, rv_adjustment_chi2, overwrite_sigma=True)
+
     ax.plot(rv_adjustment_array,gauss(rv_adjustment_array, *gauss_popt), c='orange', label='Fit: '+"{:.2f}".format(gauss_popt[2])+'$ \pm $'+"{:.2f}".format(np.sqrt(np.diag(gauss_pcov)[2])))
     ax.legend(loc='lower center')
     ax.axvline(gauss_popt[2], c = 'orange', label = 'Fit')
@@ -1623,9 +1670,39 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
         output_model_parameters[input_model_labels == 'fe_h'][0]
     )
     
-    # Test if the a new iteration of labels would happen with the same neutral network.
-    # If yes: we converged on a model
-    if (input_model_name == new_output_model_name) & (iteration != 0):
+    # Test if the output model parameters teff/logg/fe_h are within 10% overflow of the input model
+    grid_teff = float(input_model_name[:4])
+    grid_logg = float(input_model_name[5:9])
+    grid_fe_h = float(input_model_name[10:])
+    if grid_teff <= 4000:
+        teff_low = (1000*output_model_parameters[input_model_labels == 'teff'][0] - grid_teff) > -100/2. * 1.2
+    else:
+        teff_low = (1000*output_model_parameters[input_model_labels == 'teff'][0] - grid_teff) > -250/2. * 1.2
+    if grid_teff <= 3900:
+        teff_high = (1000*output_model_parameters[input_model_labels == 'teff'][0] - grid_teff) < 100/2. * 1.2
+    else:
+        teff_high = (1000*output_model_parameters[input_model_labels == 'teff'][0] - grid_teff) < 250/2. * 1.2
+        
+    logg_low = (output_model_parameters[input_model_labels == 'logg'][0] - grid_logg) > -0.5/2. * 1.2
+    logg_high = (output_model_parameters[input_model_labels == 'logg'][0] - grid_logg) < 0.5/2. * 1.2
+    
+    if grid_fe_h <= 1.00:
+        fe_h_low = (output_model_parameters[input_model_labels == 'fe_h'][0] - grid_fe_h) > -0.5/2. * 1.2
+    else:
+        fe_h_low = (output_model_parameters[input_model_labels == 'fe_h'][0] - grid_fe_h) > -0.25/2. * 1.2
+    if grid_fe_h <= 1.5:
+        fe_h_high = (output_model_parameters[input_model_labels == 'fe_h'][0] - grid_fe_h) < 0.5/2. * 1.2
+    else:
+        fe_h_high = (output_model_parameters[input_model_labels == 'fe_h'][0] - grid_fe_h) < 0.25/2. * 1.2
+
+    # If yes: we converged on a model within 10% of grid edges or it's the same as before
+    if (
+        (
+            np.all([teff_low,teff_high,logg_low,logg_high,fe_h_low,fe_h_high]) |
+            (input_model_name == new_output_model_name) 
+        ) & 
+        (iteration != 0)
+    ):
         converged = True
     else:
         converged = False
@@ -1634,7 +1711,7 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
     # Casse 1) return input model and its optimised parameters
     # 1a) not first iteration, but same model or 
     # 1b) final iteration
-    if (((input_model_name == new_output_model_name) & (iteration!= 0)) | (iteration == maximum_loops - 1)):
+    if converged | (iteration == maximum_loops - 1):
         
         # If the a new iteration would use the same model or we are in the last iteration:
 
@@ -1729,6 +1806,12 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
     # Optimise RV based on initial or previous RV
     spectrum['init_vrad'],spectrum['init_e_vrad'] = adjust_rv(spectrum['init_vrad'], wave_opt, data_opt, sigma2_opt, model_flux_opt)
 
+    if np.isfinite(init_values_table['vrad_gaia'][sobject_id_initial_index]):
+        if np.abs(spectrum['init_vrad'] - init_values_table['vrad_gaia'][sobject_id_initial_index]) > 500:
+            print('RV different by more than 500 km/s to Gaia DR3 RV! That cannot be right. Using Gaia DR3 value instead')
+            spectrum['init_vrad'] = init_values_table['vrad_gaia'][sobject_id_initial_index]
+            spectrum['init_e_vrad'] = 500
+
     # Find new mask based on optimised RV
     (wave_opt,data_opt,sigma2_opt,model_flux_opt) = match_observation_and_model(model_parameters_opt, model_labels_opt, spectrum, neural_network_model_opt, True, False)
     unmasked_opt = (
@@ -1764,6 +1847,10 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
     )
 
     spectrum['opt_loop'] += 1
+    
+if not success:
+    if (spectrum['flag_sp'] & flag_sp_no_successful_convergence_within_maximum_loops) == 0:
+        spectrum['flag_sp'] += flag_sp_no_successful_convergence_within_maximum_loops
 
 
 # # The end: plot full spectrum
@@ -1772,10 +1859,10 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
 
 
 if success:
-    info_line_1 = str(sobject_id)+': successful in '+str(spectrum['opt_loop'])+' loops, Model '+model_name_opt
+    info_line_1 = str(sobject_id)+' : successful in '+str(spectrum['opt_loop'])+' loops, Model '+model_name_opt
 else:
-    info_line_1 = str(sobject_id)+': not successful, Model '+model_name_opt
-
+    info_line_1 = str(sobject_id)+' : not successful, Model '+model_name_opt   
+    
 if (spectrum['flag_sp'] & flag_sp_closest_3x3x3_model_not_available) > 0:
     if (spectrum['flag_sp'] & flag_sp_closest_extra6_model_not_available) > 0:
         info_line_1 = info_line_1+' (extrapol. 27+7)'
@@ -2022,7 +2109,7 @@ for label in model_interpolation_labels:
                 True, 
                 False
             )
-
+            
             # Let's calculate the absolute difference between the spectra
             absolute_difference = np.abs(model_flux_opt[unmasked_opt].clip(min=0.0,max=1.0)-model_low_xfe[unmasked_opt].clip(min=0.0,max=1.0))
 
@@ -2070,5 +2157,5 @@ output.add_column(col)
 # And save!
 output.write(file_directory+str(spectrum['sobject_id'])+'_single_fit_results.fits',overwrite=True)
 
-print('Duration: '+str(np.round(end_time,decimals=1))+' for sobjec_id '+str(spectrum['sobject_id']))
+print('Duration: '+str(np.round(end_time,decimals=1))+' for sobject_id '+str(spectrum['sobject_id']))
 

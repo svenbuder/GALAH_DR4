@@ -44,6 +44,8 @@ from scipy.optimize import curve_fit
 dr60 = Table.read('../observations/dr6.0_220701.fits')
 dr60['date'] = np.array([str(x)[:6] for x in dr60['sobject_id']])
 
+initial_values = Table.read('../spectrum_analysis/galah_dr4_initial_parameters_220714.fits')
+
 
 # In[ ]:
 
@@ -69,6 +71,7 @@ if sys.argv[1] != '-f':
     date = sys.argv[1]
 else:
     date = '131216'
+#     date = '131217'
 #     date = '140305' # OmegaCen
 #     date = '140307' # OmegaCen
 #     date = '140314' # OmegaCen
@@ -85,6 +88,7 @@ print('Post-Processing '+date)
 dr60 = dr60[date == dr60['date']]
 dr60['gaia_id'][np.where(np.array(dr60['gaia_id']=='None'))[0]] = -1
 dr60.sort(keys='sobject_id')
+print('Nr Entries: '+str(len(dr60['date'])))
 
 
 # In[ ]:
@@ -145,12 +149,12 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
 
             # Raise flag for 'vsini_warn':
             if reason == 'vsini_warn':
-                if final_table_row['vsini_comp_1'] > 25:
+                if final_table_row['vsini'] > 25:
                     intermediate_flag_sp += flag_sp_dictionary['vsini_warn'][0]
 
             # Raise flag for 'vmic_warn':
             if reason == 'vmic_warn':
-                if final_table_row['vmic_comp_1'] < np.max([0.5,0.5 + 0.5*(final_table_row['teff_comp_1']-6000.)/1000.]):
+                if final_table_row['vmic'] < np.max([0.5,0.5 + 0.5*(final_table_row['teff']-6000.)/1000.]):
                     intermediate_flag_sp += flag_sp_dictionary['vmic_warn'][0]
 
             # Raise flag for 'emission':
@@ -180,9 +184,9 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
 
 # single_result = Table.read('../analysis_products/131216/131216002601003/131216002601003_single_fit_results.fits')
 # binary_result = Table.read('../analysis_products/131216/131216001101026/131216001101026_binary_fit_results.fits')
-# coadd_result  = Table.read('../analysis_products/131216/131216002602003/131216002602003_coadd_fit_results.fits')
+# coadds_result  = Table.read('../analysis_products/131216/131216002602003/131216002602003_coadds_fit_results.fits')
 
-# for setup,result in zip(['single','binary','coadd'],[single_result, binary_result, coadd_result]):
+# for setup,result in zip(['single','binary','coadds'],[single_result, binary_result, coadds_result]):
 
 #     final_table = Table()
 
@@ -199,7 +203,7 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
             
 #     print(setup)
 #     for label in ['flag_sp_fit']:
-#         if setup in ['single','coadd']:
+#         if setup in ['single','coadds']:
 #             final_table[label] = result[label]
 #         else:
 #             final_table[label] = result['flag_sp']
@@ -216,7 +220,7 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
 #             comp_2 = '1'
             
 #     for label in ['flux_contr']:
-#         if setup in ['single','coadd']:
+#         if setup in ['single','coadds']:
 #             final_table[label] = np.float32(1.0)
 #             final_table['e_'+label] = np.float32(np.NaN)
 #         else:
@@ -224,7 +228,7 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
 #             final_table['e_'+label] = result['cov_e_f_contr']
 
 #     for label in ['rv']:
-#         if setup in ['single','coadd']:
+#         if setup in ['single','coadds']:
 #             final_table['rv_comp_1'] = result['rv_gauss']
 #             final_table['e_rv_comp_1'] = result['e_rv_gauss']
 #             try:
@@ -255,7 +259,7 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
 #             final_table['rv_comp_nr']  = np.int(2)
 
 #     for label in ['teff','logg','fe_h','vmic','vsini']:
-#         if setup in ['single','coadd']:
+#         if setup in ['single','coadds']:
 #             final_table[label+'_comp_1'] = result[label]
 #             final_table['e_'+label+'_comp_1'] = result['cov_e_'+label]
 #             final_table[label+'_comp_2'] = np.float32(np.NaN)
@@ -279,7 +283,7 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
 #         'Rb','Sr','Y','Zr','Mo','Ru',
 #         'Ba','La','Ce','Nd','Sm','Eu'
 #     ]:
-#         if setup in ['single','coadd']:
+#         if setup in ['single','coadds']:
 #             final_table[element.lower()+'_fe'] = result[element.lower()+'_fe']
 #             final_table['e_'+element.lower()+'_fe'] = result['cov_e_'+element.lower()+'_fe']
 #             final_table['flag_'+element.lower()+'_fe'] = result['flag_'+element.lower()+'_fe']
@@ -301,6 +305,7 @@ def create_final_dr40_table(setup):
     empty_final_dr40_table['sobject_id'] = np.array(dr60['sobject_id'], dtype=np.int64)
     empty_final_dr40_table['tmass_id'] = np.array(dr60['2mass'], dtype=str)
     empty_final_dr40_table['gaiadr3_source_id'] = np.array(dr60['gaia_id'], dtype=np.int64)
+    empty_final_dr40_table['setup'] = np.array([setup for x in range(table_length)], dtype=str)
     if setup in ['single','binary']:
         empty_final_dr40_table['mjd'] = np.array(dr60['mjd'], dtype=np.float32)
     else:
@@ -356,14 +361,22 @@ def create_final_dr40_table(setup):
         else:
             empty_final_dr40_table[label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
 
+    for label in ['rv_gaia_dr3','e_rv_gaia_dr3']:
+        empty_final_dr40_table[label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
+
     empty_final_dr40_table['v_bary_eff'] = np.array(dr60['v_bary_eff'], dtype=np.float64)
 
-    for comp in [1,2]:
-        for label in ['teff','logg','fe_h','vmic','vsini']:
-            empty_final_dr40_table[label+'_comp_'+str(comp)] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label+'_comp_'+str(comp)][:] = np.NaN
-            empty_final_dr40_table['e_'+label+'_comp_'+str(comp)] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table['e_'+label+'_comp_'+str(comp)][:] = np.NaN
-            if label == 'fe_h':
-                empty_final_dr40_table['flag_'+label+'_comp_'+str(comp)] = -np.ones(table_length, dtype=int)
+    for label in ['teff','logg','fe_h','vmic','vsini']:
+        empty_final_dr40_table[label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
+        empty_final_dr40_table['e_'+label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table['e_'+label][:] = np.NaN
+        if label == 'fe_h':
+            empty_final_dr40_table['flag_'+label] = -np.ones(table_length, dtype=int)
+    for label in ['teff','logg','fe_h','vmic','vsini']:
+        empty_final_dr40_table[label+'_comp_2'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label+'_comp_2'][:] = np.NaN
+        empty_final_dr40_table['e_'+label+'_comp_2'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table['e_'+label+'_comp_2'][:] = np.NaN
+        if label == 'fe_h':
+            empty_final_dr40_table['flag_'+label+'_comp_2'] = -np.ones(table_length, dtype=int)
+
 
     # Elements
     for element in [
@@ -839,47 +852,49 @@ for (element, zeropoint) in zip(elements, zeropoints):
 # In[ ]:
 
 
-galah_zeropoints = Table()
-galah_zeropoints['teff']  = [np.float32(5770.6)]
-galah_zeropoints['logg']  = [np.float32(4.339)]
-galah_zeropoints['A_Fe']  = [np.float32(7.45-0.070)]
-galah_zeropoints['vmic']  = [np.float32(1.07)]
-galah_zeropoints['vsini'] = [np.float32(5.7)]
+# galah_zeropoints = Table()
+# galah_zeropoints['teff']  = [np.float32(5770.6)]
+# galah_zeropoints['logg']  = [np.float32(4.339)]
+# galah_zeropoints['A_Fe']  = [np.float32(7.45-0.070)]
+# galah_zeropoints['vmic']  = [np.float32(1.07)]
+# galah_zeropoints['vsini'] = [np.float32(5.7)]
 
-galah_zeropoints['A_Li'] = [np.float32(1.05+0.250)] # +0.543 VESTA, GAS07: 1.05, DR3: 1.05
-galah_zeropoints['A_C']  = [np.float32(8.39+0.035)] # VESTA, GAS07: 8.39, DR3: 8.45
-galah_zeropoints['A_N']  = [np.float32(7.78+0.150)]  # VESTA: 7.78+0.617, GAS07: 7.78, DR3:
-galah_zeropoints['A_O']  = [np.float32(8.66+0.070)] # -0.124 VESTA, GAS07: 8.66, DR3: 8.77
-galah_zeropoints['A_Na'] = [np.float32(6.17+0.204)] # VESTA, GAS07: 6.17, DR3: 6.06
-galah_zeropoints['A_Mg'] = [np.float32(7.53+0.069)] # +0.164 VESTA, GAS07: 7.53, DR3: 7.60
-galah_zeropoints['A_Al'] = [np.float32(6.37+0.193)] # +0.205 VESTA, GAS07: 6.37, DR3: 6.41
-galah_zeropoints['A_Si'] = [np.float32(7.51+0.002)] # VESTA, GAS07: 7.51, DR3: 7.47
-galah_zeropoints['A_K']  = [np.float32(5.08-0.034)] # VESTA, GAS07: 5.08, DR3: 5.07
-galah_zeropoints['A_Ca'] = [np.float32(6.31+0.035)] # VESTA, GAS07: 6.31, DR3: 6.18
-galah_zeropoints['A_Sc'] = [np.float32(3.17-0.016)] # VESTA, GAS07: 3.17, DR3:
-galah_zeropoints['A_Ti'] = [np.float32(4.90+0.010)] # VESTA, GAS07: 4.90, DR3:
-galah_zeropoints['A_V']  = [np.float32(4.00-0.116)] # VESTA, GAS07: 4.00, DR3:
-galah_zeropoints['A_Cr'] = [np.float32(5.64+0.014)] # VESTA, GAS07: 5.64, DR3: 0.132
-galah_zeropoints['A_Mn'] = [np.float32(5.39+0.097)] # VESTA, GAS07: 5.39, DR3: 0.064
-galah_zeropoints['A_Co'] = [np.float32(4.92-0.095)] # VESTA, GAS07: 4.92, DR3: 0.072
-galah_zeropoints['A_Ni'] = [np.float32(6.23-0.005)] # VESTA, GAS07: 6.23, DR3: 6.23
-galah_zeropoints['A_Cu'] = [np.float32(4.21-0.154)] # VESTA, GAS07: 4.21, DR3: 4.06
-galah_zeropoints['A_Zn'] = [np.float32(4.60-0.050)] # VESTA, GAS07: 4.60, DR3:
-galah_zeropoints['A_Rb'] = [np.float32(2.60)] # GAS07: 2.60, DR3: 2.60
-galah_zeropoints['A_Sr'] = [np.float32(2.92)] # GAS07: 2.92, DR3: 3.30
-galah_zeropoints['A_Y']  = [np.float32(2.21-0.115)] # VESTA, GAS07: 2.21, DR3: 2.14
-galah_zeropoints['A_Zr'] = [np.float32(2.58-0.297)] # VESTA, GAS07: 2.58, DR3:
-galah_zeropoints['A_Mo'] = [np.float32(1.92)] # GAS07: 1.92, DR3:
-galah_zeropoints['A_Ru'] = [np.float32(1.84)] # GAS07: 1.84, DR3: 2.31
-galah_zeropoints['A_Ba'] = [np.float32(2.17-0.067)] # VESTA, GAS07: 2.17, DR3: 2.17
-galah_zeropoints['A_La'] = [np.float32(1.13)] # GAS07: 1.13, DR3:
-galah_zeropoints['A_Ce'] = [np.float32(1.70)] # GAS07: 1.70, DR3: 2.14
-galah_zeropoints['A_Nd'] = [np.float32(1.45+0.137)] # VESTA, GAS07: 1.45, DR3:
-galah_zeropoints['A_Sm'] = [np.float32(1.00+0.130)] # GAS07: 1.00, DR3:
-galah_zeropoints['A_Eu'] = [np.float32(0.52+0.40)] # GAS07: 0.52, DR3: 0.57
-galah_zeropoints
+# galah_zeropoints['A_Li'] = [np.float32(1.05+0.250)] # +0.543 VESTA, GAS07: 1.05, DR3: 1.05
+# galah_zeropoints['A_C']  = [np.float32(8.39+0.035)] # VESTA, GAS07: 8.39, DR3: 8.45
+# galah_zeropoints['A_N']  = [np.float32(7.78+0.150)]  # VESTA: 7.78+0.617, GAS07: 7.78, DR3:
+# galah_zeropoints['A_O']  = [np.float32(8.66+0.070)] # -0.124 VESTA, GAS07: 8.66, DR3: 8.77
+# galah_zeropoints['A_Na'] = [np.float32(6.17+0.204)] # VESTA, GAS07: 6.17, DR3: 6.06
+# galah_zeropoints['A_Mg'] = [np.float32(7.53+0.069)] # +0.164 VESTA, GAS07: 7.53, DR3: 7.60
+# galah_zeropoints['A_Al'] = [np.float32(6.37+0.193)] # +0.205 VESTA, GAS07: 6.37, DR3: 6.41
+# galah_zeropoints['A_Si'] = [np.float32(7.51+0.002)] # VESTA, GAS07: 7.51, DR3: 7.47
+# galah_zeropoints['A_K']  = [np.float32(5.08-0.034)] # VESTA, GAS07: 5.08, DR3: 5.07
+# galah_zeropoints['A_Ca'] = [np.float32(6.31+0.035)] # VESTA, GAS07: 6.31, DR3: 6.18
+# galah_zeropoints['A_Sc'] = [np.float32(3.17-0.016)] # VESTA, GAS07: 3.17, DR3:
+# galah_zeropoints['A_Ti'] = [np.float32(4.90+0.010)] # VESTA, GAS07: 4.90, DR3:
+# galah_zeropoints['A_V']  = [np.float32(4.00-0.116)] # VESTA, GAS07: 4.00, DR3:
+# galah_zeropoints['A_Cr'] = [np.float32(5.64+0.014)] # VESTA, GAS07: 5.64, DR3: 0.132
+# galah_zeropoints['A_Mn'] = [np.float32(5.39+0.097)] # VESTA, GAS07: 5.39, DR3: 0.064
+# galah_zeropoints['A_Co'] = [np.float32(4.92-0.095)] # VESTA, GAS07: 4.92, DR3: 0.072
+# galah_zeropoints['A_Ni'] = [np.float32(6.23-0.005)] # VESTA, GAS07: 6.23, DR3: 6.23
+# galah_zeropoints['A_Cu'] = [np.float32(4.21-0.154)] # VESTA, GAS07: 4.21, DR3: 4.06
+# galah_zeropoints['A_Zn'] = [np.float32(4.60-0.050)] # VESTA, GAS07: 4.60, DR3:
+# galah_zeropoints['A_Rb'] = [np.float32(2.60)] # GAS07: 2.60, DR3: 2.60
+# galah_zeropoints['A_Sr'] = [np.float32(2.92)] # GAS07: 2.92, DR3: 3.30
+# galah_zeropoints['A_Y']  = [np.float32(2.21-0.115)] # VESTA, GAS07: 2.21, DR3: 2.14
+# galah_zeropoints['A_Zr'] = [np.float32(2.58-0.297)] # VESTA, GAS07: 2.58, DR3:
+# galah_zeropoints['A_Mo'] = [np.float32(1.92)] # GAS07: 1.92, DR3:
+# galah_zeropoints['A_Ru'] = [np.float32(1.84)] # GAS07: 1.84, DR3: 2.31
+# galah_zeropoints['A_Ba'] = [np.float32(2.17-0.067)] # VESTA, GAS07: 2.17, DR3: 2.17
+# galah_zeropoints['A_La'] = [np.float32(1.13)] # GAS07: 1.13, DR3:
+# galah_zeropoints['A_Ce'] = [np.float32(1.70)] # GAS07: 1.70, DR3: 2.14
+# galah_zeropoints['A_Nd'] = [np.float32(1.45+0.137)] # VESTA, GAS07: 1.45, DR3:
+# galah_zeropoints['A_Sm'] = [np.float32(1.00+0.130)] # GAS07: 1.00, DR3:
+# galah_zeropoints['A_Eu'] = [np.float32(0.52+0.40)] # GAS07: 0.52, DR3: 0.57
+# galah_zeropoints
 
-galah_zeropoints.write('galah_dr4_zeropoints.fits',overwrite=True)
+# galah_zeropoints.write('galah_dr4_zeropoints.fits',overwrite=True)
+
+galah_zeropoints = Table.read('galah_dr4_zeropoints.fits')
 
 
 # In[ ]:
@@ -914,15 +929,31 @@ def process_date(parameter_biases, setup = 'single', debug = True):
     final_table = create_final_dr40_table(setup)
     
     sobject_ids_to_use = dr60['sobject_id']    
-    if setup == 'coadd':
+    if setup == 'coadds':
         sobject_ids_to_use = dr60['sobject_id'] + 1000
         final_table['sobject_id'] = sobject_ids_to_use
 
     for dr60_index, sobject_id in enumerate(sobject_ids_to_use):
         
+        if setup == 'coadds':
+            find_in_init_catalogue = np.where(sobject_id-1000 == initial_values['sobject_id'])[0]
+        else:
+            find_in_init_catalogue = np.where(sobject_id == initial_values['sobject_id'])[0]
+        if len(find_in_init_catalogue)>0:
+            find_in_init_catalogue = find_in_init_catalogue[0]
+            
+            if final_table['gaiadr3_source_id'][dr60_index] != initial_values['source_id'][find_in_init_catalogue]:
+                print('not the same source_id for '+str(sobject_id),final_table['gaiadr3_source_id'][dr60_index],initial_values['source_id'][find_in_init_catalogue])
+            if final_table['tmass_id'][dr60_index] != initial_values['tmass_id'][find_in_init_catalogue]:
+                print('not the same tmass_id for '+str(sobject_id),final_table['tmass_id'][dr60_index],initial_values['tmass_id'][find_in_init_catalogue])
+
+            final_table['rv_gaia_dr3'][dr60_index] = initial_values['vrad_gaia'][find_in_init_catalogue]
+            final_table['e_rv_gaia_dr3'][dr60_index] = initial_values['e_vrad_gaia'][find_in_init_catalogue]
+        else:
+            print('No entry found for '+str(sobject_id))
         if dr60_index%250==0:
             print(dr60_index, str(np.round(100*dr60_index/len(dr60['sobject_id'])))+'%')
-                
+
         has_results = False
         try:
             # Let's import the spectra
@@ -931,10 +962,10 @@ def process_date(parameter_biases, setup = 'single', debug = True):
                 
             has_results = True
 
-#             # There are completely unreasonable outliers!
-#             if sobject_id in [200714001301248,140303000401330,200714001301055,140313003601295]:
-#                 print('Forgetting about '+sobject_id)
-#                 has_results = False
+            ## There are completely unreasonable outliers!
+            #if sobject_id in [200714001301248,140303000401330,200714001301055,140313003601295]:
+            #    print('Forgetting about '+sobject_id)
+            #    has_results = False
             
         except:
             spectra = []
@@ -974,12 +1005,12 @@ def process_date(parameter_biases, setup = 'single', debug = True):
                     comp_2 = '1'
 
             for label in ['flux_contr']:
-                if setup not in ['single','coadd']:
+                if setup not in ['single','coadds']:
                     final_table[label][dr60_index] = results['f_contr']
                     final_table['e_'+label][dr60_index] = results['cov_e_f_contr']
 
             for label in ['rv']:
-                if setup in ['single','coadd']:
+                if setup in ['single','coadds']:
                     final_table['rv_comp_1'][dr60_index] = results['rv_gauss']
                     final_table['e_rv_comp_1'][dr60_index] = results['e_rv_gauss']
                     try:
@@ -1011,30 +1042,30 @@ def process_date(parameter_biases, setup = 'single', debug = True):
                     final_table['rv_comp_nr'][dr60_index]  = np.int(2)
 
             for label in ['teff','logg','fe_h','vmic','vsini']:
-                if setup in ['single','coadd']:
-                    final_table[label+'_comp_1'][dr60_index] = results[label] + parameter_biases[label]
-                    final_table['e_'+label+'_comp_1'][dr60_index] = results['cov_e_'+label]
+                if setup in ['single','coadds']:
+                    final_table[label][dr60_index] = results[label] + parameter_biases[label]
+                    final_table['e_'+label][dr60_index] = results['cov_e_'+label]
                     # Not necessary, because already initialised like that
                     #final_table[label+'_comp_2'][dr60_index] = np.float32(np.NaN)
                     #final_table['e_'+label+'_comp_2'][dr60_index] = np.float32(np.NaN)
                     if label == 'fe_h':
-                        final_table['flag_'+label+'_comp_1'][dr60_index] = results['flag_'+label]
+                        final_table['flag_'+label][dr60_index] = results['flag_'+label]
                 else:
                     try:
-                        final_table[label+'_comp_1'][dr60_index] = results[label+'_'+comp_1] + parameter_biases[label]
-                        final_table['e_'+label+'_comp_1'][dr60_index] = results['cov_e_'+label+'_'+comp_1]
+                        final_table[label][dr60_index] = results[label+'_'+comp_1] + parameter_biases[label]
+                        final_table['e_'+label][dr60_index] = results['cov_e_'+label+'_'+comp_1]
                         final_table[label+'_comp_2'][dr60_index] = results[label+'_'+comp_2] + parameter_biases[label]
                         final_table['e_'+label+'_comp_2'][dr60_index] = results['cov_e_'+label+'_'+comp_2]
                         if label == 'fe_h':
-                            final_table['flag_'+label+'_comp_1'][dr60_index] = 0
+                            final_table['flag_'+label][dr60_index] = 0
                             final_table['flag_'+label+'_comp_2'][dr60_index] = 0
                     except:
-                        final_table[label+'_comp_1'][dr60_index] = results[label] + parameter_biases[label]
-                        final_table['e_'+label+'_comp_1'][dr60_index] = results['cov_e_'+label]
+                        final_table[label][dr60_index] = results[label] + parameter_biases[label]
+                        final_table['e_'+label][dr60_index] = results['cov_e_'+label]
                         final_table[label+'_comp_2'][dr60_index] = results[label] + parameter_biases[label]
                         final_table['e_'+label+'_comp_2'][dr60_index] = results['cov_e_'+label]
                         if label == 'fe_h':
-                            final_table['flag_'+label+'_comp_1'][dr60_index] = 0
+                            final_table['flag_'+label][dr60_index] = 0
                             final_table['flag_'+label+'_comp_2'][dr60_index] = 0
 
             for element in [
@@ -1044,8 +1075,8 @@ def process_date(parameter_biases, setup = 'single', debug = True):
                 'Rb','Sr','Y','Zr','Mo','Ru',
                 'Ba','La','Ce','Nd','Sm','Eu'
             ]:
-                if setup in ['single','coadd']:
-                    final_table[element.lower()+'_fe'][dr60_index] = results[element.lower()+'_fe'] + parameter_biases[label]
+                if setup in ['single','coadds']:
+                    final_table[element.lower()+'_fe'][dr60_index] = results[element.lower()+'_fe'] + parameter_biases[element.lower()+'_fe']
                     final_table['e_'+element.lower()+'_fe'][dr60_index] = results['cov_e_'+element.lower()+'_fe']
                     final_table['flag_'+element.lower()+'_fe'][dr60_index] = results['flag_'+element.lower()+'_fe']
                 # Not necessary, because already initialised like that
@@ -1080,10 +1111,15 @@ def process_date(parameter_biases, setup = 'single', debug = True):
             # Assess DIB features
             # Using wavelengths from Vogrinčič et al. (2022, in prep.) based on GALAH analyses
             for line in [5780.59,5797.19,6613.66]:
-                ew,sigma,rv = assess_dib_absorption(spectra, line, debug)
+                try:
+                    ew,sigma,rv = assess_dib_absorption(spectra, line, debug)
+                except:
+                    ew = np.NaN;
+                    sigma = np.NaN
+                    rv = np.NaN
                 final_table['ew_dib'+str(int(line))][dr60_index] = ew
                 final_table['sigma_dib'+str(int(line))][dr60_index] = sigma
-                if np.isfinite(final_table['rv_comp_1'][dr60_index]):
+                if np.isfinite(final_table['rv_comp_1'][dr60_index]) & np.isfinite(rv):
                     final_table['rv_dib'+str(int(line))][dr60_index] = rv + final_table['rv_comp_1'][dr60_index]
                 else:
                     final_table['rv_dib'+str(int(line))][dr60_index] = rv
@@ -1092,8 +1128,8 @@ def process_date(parameter_biases, setup = 'single', debug = True):
 
         final_table['flag_sp'][dr60_index] = apply_final_flag_sp(results,spectra,final_table[dr60_index],has_results,emission_information)
 
-    if setup in ['binary','coadd']:
-        final_table = final_table[np.isfinite(final_table['teff_comp_1'])]
+    if setup in ['binary','coadds']:
+        final_table = final_table[np.isfinite(final_table['teff'])]
 
     return(final_table)
 
@@ -1101,36 +1137,49 @@ def process_date(parameter_biases, setup = 'single', debug = True):
 # In[ ]:
 
 
-# for setup in ['single','binary','coadd']:
-for setup in ['single']:
-    print('Processing setup '+setup)
-    final_table = process_date(parameter_biases,setup,debug=False)
-    final_table.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'_'+setup+'.fits',overwrite=True)
-final_table
+setup = 'single'
+print('Processing setup '+setup)
+final_table_single = process_date(parameter_biases,setup,debug=False)
+final_table_single.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'_'+setup+'.fits',overwrite=True)
+final_table_single
 
 
 # In[ ]:
 
 
-for setup in ['binary']:
+setup = 'binary'
+try:
     print('Processing setup '+setup)
-    final_table = process_date(parameter_biases,setup,debug=False)
-    final_table.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'_'+setup+'.fits',overwrite=True)
-final_table
+    final_table_binary = process_date(parameter_biases,setup,debug=False)
+    final_table_binary.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'_'+setup+'.fits',overwrite=True)
+except:
+    print('No binaries analysed for this date')
 
 
 # In[ ]:
 
 
-for setup in ['coadd']:
+setup = 'coadds'
+try:
     print('Processing setup '+setup)
-    final_table = process_date(parameter_biases,setup,debug=False)
-    final_table.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'_'+setup+'.fits',overwrite=True)
-final_table
+    final_table_coadds = process_date(parameter_biases,setup,debug=False)
+    final_table_coadds.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'_'+setup+'.fits',overwrite=True)
+    final_table_coadds
+except:
+    print('No coadds analysed for this date')
 
 
 # In[ ]:
 
 
-
+binary_input = (
+    np.isfinite(final_table_single['rv_comp_2']) |
+    np.isfinite(final_table_single['sb2_rv_84']) |
+    (final_table_single['vsini'] > 10) | 
+    (final_table_single['vsini'] < 0) | 
+    (final_table_single['vmic'] < 0) | 
+    (abs(final_table_single['rv_comp_1'] - final_table_single['rv_gaia_dr3']) > 10)
+)
+np.savetxt('../spectrum_analysis/batches/'+date+'_714_bin',final_table_single['sobject_id'][binary_input],fmt='%s')
+final_table_single[binary_input]
 

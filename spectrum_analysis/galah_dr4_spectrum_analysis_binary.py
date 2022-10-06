@@ -63,13 +63,14 @@ start_time = time.time()
 
 if sys.argv[1] != '-f':
     sobject_id = int(sys.argv[1])
-    if len(sys.argv) >= 3:
+    if len(sys.argv) > 3:
         if sys.argv[2] == 'diff':
             same_fe_h = False
         else:
             same_fe_h = True
     else:
         same_fe_h = True
+    
 else:
 
 #     sobject_id = 140810002201339 # Binary!
@@ -133,6 +134,10 @@ else:
     sobject_id = 160518003401315 # Binary Traven, not easily picked up by RV
     sobject_id = 131216001101026 # Binary to test final catalog
     sobject_id = 131216001101101 # Binary to test final catalog
+    sobject_id = 140822001101052 # Hot star, possible binary. quite extreme logg estimate
+    sobject_id = 131217003901380 # Binary star, testing if better starting RV helps.
+    sobject_id = 140822001101367 # Binary star, testing if better starting RV helps.
+    sobject_id = 201202001601060
     
 #     sobject_id = 210115002201239 # VESTA
 
@@ -147,14 +152,10 @@ print('Assume [Fe/H] 1st == [Fe/H] 2nd?',same_fe_h)
 
 debug = False
 
-if os.path.exists('/avatar'):
-    working_directory = '/avatar/buder/GALAH_DR4/'
-else:
-    working_directory = '/Users/svenbuder/GALAH_DR4/'
-spectra_directory = working_directory+'observations/'
+galah_dr4_directory = os.path.abspath(os.getcwd()+'/../')+'/'
 
-model_directory = working_directory+'spectrum_interpolation/ThePayne/models/'
-from The_Payne import spectral_model
+init_values_table = Table.read('galah_dr4_initial_parameters_220714_lite.fits')
+sobject_id_initial_index = np.where(init_values_table['sobject_id'] == sobject_id)[0]
 
 
 # # Get observation and initial parameters
@@ -162,77 +163,40 @@ from The_Payne import spectral_model
 # In[ ]:
 
 
-flag_sp = int(0)
+spectrum = dict()
+spectrum['sobject_id'] = sobject_id
+spectrum['tmass_id'] = str(init_values_table['tmass_id'][sobject_id_initial_index])
+try:
+    spectrum['gaia_edr3_source_id'] = int(init_values_table['source_id'][sobject_id_initial_index])
+except:
+    spectrum['gaia_edr3_source_id'] = int(-1)
+        
+spectrum['flag_sp'] = int(0)
+flag_sp_closest_3x3x3_model_not_available = int(1)
+flag_sp_closest_extra6_model_not_available = int(2)
+flag_sp_no_successful_convergence_within_maximum_loops = int(4)
+flag_sp_not_all_ccds_available = int(8)
 
 
 # In[ ]:
 
 
-def get_reduction_products(sobject_id, neglect_ir_beginning=True):
+def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=True):
 
-    """
-    This function collects the spectrum and other reduction products.
-    
-    INPUT:
-    sobject_id: identifier for spectra
-    neglect_ir_beginning: Cut away CCD4 information below 7700Å?
-
-    OUTPUT:
-    spectrum - dictionary with the following keywords:
-    - sobject_id: identifier for GALAH
-    - tmass_id: identifier for 2MASS
-    - gaia_edr3_source_id: identifier for GaiaEDR3
-    - init_teff: Teff value suggested by reduction
-    - init_logg: logg value suggested by reduction
-    - init_fe_h: [Fe/H] value suggested by reduction
-    - init_x_fe: [X/Fe] for alpha-process elements C, O, Mg, Si, Ca, Ti
-    - init_vmic: vmic value suggested by reduction
-    - init_vsini: vsini value suggested by reduction
-    - init_vrad: vrad value suggested by reduction
-
-    """
-    spectrum = dict()
-
-    spectrum['sobject_id'] = sobject_id
-
-    fits_file = fits.open(spectra_directory+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+'1.fits')
-
-    spectrum['galah_id'] = fits_file[0].header['GALAH_ID']
-    spectrum['tmass_id'] = fits_file[0].header['2MASS_ID']
-    if sobject_id == 210115002201239:
-        spectrum['tmass_id'] = 'VESTA'
-    try:
-        spectrum['gaia_edr3_source_id'] = int(fits_file[0].header['GAIA_ID'])
-    except:
-        spectrum['gaia_edr3_source_id'] = int(-1)
-        print('No Gaia eDR3 source_id available')
-        
+    fits_file = fits.open(galah_dr4_directory+'observations/'+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+'1.fits')
     if fits_file[0].header['SLITMASK'] in ['IN','IN      ']:
         spectrum['resolution'] = 'high-res'
         print('Warning: Spectrum is high-resolution!')
     else:
         spectrum['resolution'] = 'low-res'
-    
+
     if fits_file[0].header['WAV_OK']==0:
-        raise ValueError('Wavelength solution not ok!')
+        print('Warning: Wavelength solution not ok!')
 
     if fits_file[0].header['CROSS_OK']==0:
-        raise ValueError('Cross-talk not calculated reliably!')
-        
-    spectrum['init_teff'] = fits_file[0].header['teff_r']
-    spectrum['init_logg'] = fits_file[0].header['logg_r']
-    spectrum['init_fe_h'] = fits_file[0].header['fe_h_r']
-    spectrum['init_vrad'] = fits_file[0].header['rvcom']
+        print('Warning: Cross-talk not calculated reliably!')
 
     spectrum['plate'] = int(fits_file[0].header['PLATE'])
-        
-    dr60 = Table.read('../auxiliary_information/dr6.0_lite.fits')
-    dr60_entry = np.where(dr60['sobject_id'] == sobject_id)[0]
-    if len(dr60_entry) > 0:
-        spectrum['ebv'] = dr60['e_b-v'][dr60_entry[0]]
-    else:
-        print('No entry in dr6.0_lite')
-        spectrum['ebv'] = 0.0
     
     # This is a test if the CCD is actually available. For 181221001601377, CCD4 is missing for example.
     # We therefore implement a keyword 'available_ccds' to trigger only to loop over the available CCDs
@@ -243,7 +207,7 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
         try:
 
             if ccd != 1:
-                fits_file = fits.open(spectra_directory+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+str(ccd)+'.fits')
+                fits_file = fits.open(galah_dr4_directory+'observations/'+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+str(ccd)+'.fits')
 
             spectrum['crval_ccd'+str(ccd)] = fits_file[0].header['CRVAL1']
             spectrum['cdelt_ccd'+str(ccd)] = fits_file[0].header['CDELT1']
@@ -279,33 +243,37 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
                 if spectrum['resolution'] != 'high-res':
                     same_fibre_plate_ccd_and_has_res_profile = np.where(
                         (
-                            (int(str(spectrum['sobject_id'])[-3:]) == dr60['pivot']) & 
-                            (spectrum['plate'] == dr60['plate']) &
-                            (dr60['res'][:,ccd-1] > 0) & 
-                            (dr60['reduction_flags'] < 262144)
+                            (int(str(spectrum['sobject_id'])[-3:]) == init_values_table['pivot']) & 
+                            (spectrum['plate'] == init_values_table['plate']) &
+                            (init_values_table['res'][:,ccd-1] > 0) & 
+                            (init_values_table['reduction_flags'] < 262144)
                         )==True)[0]
                 else:
                     same_fibre_plate_ccd_and_has_res_profile = np.where(
                         (
-                            (int(str(spectrum['sobject_id'])[-3:]) == dr60['pivot']) & 
-                            (spectrum['plate'] == dr60['plate']) &
-                            (dr60['res'][:,ccd-1] > 0) & 
-                            (dr60['reduction_flags'] >= 262144)
+                            (int(str(spectrum['sobject_id'])[-3:]) == init_values_table['pivot']) & 
+                            (spectrum['plate'] == init_values_table['plate']) &
+                            (init_values_table['res'][:,ccd-1] > 0) & 
+                            (init_values_table['reduction_flags'] >= 262144)
                         )==True)[0]
 
                 # Difference between observing runs == abs(sobject_id - all possible sobject_ids)
-                sobject_id_differences = np.abs(spectrum['sobject_id'] - dr60['sobject_id'][same_fibre_plate_ccd_and_has_res_profile])
+                sobject_id_differences = np.abs(spectrum['sobject_id'] - init_values_table['sobject_id'][same_fibre_plate_ccd_and_has_res_profile])
                 # Now find the closest observing run
                 closest_valid_sobject_id_index = np.argmin(sobject_id_differences)
-                closest_valid_sobject_id = dr60['sobject_id'][same_fibre_plate_ccd_and_has_res_profile][closest_valid_sobject_id_index]
+                closest_valid_sobject_id = init_values_table['sobject_id'][same_fibre_plate_ccd_and_has_res_profile][closest_valid_sobject_id_index]
 
-                lsf_replacement_fits_file = fits.open(spectra_directory+str(closest_valid_sobject_id)[:6]+'/spectra/com/'+str(closest_valid_sobject_id)+str(ccd)+'.fits')
+                lsf_replacement_fits_file = fits.open(galah_dr4_directory+'observations/'+str(closest_valid_sobject_id)[:6]+'/spectra/com/'+str(closest_valid_sobject_id)+str(ccd)+'.fits')
                 spectrum['lsf_b_ccd'+str(ccd)] = lsf_replacement_fits_file[0].header['B']
                 spectrum['lsf_ccd'+str(ccd)]   = lsf_replacement_fits_file[7].data
                 lsf_replacement_fits_file.close()
 
                 print('No LSF reported for CCD'+str(ccd)+'. Replaced LSF and LSF-B for CCD '+str(ccd)+' with profile from '+str(closest_valid_sobject_id))
 
+            zero_or_negative_flux = np.where(~(spectrum['counts_ccd'+str(ccd)] > 0))
+            if len(zero_or_negative_flux) > 10:
+                print('Missing/negative flux in more than 10 pixels')
+                    
         fits_file.close()
 
         if (ccd == 4) & (ccd in spectrum['available_ccds']) & neglect_ir_beginning:
@@ -317,11 +285,9 @@ def get_reduction_products(sobject_id, neglect_ir_beginning=True):
             spectrum['counts_unc_ccd4'] = spectrum['counts_unc_ccd4'][bad_ir]
             spectrum['lsf_ccd4'] = spectrum['lsf_ccd4'][bad_ir]
 
-    dr60 = 0
-        
     return(spectrum)
 
-spectrum = get_reduction_products(sobject_id,neglect_ir_beginning)
+spectrum = read_spectrum(sobject_id, spectrum, init_values_table)
 
 for ccd in spectrum['available_ccds']:
     spectrum['wave_ccd'+str(ccd)] = spectrum['crval_ccd'+str(ccd)] + spectrum['cdelt_ccd'+str(ccd)]*np.arange(len(spectrum['counts_ccd'+str(ccd)]))
@@ -339,30 +305,17 @@ wavelength_file_opener = open(wavelength_file,'rb')
 default_model_wave = pickle.load(wavelength_file_opener)
 wavelength_file_opener.close()
 
-# Load Model Grid indices
-grids = Table.read('../spectrum_grids/galah_dr4_model_trainingset_gridpoints.fits')
-grid_index_tree = cKDTree(np.c_[grids['teff_subgrid'],grids['logg_subgrid'],grids['fe_h_subgrid']])
-
 
 # In[ ]:
 
 
+# Load model grid indices of all and of available grids
 grids = Table.read('../spectrum_grids/galah_dr4_model_trainingset_gridpoints.fits')
-# grids['has_model_extra6'] = np.zeros(len(grids['index_subgrid']),dtype=bool)
-# for model_index in grids['index_subgrid']:
-#     model_teff_logg_feh = str(int(grids['teff_subgrid'][model_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][model_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][model_index])    
-#     model_name = '../spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
-#     try:
-#         tmp = np.load(model_name)
-#         grids['has_model_extra6'][model_index] = True
-#     except:
-#         pass
-# grids.write('../spectrum_grids/galah_dr4_model_trainingset_gridpoints_trained.fits',overwrite=True)
 grids_avail = Table.read('../spectrum_grids/galah_dr4_model_trainingset_gridpoints_trained.fits')
-grids_avail = grids_avail[grids_avail['has_model_extra6']]
+grids_avail = grids_avail[grids_avail['has_model_3x3x3']]
 
-grid_index_tree = cKDTree(np.c_[grids['teff_subgrid'],grids['logg_subgrid'],grids['fe_h_subgrid']])
-grid_avail_index_tree = cKDTree(np.c_[grids_avail['teff_subgrid'],grids_avail['logg_subgrid'],grids_avail['fe_h_subgrid']])
+grid_index_tree = cKDTree(np.c_[grids['teff_subgrid']/1000.,grids['logg_subgrid'],grids['fe_h_subgrid']])
+grid_avail_index_tree = cKDTree(np.c_[grids_avail['teff_subgrid']/1000.,grids_avail['logg_subgrid'],grids_avail['fe_h_subgrid']])
 
 
 # ## Plotting functions
@@ -954,6 +907,20 @@ def rv_shift(rv_value, wavelength):
 # In[ ]:
 
 
+def leaky_relu(z):
+    return z*(z > 0) + 0.01*z*(z < 0)
+
+def get_spectrum_from_neural_net(scaled_labels, NN_coeffs):
+    w_array_0, w_array_1, w_array_2, b_array_0, b_array_1, b_array_2, x_min, x_max = NN_coeffs
+    inside = np.einsum('ij,j->i', w_array_0, scaled_labels) + b_array_0
+    outside = np.einsum('ij,j->i', w_array_1, leaky_relu(inside)) + b_array_1
+    spectrum = np.einsum('ij,j->i', w_array_2, leaky_relu(outside)) + b_array_2
+    return spectrum
+
+
+# In[ ]:
+
+
 def create_synthetic_spectrum(model_parameters, model_labels, default_model=None, default_model_name=None, debug=True):
     
     model_parameters = np.array(model_parameters)
@@ -1146,21 +1113,34 @@ def create_synthetic_spectrum(model_parameters, model_labels, default_model=None
         la_fe, ce_fe, nd_fe, sm_fe, eu_fe
     ])
     
-    model_index = grid_index_tree.query([teff,logg,fe_h],k=1)[1]
+    model_index = grid_index_tree.query([teff/1000.,logg,fe_h],k=1)[1]
 
     model_teff_logg_feh = str(int(grids['teff_subgrid'][model_index]))+'_'+"{:.2f}".format(grids['logg_subgrid'][model_index])+'_'+"{:.2f}".format(grids['fe_h_subgrid'][model_index])
+
+    closest_model = model_teff_logg_feh
     
-    model_name = '../spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
+    model_name = galah_dr4_directory+'spectrum_interpolation/neural_networks/models/galah_dr4_neutral_network_3x3x3_'+model_teff_logg_feh+'_36labels.npz'
+
     try:
         tmp = np.load(model_name)
+        used_model = closest_model
+        
+        if (spectrum['flag_sp'] & flag_sp_closest_3x3x3_model_not_available) > 0:
+            spectrum['flag_sp'] -= flag_sp_closest_3x3x3_model_not_available
     except:
-        print('Could not load '+model_name)
-        model_index = grid_avail_index_tree.query([teff,logg,fe_h],k=1)[1]
+        print('Could not load 3x3x3 model '+model_teff_logg_feh+' (closest)')
+        
+        if (spectrum['flag_sp'] & flag_sp_closest_3x3x3_model_not_available) == 0:
+            spectrum['flag_sp'] += flag_sp_closest_3x3x3_model_not_available
+
+        model_index = grid_avail_index_tree.query([teff/1000.,logg,fe_h],k=1)[1]
         model_teff_logg_feh = str(int(grids_avail['teff_subgrid'][model_index]))+'_'+"{:.2f}".format(grids_avail['logg_subgrid'][model_index])+'_'+"{:.2f}".format(grids_avail['fe_h_subgrid'][model_index])
-        model_name = '../spectrum_interpolation/ThePayne/models/galah_dr4_thepayne_model_extra6_'+model_teff_logg_feh+'_36labels.npz'
-        print('Using '+model_teff_logg_feh+' instead')
-        flag_sp = 1
-        tmp = np.load(model_name)    
+        model_name = galah_dr4_directory+'spectrum_interpolation/neural_networks/models/galah_dr4_neutral_network_3x3x3_'+model_teff_logg_feh+'_36labels.npz'
+        print('Using closest available old 3x3x3 model '+model_teff_logg_feh+' instead')
+        tmp = np.load(model_name)
+
+        used_model = model_teff_logg_feh
+        
     w_array_0 = tmp["w_array_0"]
     w_array_1 = tmp["w_array_1"]
     w_array_2 = tmp["w_array_2"]
@@ -1174,10 +1154,7 @@ def create_synthetic_spectrum(model_parameters, model_labels, default_model=None
 
     scaled_labels = (model_labels-model_components[-2])/(model_components[-1]-model_components[-2]) - 0.5
 
-    model_flux = spectral_model.get_spectrum_from_neural_net(
-        scaled_labels = scaled_labels,
-        NN_coeffs = model_components
-        )
+    model_flux = get_spectrum_from_neural_net(scaled_labels,model_components)
 
     return(
         model_flux
@@ -1305,7 +1282,12 @@ except:
     if np.isnan(single_results['rv_peak_2']):
         raise ValueError('No 2nd peak identified!')
     raise ValueError('You first have to run this object through the single-star analysis module!')
-initial_model_parameters = np.array([0.5, single_results['rv_gauss'][0], single_results['teff'][0]/1000., single_results['logg'][0], single_results['fe_h'][0], 1.5, 4., single_results['rv_peak_2'][0], single_results['teff'][0]/1000., single_results['logg'][0], single_results['fe_h'][0], 1.5, 4.])
+initial_model_parameters = np.array([0.5, single_results['rv_gauss'][0], (single_results['teff'][0]/1000.).clip(min=3.1,max=7.9), (single_results['logg'][0]).clip(min=0.1,max=4.5), (single_results['fe_h'][0]).clip(min = -3.9, max=0.9), 1.5, 4., single_results['rv_peak_2'][0], (single_results['teff'][0]/1000.).clip(min=3.1,max=7.9), (single_results['logg'][0]).clip(min=0.1,max=4.5), (single_results['fe_h'][0]).clip(min = -3.9, max=0.9), 1.5, 4.])
+
+if sobject_id == 131217003901380:
+    initial_model_parameters[7] = 56.04
+if sobject_id == 140822001101367:
+    initial_model_parameters[7] = 150.
 
 # Trick: If we trigger the binary module, we hopefully have a good reason to do so
 # e.g. too large VSINi for the star at hand.
@@ -1390,7 +1372,7 @@ fig = plot_spectrum(
     comp_2_text
 )
 
-file_directory = working_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
+file_directory = galah_dr4_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
 Path(file_directory).mkdir(parents=True, exist_ok=True)
 
 fig.savefig(file_directory+str(spectrum['sobject_id'])+'_binary_fit_comparison.pdf',overwrite=True,bbox_inches='tight')
@@ -1424,7 +1406,7 @@ save_spectrum['uob'] = np.sqrt(sigma2_iter1)
 save_spectrum['smod'] = model_iter1
 save_spectrum['mob'] = unmasked_iter1
 
-file_directory = working_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
+file_directory = galah_dr4_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
 Path(file_directory).mkdir(parents=True, exist_ok=True)
 
 save_spectrum.write(file_directory+str(spectrum['sobject_id'])+'_binary_fit_spectrum.fits',overwrite=True)
@@ -1437,8 +1419,7 @@ save_spectrum.write(file_directory+str(spectrum['sobject_id'])+'_binary_fit_spec
 
 output = Table()
 
-#file_directory = working_directory+'/analysis_products/fitting_output/'+str(spectrum['sobject_id'])[:6]+'/'
-file_directory = working_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
+file_directory = galah_dr4_directory+'/analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
 Path(file_directory).mkdir(parents=True, exist_ok=True)
 
 for label in ['sobject_id']:
@@ -1463,15 +1444,13 @@ for label in ['gaia_edr3_source_id']:
         unit=units[label])
     output.add_column(col)
 
-# flag_sp:
-# flag_sp == 1: could not use correct interpolation model
-# flag_sp == 2: not all CCDs available
 if len(spectrum['available_ccds']) != 4:
-    flag_sp += 2
+    if (spectrum['flag_sp'] & flag_sp_not_all_ccds_available) == 0:
+        spectrum['flag_sp'] += flag_sp_not_all_ccds_available
 
 col = Table.Column(
     name='flag_sp_fit',
-    data = [int(flag_sp)],
+    data = [spectrum['flag_sp']],
     description=description['flag_sp'],
     unit='')
 output.add_column(col)
@@ -1532,11 +1511,8 @@ output.add_column(col)
 # And save!
 output.write(file_directory+str(spectrum['sobject_id'])+'_binary_fit_results.fits',overwrite=True)
 
+print(comp_1_text)
+print(comp_2_text)
+
 print('Duration: '+str(np.round(end_time,decimals=1))+' for sobject_id '+str(spectrum['sobject_id']))
-
-
-# In[ ]:
-
-
-
 
