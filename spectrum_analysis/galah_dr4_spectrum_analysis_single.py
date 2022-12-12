@@ -128,7 +128,7 @@ if sys.argv[1] != '-f':
     interactive = False
 else:
     interactive = True
-    
+
 if not interactive:
     # If we use in python environment: assume that first input is sobject_id
     sobject_id = int(sys.argv[1])
@@ -153,7 +153,6 @@ else:
 #     sobject_id = 150603003801147 # uob <= 0.00
 #     sobject_id = 140111002601011 # resolution map missing 
 #     sobject_id = 210403002101363 # cdelt and crval outside of usual range
-    sobject_id = 210115002201239 # VESTA
 #     sobject_id = 210403002101363 # bad initital RV
 #     sobject_id = 131216001101006 # testing RV update; also: model changing
 #     sobject_id = 131216001101026 # binary
@@ -188,7 +187,6 @@ else:
 #     sobject_id = 150901001101158 # NGC~7099~/~M~30
 #     sobject_id = 140114002401164 # NGC~288 blue CHeB
 #     sobject_id = 140114002401151 # NGC~288 red giant
-#     sobject_id = 131220001801341 # NGC~104~/~47~Tuc CHeB
 #     sobject_id = 140315002501187 # very cool giants - neural networks not ready yet
 #     sobject_id = 140305003201051 # NGC~5139~/~OmegaCen
     sobject_id = 140305003201270 # Hot star beyond 8000K, negative vmic
@@ -218,7 +216,22 @@ else:
     sobject_id = 131216001101006 # Cool star with not enough low logg values - testing cKDTree
     sobject_id = 150204002101256 # test snr
     sobject_id = 140707003601337 # test grid edges
+    sobject_id = 140116004301131 # metal-poor star
+    sobject_id = 140308000101003 # Issue in reduction of CCD3
+    sobject_id = 140608001901001 # Issue in reduction of CCD3
+    sobject_id = 150109001001134 # Kevin's target
+#     sobject_id = 150901002401126 # investigate noding
+    sobject_id = 150109001001213 # RV peaks
+    sobject_id = 140113004701397 # HD 43834 to test CNO fitting for dwarfs
+    sobject_id = 140113002401368 # Testing flag_fe_h by rather decreasing [Fe/H] by -0.25
+    sobject_id = 131220001801341 # NGC~104~/~47~Tuc CHeB
+    sobject_id = 140211001101378 # issue with resolution in 140211001101378
+    sobject_id = 131220001801282 # uncertainties infinity, CCD2 missing bit
+    sobject_id = 140117001501344 # also issues with infinite uncertainties
+    sobject_id = 131216001101028 # not calculated
 
+#     sobject_id = 210115002201239 # VESTA
+    
 print('sobject_id: ',sobject_id)
 print()
 
@@ -262,6 +275,8 @@ flag_sp_closest_3x3x3_model_not_available = int(1)
 flag_sp_closest_extra6_model_not_available = int(2)
 flag_sp_no_successful_convergence_within_maximum_loops = int(4)
 flag_sp_not_all_ccds_available = int(8)
+flag_sp_negative_fluxes_in_ccds = int(16)
+flag_sp_negative_resolution_profile = int(32)
 
 init_values_table = Table.read('galah_dr4_initial_parameters_220714_lite.fits')
 sobject_id_initial_index = np.where(init_values_table['sobject_id'] == sobject_id)[0]
@@ -376,23 +391,30 @@ def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=
             spectrum['counts_ccd'+str(ccd)]   = fits_file[0].data
             counts_relative_uncertainty = fits_file[2].data
 
-            bad_counts_unc = np.where(~(counts_relative_uncertainty > 0) == True)[0]
-            if len(bad_counts_unc) > 0:
-                print('Relative counts uncertainties <= 0 detected for '+str(len(bad_counts_unc))+' pixels in CCD'+str(ccd)+', setting to 0.1 (SNR~10)')
-                counts_relative_uncertainty[bad_counts_unc] = 0.1
+            if len(spectrum['counts_ccd'+str(ccd)][spectrum['counts_ccd'+str(ccd)] > 0])/len(spectrum['counts_ccd'+str(ccd)]) < 0.95:
+                print('More than 5% of the counts are negative. Neglecting CCD'+str(ccd))
 
-            spectrum['counts_unc_ccd'+str(ccd)] = counts_relative_uncertainty * fits_file[0].data
+            elif len(counts_relative_uncertainty[counts_relative_uncertainty > 0])/len(counts_relative_uncertainty) < 0.95:
+                print('More than 5% of the count uncertainties are negative. Neglecting CCD'+str(ccd))
 
-            spectrum['sky_ccd'+str(ccd)]   = fits_file[3].data
-            spectrum['telluric_ccd'+str(ccd)]   = fits_file[4].data
+            else:                
+                bad_counts_unc = np.where(~(counts_relative_uncertainty > 0) == True)[0]
+                if len(bad_counts_unc) > 0:
+                    print('Relative counts uncertainties <= 0 detected for '+str(len(bad_counts_unc))+' pixels in CCD'+str(ccd)+', setting to 1 (SNR~1)')
+                    counts_relative_uncertainty[bad_counts_unc] = 1
 
-            spectrum['lsf_b_ccd'+str(ccd)] = fits_file[0].header['B']
-            spectrum['lsf_ccd'+str(ccd)]   = fits_file[7].data
+                spectrum['counts_unc_ccd'+str(ccd)] = counts_relative_uncertainty * fits_file[0].data
 
-            spectrum['available_ccds'].append(ccd)
+                spectrum['sky_ccd'+str(ccd)]   = fits_file[3].data
+                spectrum['telluric_ccd'+str(ccd)]   = fits_file[4].data
+
+                spectrum['lsf_b_ccd'+str(ccd)] = fits_file[0].header['B']
+                spectrum['lsf_ccd'+str(ccd)]   = fits_file[7].data
+
+                spectrum['available_ccds'].append(ccd)
         except:
             pass
-
+        
         if ccd in spectrum['available_ccds']:
             if np.shape(spectrum['lsf_ccd'+str(ccd)])[0] == 1:
 
@@ -449,6 +471,34 @@ def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=
     return(spectrum)
 
 spectrum = read_spectrum(sobject_id, spectrum, init_values_table)
+
+
+# In[ ]:
+
+
+ccds_with_positive_flux = []
+for ccd in spectrum['available_ccds']:
+    below_0 = spectrum['counts_ccd'+str(ccd)] < 0
+    if len(spectrum['counts_ccd'+str(ccd)][below_0])/len(spectrum['counts_ccd'+str(ccd)]) > 0.05:
+        print('More than 5% of counts below 0 for CCD'+str(ccd)+'. Neglecting this CCD!')
+        if (spectrum['flag_sp'] & flag_sp_negative_fluxes_in_ccds) == 0:
+            spectrum['flag_sp'] += flag_sp_negative_fluxes_in_ccds
+    else:
+        ccds_with_positive_flux.append(ccd)
+spectrum['available_ccds'] = ccds_with_positive_flux
+
+ccds_with_positive_resolution_profile = []
+for ccd in spectrum['available_ccds']:
+    below_0 = np.where(spectrum['lsf_ccd'+str(ccd)] < 0)[0]
+    if len(below_0) > 0:
+        print('Negative resolution profile detected. Neglecting this CCD!')
+        if (spectrum['flag_sp'] & flag_sp_negative_resolution_profile) == 0:
+            spectrum['flag_sp'] += flag_sp_negative_resolution_profile
+    else:
+        ccds_with_positive_resolution_profile.append(ccd)
+spectrum['available_ccds'] = ccds_with_positive_resolution_profile
+
+print('Working with the following CCDs: ',spectrum['available_ccds'])
 
 
 # In[ ]:
@@ -573,6 +623,8 @@ def plot_spectrum(wave,flux,flux_uncertainty,unmasked_region,title_text,comp1_te
     
     f, gs = plt.subplots(nr_subplots,1,figsize=(8.3,11.7),sharey=True)
     
+    ylim_upper = np.min([1.2,1.2*np.percentile(flux,q=99)])
+    
     try:
         # test if several spectra fed into flux
         dummy = np.shape(flux)[1] == len(wave)
@@ -589,6 +641,7 @@ def plot_spectrum(wave,flux,flux_uncertainty,unmasked_region,title_text,comp1_te
 
         ax = gs[subplot]
         ax.set_xlim(subplot_wavelengths[subplot,0],subplot_wavelengths[subplot,1])
+        ax.set_ylim(-0.1,ylim_upper)
         
         if len(wave[in_subplot_wavelength_range]) > 0:
             # if only 1 spectrum
@@ -616,7 +669,7 @@ def plot_spectrum(wave,flux,flux_uncertainty,unmasked_region,title_text,comp1_te
             for each_element in important_lines:
                 if (each_element[0] > subplot_wavelengths[subplot,0]) & (each_element[0] < subplot_wavelengths[subplot,1]):
 
-                    offset = -0.05+0.1*(each_index%3)
+                    offset = -0.05+0.1*(ylim_upper/1.3)*(each_index%3)
                     each_index+=1
                     ax.axvline(each_element[0],lw=0.2,ls='dashed',c='r')
                     if each_element[1] in ['Li','C','O']:
@@ -629,7 +682,7 @@ def plot_spectrum(wave,flux,flux_uncertainty,unmasked_region,title_text,comp1_te
                         ax.text(each_element[0],offset,each_element[1],fontsize=10,ha='center',color='brown')
                     elif each_element[1] in ['Rb', 'Sr', 'Y', 'Zr', 'Ba', 'La', 'Ce','Mo','Ru', 'Nd', 'Sm','Eu']:
                         ax.text(each_element[0],offset,each_element[1],fontsize=10,ha='center',color='purple')
-        ax.set_ylim(-0.1,1.2)
+
         if subplot == nr_subplots-1:
             ax.set_xlabel(r'Wavelength / $\mathrm{\AA}$')
         ax.set_ylabel('Flux / norm.')
@@ -1247,7 +1300,7 @@ def match_observation_and_model(model_parameters, model_labels, spectrum, neural
     
     if debug:
         time_step = time.time()-start
-        print('reading in cannon model',time_step)
+        print('reading in model',time_step)
     
     # at the moment, let's assume cdelt and crval are correct
     
@@ -1373,6 +1426,12 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
     #        print('Overwriting to not fit [N/Fe]')
     #        model_labels = np.delete(model_labels, model_labels == 'n_fe')
 
+    #if sobject_id == 140113004701397:
+    #    print('sobject_id == 140113004701397')
+    #    print('Overwriting to not fit [N/Fe]')
+    #    model_labels = np.delete(model_labels, model_labels == 'n_fe')
+
+    
     # We tested also fitting c_fe for stars below [Fe/H] < -1; but if there is C2, it would be strong!
     #if fe_h < -1:
     #    if 'c_fe' not in model_labels:
@@ -1383,7 +1442,22 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
     #        else:
     #            model_labels.insert(6,'c_fe')
     #        model_labels = np.array(model_labels)
-            
+
+    if 1 not in spectrum['available_ccds']:
+        print('CCD1 not available, cannot fit Zn.')
+        for label in ['zn_fe']:
+            model_labels = np.delete(model_labels, model_labels == label)
+
+    if 2 not in spectrum['available_ccds']:
+        print('CCD2 not available, cannot fit Cu.')
+        for label in ['cu_fe']:
+            model_labels = np.delete(model_labels, model_labels == label)
+
+    if 3 not in spectrum['available_ccds']:
+        print('CCD3 not available, cannot fit Li and Eu.')
+        for label in ['li_fe','eu_fe']:
+            model_labels = np.delete(model_labels, model_labels == label)
+
     if 4 not in spectrum['available_ccds']:
         print('CCD4 not available, cannot fit N, O, K, and Rb.')
         for label in ['n_fe','o_fe','k_fe','rb_fe']:
@@ -1468,6 +1542,7 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
         spectrum['rv_peak_1'] = float(rv_adjustment_array[peaks[0]])
         spectrum['rv_peak_1_h'] = float(peak_heights[0])
         spectrum['rv_peak_1_p'] = float(peak_prominence[0])
+        suggested_shift_broad = rv_adjustment_array[peaks[0]]
     else:
         print('No peaks found. Assuming that initial RV must have been close to correct one')
         print('Looking around '+"{:.2f}".format(current_rv))
@@ -1572,7 +1647,7 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
     file_directory = galah_dr4_directory+'analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
     Path(file_directory).mkdir(parents=True, exist_ok=True)
 
-    plt.savefig(file_directory+str(spectrum['sobject_id'])+'_single_fit_rv.png',overwrite=True,bbox_inches='tight')
+    plt.savefig(file_directory+str(spectrum['sobject_id'])+'_single_fit_rv.png',bbox_inches='tight')
 
     new_rv = gauss_popt[2]
     new_e_rv = np.sqrt(np.diag(gauss_pcov)[2])
@@ -1808,9 +1883,14 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
 
     if np.isfinite(init_values_table['vrad_gaia'][sobject_id_initial_index]):
         if np.abs(spectrum['init_vrad'] - init_values_table['vrad_gaia'][sobject_id_initial_index]) > 500:
-            print('RV different by more than 500 km/s to Gaia DR3 RV! That cannot be right. Using Gaia DR3 value instead')
+            print('RV different by more than 500 km/s to Gaia DR3 RV! That cannot be right. Using Gaia DR3 value instead.\n')
             spectrum['init_vrad'] = init_values_table['vrad_gaia'][sobject_id_initial_index]
             spectrum['init_e_vrad'] = 500
+        if spectrum['opt_loop'] == 0:
+            if spectrum['sobject_id'] == 140116004301131:
+                print('Overwriting RV for metal-poor star. Using Gaia DR3 value instead.\n')
+                spectrum['init_vrad'] = init_values_table['vrad_gaia'][sobject_id_initial_index]
+                spectrum['init_e_vrad'] = 500
 
     # Find new mask based on optimised RV
     (wave_opt,data_opt,sigma2_opt,model_flux_opt) = match_observation_and_model(model_parameters_opt, model_labels_opt, spectrum, neural_network_model_opt, True, False)
@@ -1910,7 +1990,9 @@ fig = plot_spectrum(
 file_directory = galah_dr4_directory+'analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
 Path(file_directory).mkdir(parents=True, exist_ok=True)
 
-fig.savefig(file_directory+str(spectrum['sobject_id'])+'_single_fit_comparison.pdf',overwrite=True,bbox_inches='tight')
+fig.savefig(file_directory+str(spectrum['sobject_id'])+'_single_fit_comparison.pdf',bbox_inches='tight')
+if spectrum['sobject_id'] == 210115002201239:
+    fig.savefig(file_directory+str(spectrum['sobject_id'])+'_single_fit_comparison.png',bbox_inches='tight',dpi=200)
 
 # show plot if working interactively
 if sys.argv[1] == '-f':
@@ -1978,6 +2060,7 @@ for label in ['gaia_edr3_source_id']:
         description=description[label],
         unit=units[label])
     output.add_column(col)
+    
 
 col = Table.Column(
     name='flag_sp_fit',
@@ -2096,9 +2179,13 @@ for label in model_interpolation_labels:
         # For [Fe/H] and [X/Fe], we do an additional test, if the lines are actually sufficiently detected
         if ((label == 'fe_h') | (label[-3:] == '_fe')):
 
-            # Replace the particular value for [X/Fe] or [Fe/H] with the lowest value of the training routine
+            # Test if we see a 3sigma difference when lowering [Fe/H] by -0.25
             model_parameters_low_xfe = np.array(model_parameters_opt)
-            model_parameters_low_xfe[label_index] = (neural_network_model_opt[-2])[(label == model_interpolation_labels)][0]
+            if label == 'fe_h':
+                model_parameters_low_xfe[label_index] -= 0.5
+            # Replace the particular value for [X/Fe] with the lowest value of the training routine
+            else:
+                model_parameters_low_xfe[label_index] = (neural_network_model_opt[-2])[(label == model_interpolation_labels)][0]
 
             # Create the spectrum with lowest [X/Fe] or [Fe/H]
             (wave_low_xfe,data_low_xfe,data_sigma2_low_xfe,model_low_xfe) = match_observation_and_model(
@@ -2158,4 +2245,10 @@ output.add_column(col)
 output.write(file_directory+str(spectrum['sobject_id'])+'_single_fit_results.fits',overwrite=True)
 
 print('Duration: '+str(np.round(end_time,decimals=1))+' for sobject_id '+str(spectrum['sobject_id']))
+
+
+# In[ ]:
+
+
+
 
