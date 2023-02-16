@@ -41,10 +41,9 @@ from scipy.optimize import curve_fit
 # In[ ]:
 
 
-dr60 = Table.read('../observations/dr6.0_220701.fits')
-dr60['date'] = np.array([str(x)[:6] for x in dr60['sobject_id']])
+dr60 = Table.read('../observations/dr6.0_230101.fits')
 
-initial_values = Table.read('../spectrum_analysis/galah_dr4_initial_parameters_220714.fits')
+initial_values = Table.read('../spectrum_analysis/galah_dr4_initial_parameters_230101.fits')
 
 
 # In[ ]:
@@ -69,15 +68,36 @@ unique_dates = np.unique(dr60['date'])
 
 if sys.argv[1] != '-f':
     date = sys.argv[1]
+    if len(sys.argv) > 2:
+        if sys.argv[2] == 'all':
+            use_setup = 'all'
+        elif sys.argv[2] == 'single':
+            use_setup = 'single'
+        elif sys.argv[2] == 'binary':
+            use_setup = 'binary'
+        elif sys.argv[2] == 'coadds':
+            use_setup = 'coadds'
+    else:
+        use_setup = 'single'
 else:
-    date = '131216'
+#     date = '131216'
 #     date = '131217'
+#     date = '131220'
+    date = '140117'
+#     date = '140211'
+#     date = '140304'
 #     date = '140305' # OmegaCen
 #     date = '140307' # OmegaCen
 #     date = '140314' # OmegaCen
 #     date = '140315' # OmegaCen
 #     date = '140316' # OmegaCen
+#     date = '140808'
 #     date = '150901' # M30
+    date = '170510'
+#     date = '210115'
+    date = '220808'
+
+    use_setup = 'single'
 
 print('Post-Processing '+date)
 
@@ -86,7 +106,6 @@ print('Post-Processing '+date)
 
 
 dr60 = dr60[date == dr60['date']]
-dr60['gaia_id'][np.where(np.array(dr60['gaia_id']=='None'))[0]] = -1
 dr60.sort(keys='sobject_id')
 print('Nr Entries: '+str(len(dr60['date'])))
 
@@ -100,32 +119,40 @@ masks = Table.read('../spectrum_analysis/spectrum_masks/solar_spectrum_mask.fits
 # In[ ]:
 
 
-flag_sp_dictionary = dict()
-flag_sp_dictionary['emission']      = [1,'Emission in Halpha/Hbeta detected']
-flag_sp_dictionary['vsini_warn']    = [2,'Broadening (vsini) warning']
-flag_sp_dictionary['vmic_warn']     = [4,'Microturbulence (vmic) warning']
-flag_sp_dictionary['chi2_3sigma']   = [8,'chi square unusually low/high by 3 sigma']
-flag_sp_dictionary['is_sb2']        = [16,'Double line splitting detected (SB2)']
-flag_sp_dictionary['ccd_missing']   = [32,'Not all 4 CCDs available']
-flag_sp_dictionary['not_converged'] = [64,'Not converged within 4 iterations']
-flag_sp_dictionary['no_model']      = [128,'Extrapolating spectrum model']
-flag_sp_dictionary['no_results']    = [256,'No spectroscopic analysis results available']
+# flag_sp_dictionary = dict()
+
+# flag_sp_dictionary['emission']       = [1,'Emission in Halpha/Hbeta detected']
+# flag_sp_dictionary['ccd_missing']    = [2,'Not all 4 CCDs available']
+
+# flag_sp_dictionary['is_sb2']         = [4,'Double line splitting detected (SB2)']
+# flag_sp_dictionary['chi2_3sigma']    = [8,'chi square unusually low/high by 3 sigma']
+# flag_sp_dictionary['vsini_warn']     = [16,'Broadening (vsini) warning']
+# flag_sp_dictionary['vmic_warn']      = [32,'Microturbulence (vmic) warning']
+
+# flag_sp_dictionary['sb_triple_warn'] = [64,'Double line splitting detected (SB2)']
+# flag_sp_dictionary['teff_warn']      = [128,'Temperature (teff) warning']
+# flag_sp_dictionary['logg_warn']      = [256,'Gravity (logg) warning']
+# flag_sp_dictionary['fe_h_warn']      = [512,'[Fe/H] (fe_h) warning']
+# flag_sp_dictionary['snr_warn']       = [1024,'Signal-to-noise indicates spectra not reliable']
+# flag_sp_dictionary['not_converged']  = [2048,'Not converged within 4 iterations']
+# flag_sp_dictionary['no_model']       = [4096,'Extrapolating spectrum model']
+# flag_sp_dictionary['no_results']     = [8192,'No spectroscopic analysis results available']
 
 # a_file = open("final_flag_sp_dictionary.pkl", "wb")
 # pickle.dump(flag_sp_dictionary,a_file)
 # a_file.close()
+
+a_file = open("final_flag_sp_dictionary.pkl", "rb")
+flag_sp_dictionary = pickle.load(a_file)
+a_file.close()
 
 
 # In[ ]:
 
 
 def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_info):
-    intermediate_flag_sp = np.int(0)
-    
-    a_file = open("final_flag_sp_dictionary.pkl", "rb")
-    flag_sp_dictionary = pickle.load(a_file)
-    a_file.close()
-    
+    intermediate_flag_sp = np.int32(0)
+        
     for reason in flag_sp_dictionary.keys():
         
         # Raise flag for 'no_results'
@@ -141,6 +168,10 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
                 if (final_table_row['chi2_sp'] < 0.57) | (final_table_row['chi2_sp'] > 1.4):
                     intermediate_flag_sp += flag_sp_dictionary['chi2_3sigma'][0]
 
+            if reason == 'snr_warn':
+                if np.any([final_table_row['snr_px_ccd'+str(ccd)] < 10.01 for ccd in [1,2,3,4]]) | (np.percentile(spectra['sob'],q=25) < 0):
+                    intermediate_flag_sp += flag_sp_dictionary['snr_warn'][0]
+
             # Raise flag for 'is_sb2':
             # If we have a significant and repeated detection of a velocity peak in the residual of sob-smod
             if reason == 'is_sb2':
@@ -149,7 +180,7 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
 
             # Raise flag for 'vsini_warn':
             if reason == 'vsini_warn':
-                if final_table_row['vsini'] > 25:
+                if (final_table_row['vsini'] < 0) | (final_table_row['vsini'] > 25):
                     intermediate_flag_sp += flag_sp_dictionary['vsini_warn'][0]
 
             # Raise flag for 'vmic_warn':
@@ -158,7 +189,7 @@ def apply_final_flag_sp(results,spectra,final_table_row,has_results,emission_inf
                     intermediate_flag_sp += flag_sp_dictionary['vmic_warn'][0]
 
             # Raise flag for 'emission':
-            if (reason == 'emission'):
+            if reason == 'emission':
                 if emission_info['any_emission']:
                     intermediate_flag_sp += flag_sp_dictionary['emission'][0]
 
@@ -303,9 +334,15 @@ def create_final_dr40_table(setup):
     
     # Identifiers
     empty_final_dr40_table['sobject_id'] = np.array(dr60['sobject_id'], dtype=np.int64)
-    empty_final_dr40_table['tmass_id'] = np.array(dr60['2mass'], dtype=str)
-    empty_final_dr40_table['gaiadr3_source_id'] = np.array(dr60['gaia_id'], dtype=np.int64)
+    empty_final_dr40_table['tmass_id'] = np.array(dr60['tmass_id'], dtype=str)
+    empty_final_dr40_table['gaiadr3_source_id'] = np.array(dr60['source_id'], dtype=np.int64)
+
+    # Program/Survey information
+    empty_final_dr40_table['survey_name'] = np.array(dr60['survey_name'], dtype=str)
+    empty_final_dr40_table['field_id'] = np.array(dr60['field_id'], dtype=np.int32)
+
     empty_final_dr40_table['setup'] = np.array([setup for x in range(table_length)], dtype=str)
+   
     if setup in ['single','binary']:
         empty_final_dr40_table['mjd'] = np.array(dr60['mjd'], dtype=np.float32)
     else:
@@ -316,14 +353,15 @@ def create_final_dr40_table(setup):
     empty_final_dr40_table['dec'] = np.array(dr60['dec'], dtype=np.float64)
 
     empty_final_dr40_table['best_spec4star'] = np.zeros(table_length, dtype=bool)
-    
+        
     # Major Spectroscopic Results
-    empty_final_dr40_table['flag_sp'] = -np.ones(table_length, dtype=int)
-    empty_final_dr40_table['flag_sp_fit'] = -np.ones(table_length, dtype=int)
+    empty_final_dr40_table['flag_sp'] = -np.ones(table_length, dtype=np.int32)
+    empty_final_dr40_table['flag_sp_fit'] = -np.ones(table_length, dtype=np.int32)
+    empty_final_dr40_table['opt_loop'] = -np.ones(table_length, dtype=np.int32)
     if setup in ['single','binary']:
-        empty_final_dr40_table['flag_red'] = np.array(dr60['reduction_flags'], dtype=np.int)
+        empty_final_dr40_table['flag_red'] = np.array(dr60['reduction_flags'], dtype=np.int32)
     else:
-        empty_final_dr40_table['flag_red'] = -np.ones(table_length, dtype=int)
+        empty_final_dr40_table['flag_red'] = -np.ones(table_length, dtype=np.int32)
         
     # Additional information from spectrum_analysis
     for ccd in [1,2,3,4]:
@@ -370,12 +408,12 @@ def create_final_dr40_table(setup):
         empty_final_dr40_table[label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
         empty_final_dr40_table['e_'+label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table['e_'+label][:] = np.NaN
         if label == 'fe_h':
-            empty_final_dr40_table['flag_'+label] = -np.ones(table_length, dtype=int)
+            empty_final_dr40_table['flag_'+label] = -np.ones(table_length, dtype=np.int32)
     for label in ['teff','logg','fe_h','vmic','vsini']:
         empty_final_dr40_table[label+'_comp_2'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label+'_comp_2'][:] = np.NaN
         empty_final_dr40_table['e_'+label+'_comp_2'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table['e_'+label+'_comp_2'][:] = np.NaN
         if label == 'fe_h':
-            empty_final_dr40_table['flag_'+label+'_comp_2'] = -np.ones(table_length, dtype=int)
+            empty_final_dr40_table['flag_'+label+'_comp_2'] = -np.ones(table_length, dtype=np.int32)
 
 
     # Elements
@@ -388,7 +426,7 @@ def create_final_dr40_table(setup):
         ]:
         empty_final_dr40_table[element.lower()+'_fe'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[element.lower()+'_fe'][:] = np.NaN
         empty_final_dr40_table['e_'+element.lower()+'_fe'] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table['e_'+element.lower()+'_fe'][:] = np.NaN
-        empty_final_dr40_table['flag_'+element.lower()+'_fe'] = -np.ones(table_length, dtype=int)
+        empty_final_dr40_table['flag_'+element.lower()+'_fe'] = -np.ones(table_length, dtype=np.int32)
         
     # Post processed analysis
     for label in [
@@ -921,6 +959,20 @@ for element in [
 # In[ ]:
 
 
+parameter_biases
+
+
+# In[ ]:
+
+
+list_of_unreliable_sobject_ids = [
+    140209004901160, # SNR negative!
+]
+
+
+# In[ ]:
+
+
 def process_date(parameter_biases, setup = 'single', debug = True):
     """
     This function processes all entries of dr60 for a given date
@@ -955,6 +1007,7 @@ def process_date(parameter_biases, setup = 'single', debug = True):
             print(dr60_index, str(np.round(100*dr60_index/len(dr60['sobject_id'])))+'%')
 
         has_results = False
+
         try:
             # Let's import the spectra
             spectra = Table.read('../analysis_products/'+str(sobject_id)[:6]+'/'+str(sobject_id)+'/'+str(sobject_id)+'_'+setup+'_fit_spectrum.fits')
@@ -967,10 +1020,36 @@ def process_date(parameter_biases, setup = 'single', debug = True):
             #    print('Forgetting about '+sobject_id)
             #    has_results = False
             
+
         except:
             spectra = []
             results = []
             pass
+        
+        if has_results:
+            
+            if setup in ['single','coadds']:
+
+                if ((results['teff'] > 8000) | (results['teff'] < 3000)):
+                    final_table['flag_sp'][dr60_index] += flag_sp_dictionary['teff_warn'][0]
+                    has_results = False
+
+                if (
+                    (results['logg'] < 0.0) | 
+                    (results['logg'] > 5.5) | 
+                    ((results['logg'] > 5.0) & (results['teff'] > 4200))
+                ):
+                    final_table['flag_sp'][dr60_index] += flag_sp_dictionary['logg_warn'][0]
+                    has_results = False
+
+            if (results['fe_h'] > 1.0):
+                final_table['flag_sp'][dr60_index] += flag_sp_dictionary['fe_h_warn'][0]
+                has_results = False
+
+            if (results['fe_h'] < -3.0):
+                if final_table['sobject_id'][dr60_index] in [140118002501329,140310002701332,140310004301182]:
+                    final_table['flag_sp'][dr60_index] += flag_sp_dictionary['fe_h_warn'][0]
+                    has_results = False
 
         if has_results:
 
@@ -985,14 +1064,20 @@ def process_date(parameter_biases, setup = 'single', debug = True):
                     
             # Save the overall median chi-square for the spectrum
             final_table['chi2_sp'][dr60_index] = np.median(np.abs(spectra['sob'] - spectra['smod'])/spectra['uob'])
-            final_table['px_used_perc'][dr60_index] = int(100*len(np.where(spectra['mob'])[0])/len(spectra['mob']))
+            final_table['px_used_perc'][dr60_index] = np.int32(100*len(np.where(spectra['mob'])[0])/len(spectra['mob']))
             for ccd in [1,2,3,4]:
                 in_ccd = (spectra['wave'] > (3+ccd) * 1000) & (spectra['wave'] < (4+ccd) * 1000)
                 final_table['snr_px_ccd'+str(ccd)][dr60_index] = np.median(np.abs(spectra['sob'][in_ccd]/spectra['uob'][in_ccd]))
 
             for label in ['flag_sp_fit']:
                 final_table[label][dr60_index] = results[label][0]
-                
+             
+            for label in ['opt_loop']:
+                try:
+                    final_table[label][dr60_index] = results[label][0]
+                except:
+                    pass
+            
             if setup == 'binary':
                 # Make sure the more important component (flux contribution >= 50%) is always listed first
                 if results['f_contr'] >= 0.5:
@@ -1022,7 +1107,7 @@ def process_date(parameter_biases, setup = 'single', debug = True):
                         final_table['rv_comp_2_p'][dr60_index] = results['rv_peak_2_p']
                         final_table['rv_comp_nr'][dr60_index]  = results['rv_peak_nr']
                     except:
-                        final_table['rv_comp_nr'][dr60_index]  = np.int(1)
+                        final_table['rv_comp_nr'][dr60_index]  = np.int32(1)
                         # Not necessary, because already initialised like that
                         #final_table['rv_comp_1_h'][dr60_index] = np.float32(np.NaN)
                         #final_table['rv_comp_1_p'][dr60_index] = np.float32(np.NaN)
@@ -1039,7 +1124,7 @@ def process_date(parameter_biases, setup = 'single', debug = True):
                     final_table['e_rv_comp_2'][dr60_index] = results['cov_e_rv_'+comp_2]
                     #final_table['rv_comp_2_h'][dr60_index] = np.float32(np.NaN)
                     #final_table['rv_comp_2_p'][dr60_index] = np.float32(np.NaN)
-                    final_table['rv_comp_nr'][dr60_index]  = np.int(2)
+                    final_table['rv_comp_nr'][dr60_index]  = np.int32(2)
 
             for label in ['teff','logg','fe_h','vmic','vsini']:
                 if setup in ['single','coadds']:
@@ -1085,6 +1170,49 @@ def process_date(parameter_biases, setup = 'single', debug = True):
                 #    final_table['e_'+element.lower()+'_fe'][dr60_index] = np.float32(np.NaN)
                 #    final_table['flag_'+element.lower()+'_fe'][dr60_index] = np.int(-1)
 
+                
+                # Assess if we are extrapolating in [X/Fe] (beyond the Neural Network Boundaries)
+                
+                if element == 'Li':
+                    # A(Li) > 4.0
+                    if final_table[element.lower()+'_fe'][dr60_index] > +4.0 - 1.05 - final_table['fe_h'][dr60_index]:
+                        final_table[element.lower()+'_fe'][dr60_index] = np.NaN
+                        final_table['flag_'+element.lower()+'_fe'][dr60_index] += 8
+                    # A(Li) < 0.0
+                    if final_table[element.lower()+'_fe'][dr60_index] < 0.0 - 1.05 - final_table['fe_h'][dr60_index]:
+                        final_table[element.lower()+'_fe'][dr60_index] = np.NaN
+                        final_table['flag_'+element.lower()+'_fe'][dr60_index] += 16
+                
+                elif element in ['C','N','O','Y','Ba','La','Ce','Nd']:
+                    # [X/Fe] > +1.5
+                    if final_table[element.lower()+'_fe'][dr60_index] > 1.5:
+                        final_table[element.lower()+'_fe'][dr60_index] = np.NaN
+                        final_table['flag_'+element.lower()+'_fe'][dr60_index] += 8
+                    # [X/Fe] < -1.0
+                    if final_table[element.lower()+'_fe'][dr60_index] < -1.0:
+                        final_table[element.lower()+'_fe'][dr60_index] = np.NaN
+                        final_table['flag_'+element.lower()+'_fe'][dr60_index] += 16
+
+                elif element in ['Mg','Si','Ti']:
+                    # [X/Fe] > +1.0
+                    if final_table[element.lower()+'_fe'][dr60_index] > 1.0:
+                        final_table[element.lower()+'_fe'][dr60_index] = np.NaN
+                        final_table['flag_'+element.lower()+'_fe'][dr60_index] += 8
+                    # [X/Fe] < -0.5
+                    if final_table[element.lower()+'_fe'][dr60_index] < -0.5:
+                        final_table[element.lower()+'_fe'][dr60_index] = np.NaN
+                        final_table['flag_'+element.lower()+'_fe'][dr60_index] += 16
+                        
+                else:
+                    # [X/Fe] > 1.0
+                    if final_table[element.lower()+'_fe'][dr60_index] > 1.0:
+                        final_table[element.lower()+'_fe'][dr60_index] = np.NaN
+                        final_table['flag_'+element.lower()+'_fe'][dr60_index] += 8
+                    # [X/Fe] < -1.0
+                    if final_table[element.lower()+'_fe'][dr60_index] < -1.0:
+                        final_table[element.lower()+'_fe'][dr60_index] = np.NaN
+                        final_table['flag_'+element.lower()+'_fe'][dr60_index] += 16
+                
             # Assess binarity
             try:
                 final_table['sb2_rv_16'][dr60_index],final_table['sb2_rv_50'][dr60_index],final_table['sb2_rv_84'][dr60_index] = assess_binarity(spectra,results,debug)
@@ -1137,49 +1265,48 @@ def process_date(parameter_biases, setup = 'single', debug = True):
 # In[ ]:
 
 
-setup = 'single'
-print('Processing setup '+setup)
-final_table_single = process_date(parameter_biases,setup,debug=False)
-final_table_single.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'_'+setup+'.fits',overwrite=True)
-final_table_single
-
-
-# In[ ]:
-
-
-setup = 'binary'
-try:
+if use_setup in ['single','all']:
+    setup = 'single'
     print('Processing setup '+setup)
-    final_table_binary = process_date(parameter_biases,setup,debug=False)
-    final_table_binary.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'_'+setup+'.fits',overwrite=True)
-except:
-    print('No binaries analysed for this date')
+    final_table_single = process_date(parameter_biases,setup,debug=False)
+    final_table_single.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'_'+setup+'.fits',overwrite=True)
+    final_table_single
+    
+    binary_input = (
+        np.isfinite(final_table_single['rv_comp_2']) |
+        np.isfinite(final_table_single['sb2_rv_84']) |
+        (final_table_single['vsini'] > 10) | 
+        (final_table_single['vsini'] < 0) | 
+        (final_table_single['vmic'] < 0) | 
+        (abs(final_table_single['rv_comp_1'] - final_table_single['rv_gaia_dr3']) > 10)
+    )
+    np.savetxt('../spectrum_analysis/batches/'+date+'_714_bin',final_table_single['sobject_id'][binary_input],fmt='%s')
+    final_table_single[binary_input]
 
 
 # In[ ]:
 
 
-setup = 'coadds'
-try:
-    print('Processing setup '+setup)
-    final_table_coadds = process_date(parameter_biases,setup,debug=False)
-    final_table_coadds.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'_'+setup+'.fits',overwrite=True)
-    final_table_coadds
-except:
-    print('No coadds analysed for this date')
+if use_setup in ['binary','all']:
+    setup = 'binary'
+    try:
+        print('Processing setup '+setup)
+        final_table_binary = process_date(parameter_biases,setup,debug=False)
+        final_table_binary.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'_'+setup+'.fits',overwrite=True)
+    except:
+        print('No binaries analysed for this date')
 
 
 # In[ ]:
 
 
-binary_input = (
-    np.isfinite(final_table_single['rv_comp_2']) |
-    np.isfinite(final_table_single['sb2_rv_84']) |
-    (final_table_single['vsini'] > 10) | 
-    (final_table_single['vsini'] < 0) | 
-    (final_table_single['vmic'] < 0) | 
-    (abs(final_table_single['rv_comp_1'] - final_table_single['rv_gaia_dr3']) > 10)
-)
-np.savetxt('../spectrum_analysis/batches/'+date+'_714_bin',final_table_single['sobject_id'][binary_input],fmt='%s')
-final_table_single[binary_input]
+if use_setup in ['coadds','all']:
+    setup = 'coadds'
+    try:
+        print('Processing setup '+setup)
+        final_table_coadds = process_date(parameter_biases,setup,debug=False)
+        final_table_coadds.write('daily/galah_dr4_allspec_not_validated_'+str(date)+'_'+setup+'.fits',overwrite=True)
+        final_table_coadds
+    except:
+        print('No coadds analysed for this date')
 

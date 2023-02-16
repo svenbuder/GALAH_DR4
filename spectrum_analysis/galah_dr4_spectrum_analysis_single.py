@@ -278,7 +278,7 @@ flag_sp_not_all_ccds_available = int(8)
 flag_sp_negative_fluxes_in_ccds = int(16)
 flag_sp_negative_resolution_profile = int(32)
 
-init_values_table = Table.read('galah_dr4_initial_parameters_220714_lite.fits')
+init_values_table = Table.read('galah_dr4_initial_parameters_230101_lite.fits')
 sobject_id_initial_index = np.where(init_values_table['sobject_id'] == sobject_id)[0]
 
 if len(sobject_id_initial_index) > 0:
@@ -311,7 +311,7 @@ if len(sobject_id_initial_index) > 0:
     spectrum['init_vmic']   = init_values_table['vmic'][sobject_id_initial_index]
     spectrum['init_vsini']  = init_values_table['vsini'][sobject_id_initial_index]
     
-    print('Initial values as per 220714_lite catalogue:')
+    print('Initial values as per 230101_lite catalogue:')
     print('RV = '+"{:.2f}".format(spectrum['init_vrad'])+' (dr60: '+"{:.2f}".format(init_values_table['vrad_red'][sobject_id_initial_index])+', Gaia: '+"{:.2f}".format(init_values_table['vrad_gaia'][sobject_id_initial_index])+')')
     print('Teff, logg, fe_h, vmic, vsini')
     print(str(int(1000*spectrum['init_teff']))+', '+"{:.2f}".format(spectrum['init_logg'])+', '+"{:.2f}".format(spectrum['init_fe_h'])+', '+"{:.2f}".format(spectrum['init_vmic'])+', '+"{:.2f}".format(spectrum['init_vsini']))
@@ -319,7 +319,7 @@ if len(sobject_id_initial_index) > 0:
     
 # If we cannot find an entry in the initial parameter catalogue, it needs to be given through the sys.argv functionatlity
 elif len(sys.argv) < 6:
-    print('No initial values found in 220714_lite catalogue. You need to feed them in after the sobject_id!')
+    print('No initial values found in 230101_lite catalogue. You need to feed them in after the sobject_id!')
     success = False
     
 if len(sys.argv) >= 6:
