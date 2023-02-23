@@ -42,8 +42,7 @@ import pickle
 import scipy.interpolate
 from scipy import signal
 from scipy.spatial import cKDTree
-# import scipy.optimize as op
-# from scipy.ndimage.filters import convolve
+from scipy.interpolate import Akima1DInterpolator,interp1d
 from scipy.optimize import curve_fit
 
 
@@ -136,79 +135,79 @@ if sys.argv[1] != '-f':
     tmass_id = str(sys.argv[1])
 else:
     tmass_id = 'VESTA' # VESTA
-    tmass_id = '23595997-5257480'
-    tmass_id = '00000011+0522500'
-    tmass_id = '00000024-5742487'
-    tmass_id = '00000023-5709445'
-    tmass_id = '00000025-7541166'
+#     tmass_id = '23595997-5257480'
+#     tmass_id = '00000011+0522500'
+#     tmass_id = '00000024-5742487'
+#     tmass_id = '00000023-5709445'
+#     tmass_id = '00000025-7541166'
     
 #     tmass_id = '00254416-7715157' # bet Hyi
 #     tmass_id = '01440402-1556141' # tau Cet
 #     tmass_id = '03013762-2805289' # eps For
 #     tmass_id = '03021680+0405226' # alf Cet
-    tmass_id = '03325591-0927298' # eps Eri
-    tmass_id = '03402202-0313005' # HD 22879
-    tmass_id = '03431490-0945490' # del Eri
-    tmass_id = '04355524+1630331' # alf Tau
-    tmass_id = '06504983-0032270' # HD 49933
-    tmass_id = '09485609+1344395' # HD 84937
-    tmass_id = '09524585+2600248' # mu Leo
-    tmass_id = '11330013-3151273' # ksi Hya
-    tmass_id = '12202099+0318453' # HD 107328
-    tmass_id = '13544106+1823514' # eta Boo
-    tmass_id = '14153968+1910558' # Arcturus
-    tmass_id = '15430307-1056009' # HD 140283
-    tmass_id = '16153726-0822096' # 18 Sco
-    tmass_id = '17440870-5150027' # mu Ara
-    tmass_id = 'gam Sge' # gam Sge
-    tmass_id = '04060261-6430120' # Random star with Teff/logg/fe_h 6000 3.5 -0.25
+#     tmass_id = '03325591-0927298' # eps Eri
+#     tmass_id = '03402202-0313005' # HD 22879
+#     tmass_id = '03431490-0945490' # del Eri
+#     tmass_id = '04355524+1630331' # alf Tau
+#     tmass_id = '06504983-0032270' # HD 49933
+#     tmass_id = '09485609+1344395' # HD 84937
+#     tmass_id = '09524585+2600248' # mu Leo
+#     tmass_id = '11330013-3151273' # ksi Hya
+#     tmass_id = '12202099+0318453' # HD 107328
+#     tmass_id = '13544106+1823514' # eta Boo
+#     tmass_id = '14153968+1910558' # Arcturus
+#     tmass_id = '15430307-1056009' # HD 140283
+#     tmass_id = '16153726-0822096' # 18 Sco
+#     tmass_id = '17440870-5150027' # mu Ara
+#     tmass_id = 'gam Sge' # gam Sge
+#     tmass_id = '04060261-6430120' # Random star with Teff/logg/fe_h 6000 3.5 -0.25
     
-    tmass_id = '05190449-5849304' # new in dr6.1, sobject_id 1
-    tmass_id = '05194296-5852488' # new in dr6.1, sobject_id 2
-    tmass_id = '05242175-5855050' # new in dr6.1, sobject_id 3
-    tmass_id = '16193494-6643050' # Li?
-    tmass_id = '00261933-7205481' # 47Tuc member
-    tmass_id = '00250382-7159505' # 47Tuc member
-    tmass_id = '00245114-7200351' # 47Tuc member
-    tmass_id = '00271842-7206531' # 47Tuc member
-    tmass_id = '00261052-7206379' # 47Tuc member
-    tmass_id = '00254411-7159401' # 47Tuc member
-    tmass_id = '00271674-7208313' # 47Tuc member
-    tmass_id = '00251382-7159103' # 47Tuc member
-    tmass_id = '00245636-7208153' # 47Tuc member
+#     tmass_id = '05190449-5849304' # new in dr6.1, sobject_id 1
+#     tmass_id = '05194296-5852488' # new in dr6.1, sobject_id 2
+#     tmass_id = '05242175-5855050' # new in dr6.1, sobject_id 3
+#     tmass_id = '16193494-6643050' # Li?
+#     tmass_id = '00261933-7205481' # 47Tuc member
+#     tmass_id = '00250382-7159505' # 47Tuc member
+#     tmass_id = '00245114-7200351' # 47Tuc member
+#     tmass_id = '00271842-7206531' # 47Tuc member
+#     tmass_id = '00261052-7206379' # 47Tuc member
+#     tmass_id = '00254411-7159401' # 47Tuc member
+#     tmass_id = '00271674-7208313' # 47Tuc member
+#     tmass_id = '00251382-7159103' # 47Tuc member
+#     tmass_id = '00245636-7208153' # 47Tuc member
     
-    tmass_id = '09204566-7718444' # E_3 member
-    tmass_id = '09203461-7717030' # E_3 member
-    tmass_id = '09200285-7718137' # E_3 member
-    tmass_id = '09202594-7716069' # E_3 member
-    tmass_id = '12544988-6713017' # BH_140 member
-    tmass_id = '18184135-5211469' # NGC6584 member
-    tmass_id = '18590940-3640192' # NGC6723 member, but SNR 2
-    tmass_id = '21333095-0052154' # M2 member, but SNR 10
-    tmass_id = '21335076-0051110' # M2 member
-    tmass_id = '21400088-2315151' # M30 member
-    tmass_id = '16235946-2627572' # M4 member
+#     tmass_id = '09204566-7718444' # E_3 member
+#     tmass_id = '09203461-7717030' # E_3 member
+#     tmass_id = '09200285-7718137' # E_3 member
+#     tmass_id = '09202594-7716069' # E_3 member
+#     tmass_id = '12544988-6713017' # BH_140 member
+#     tmass_id = '18184135-5211469' # NGC6584 member
+#     tmass_id = '18590940-3640192' # NGC6723 member, but SNR 2
+#     tmass_id = '21333095-0052154' # M2 member, but SNR 10
+#     tmass_id = '21335076-0051110' # M2 member
+#     tmass_id = '21400088-2315151' # M30 member
+#     tmass_id = '16235946-2627572' # M4 member
     
-    tmass_id = '04473784-1839324' # M dwarf
-    tmass_id = '05120881+2603350' # M dwarf
-    tmass_id = '05092779-6321483' # M dwarf
+#     tmass_id = '04473784-1839324' # M dwarf
+#     tmass_id = '05120881+2603350' # M dwarf
+#     tmass_id = '05092779-6321483' # M dwarf
     
-    tmass_id = '17202455-3547063' # high ebv star
-    tmass_id = '06451670-0056540' # high ebv star
+#     tmass_id = '17202455-3547063' # high ebv star
+#     tmass_id = '06451670-0056540' # high ebv star
     
-    tmass_id = '13241871-4745067' # OmegaCen Star
-    tmass_id = '13242154-4738394' # OmegaCen Star
-    tmass_id = '13251161-4727080' # OmegaCen Star
-    tmass_id = '13251408-4726367' # OmegaCen Star
-    tmass_id = '13262962-4737014' # OmegaCen Star with [Al/Fe] > 1
-    tmass_id = '13273319-4736151' # OmegaCen Star
-    tmass_id = '13274016-4733244' # OmegaCen Star
-    tmass_id = '13254363-4727048' # OmegaCen Star
-    tmass_id = '13275422-4722412' # OmegaCen Star
+#     tmass_id = '13241871-4745067' # OmegaCen Star
+#     tmass_id = '13242154-4738394' # OmegaCen Star
+#     tmass_id = '13251161-4727080' # OmegaCen Star
+#     tmass_id = '13251408-4726367' # OmegaCen Star
+#     tmass_id = '13262962-4737014' # OmegaCen Star with [Al/Fe] > 1
+#     tmass_id = '13273319-4736151' # OmegaCen Star
+#     tmass_id = '13274016-4733244' # OmegaCen Star
+#     tmass_id = '13254363-4727048' # OmegaCen Star
+#     tmass_id = '13275422-4722412' # OmegaCen Star
 #     tmass_id = '13280077-4732469' # OmegaCen star
 #     tmass_id = '13280948-4733329' # OmegaCen Star
 #     tmass_id = '13280245-4738255' # OmegaCen star
-    tmass_id = '13275252-4733174' # OmegaCen Star
+#     tmass_id = '13275252-4733174' # OmegaCen Star
     
 #     tmass_id = '00261862-7211508' # 47Tuc star
 #     tmass_id = '00261933-7205481' # 47Tuc star
@@ -217,7 +216,8 @@ else:
     
 #     tmass_id = '16223363-2624465' # M4 star
 #     tmass_id = '16233645-2630433' # M4 star
-    tmass_id = '16240750-2616356' # M4 star
+#     tmass_id = '16240750-2616356' # M4 star
+#     tmass_id = '16234060-2627301' # M4 star
     
 #     tmass_id = '17401200-5709147' # recent observation
     
@@ -338,10 +338,10 @@ else:
     
 spectrum['sobject_id'] = spectrum['sobject_ids'][0]
 try:
-    spectrum['gaia_edr3_source_id'] = int(init_values_table['source_id'][sobject_id_initial_index])
+    spectrum['gaia_edr3_source_id'] = np.int32(init_values_table['source_id'][sobject_id_initial_index])
 
 except:
-    spectrum['gaia_edr3_source_id'] = int(-1)
+    spectrum['gaia_edr3_source_id'] = np.int32(-1)
 
 spectrum['ebv'] = float(init_values_table['ebv'][sobject_id_initial_index].clip(min=0.0,max=0.72))
 
@@ -355,6 +355,8 @@ extra_info_all = Table.read('../auxiliary_information/dr60_230101_ebv_wise_tmass
 extra_info_match = np.where(extra_info_all['sobject_id'] == spectrum['sobject_id'])[0]
 if spectrum['sobject_id'] == 140808000901102:
     extra_info_match = np.where(extra_info_all['sobject_id'] == 140208005101201)[0]
+if spectrum['sobject_id'] == 210115002201239: # No matches for VESTA etc.
+    extra_info_match = []
 
 
 # In[ ]:
@@ -668,11 +670,11 @@ for label in ['rv_gauss','e_rv_gauss','mjd','flag_sp_fit','teff','logg','fe_h','
 # In[ ]:
 
 
-spectrum['flag_sp'] = int(0)
-flag_sp_closest_3x3x3_model_not_available = int(1)
-flag_sp_closest_extra6_model_not_available = int(2)
-flag_sp_no_successful_convergence_within_maximum_loops = int(4)
-flag_sp_not_all_ccds_available = int(8)
+spectrum['flag_sp'] = np.int32(0)
+flag_sp_closest_3x3x3_model_not_available = np.int32(1)
+flag_sp_closest_extra6_model_not_available = np.int32(2)
+flag_sp_no_successful_convergence_within_maximum_loops = np.int32(4)
+flag_sp_not_all_ccds_available = np.int32(8)
 
 
 # In[ ]:
@@ -835,8 +837,8 @@ for label in ['teff','logg','fe_h','vmic','vsini']:
         spectrum['init_'+label] /= 1000.
 
 spectrum['init_teff'] = spectrum['init_teff'].clip(min=3.01,max=7.99)
-spectrum['init_logg'] = spectrum['init_logg'].clip(min=-0.4,max=5.4)
-spectrum['init_fe_h'] = spectrum['init_fe_h'].clip(min=-3.9,max=0.9)
+spectrum['init_logg'] = spectrum['init_logg'].clip(min=-0.4,max=5.4) + 0.1
+spectrum['init_fe_h'] = spectrum['init_fe_h'].clip(min=-3.9,max=0.9) + 0.07
 spectrum['init_vmic'] = spectrum['init_vmic'].clip(min=0.35,max=3.9)
 if (spectrum['init_teff'] < 4.5) & (spectrum['init_logg'] > 4.0):
     spectrum['init_vmic'] = spectrum['init_vmic'].clip(min=0.35,max=1.5)
@@ -845,7 +847,7 @@ spectrum['init_vsini'] = spectrum['init_vsini'].clip(min=1.2,max=39)
 print('Initial values:')
 print('RV = '+"{:.2f}".format(spectrum['init_vrad'])+' (Gaia DR3: '+"{:.2f}".format(extra_info['rv_gaia_dr3'])+')')
 print('Teff, logg, fe_h, vmic, vsini')
-print(str(int(1000*spectrum['init_teff']))+', '+"{:.2f}".format(spectrum['init_logg'])+', '+"{:.2f}".format(spectrum['init_fe_h'])+', '+"{:.2f}".format(spectrum['init_vmic'])+', '+"{:.2f}".format(spectrum['init_vsini']))
+print(str(np.int32(1000*spectrum['init_teff']))+', '+"{:.2f}".format(spectrum['init_logg'])+', '+"{:.2f}".format(spectrum['init_fe_h'])+', '+"{:.2f}".format(spectrum['init_vmic'])+', '+"{:.2f}".format(spectrum['init_vsini']))
 print()
 
 for element in ['Li','C','N','O','Na','Mg','Al','Si','K','Ca','Sc','Ti','V','Cr','Mn','Co','Ni','Cu','Zn','Rb','Sr','Y','Zr','Mo','Ru','Ba','La','Ce','Nd','Sm','Eu']:
@@ -885,7 +887,7 @@ def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=
         if sys.argv[1] == '-f':
             print('Warning: Cross-talk not calculated reliably!')
 
-    spectrum['plate'] = int(fits_file[0].header['PLATE'])
+    spectrum['plate'] = np.int32(fits_file[0].header['PLATE'])
     
     # This is a test if the CCD is actually available. For 181221001601377, CCD4 is missing for example.
     # We therefore implement a keyword 'available_ccds' to trigger only to loop over the available CCDs
@@ -1157,10 +1159,10 @@ for ccd in [1,2,3,4]:
 for ccd in spectrum['available_ccds']:
     spectrum['counts_unc_ccd'+str(ccd)] = np.sqrt(spectrum['counts_unc_ccd'+str(ccd)])
 
-if sys.argv[1] == '-f':
-    print('ToDo: Implement LSF handling. Currently ignoring all but first LSF!')
-    print('ToDo: Implement sigma clipping for co-adding!')
-    print('ToDo: Implement how to handle different resolutions!')
+# if sys.argv[1] == '-f':
+#     print('ToDo: Implement LSF handling. Currently ignoring all but first LSF!')
+#     print('ToDo: Implement sigma clipping for co-adding!')
+#     print('ToDo: Implement how to handle different resolutions!')
 
 
 # In[ ]:
@@ -2168,7 +2170,7 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
     if sys.argv[1] == '-f':
         print('   ',rv_adjustment_array[peaks],'peaks found by scipy.signal.finds_peaks')
 
-    spectrum['rv_peak_nr'] = int(len(peaks))
+    spectrum['rv_peak_nr'] = np.int32(len(peaks))
 
     if len(peaks) > 0:
         spectrum['rv_peak_1'] = float(rv_adjustment_array[peaks[0]])
@@ -2286,12 +2288,8 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
 # In[ ]:
 
 
-# Read in isochrone grid and trained nearest neighbor search machinery 'kdtree'
+# Read in isochrone grid
 parsec = Table.read('../auxiliary_information/parsec_isochrones/parsec_isochrones_logt_6p19_0p01_10p17_mh_m2p75_0p25_m0p75_mh_m0p60_0p10_0p70_GaiaEDR3_2MASS.fits')
-# parsec = Table.read('../auxiliary_information/parsec_isochrones/parsec_isochrones_logt_6p19_0p01_10p17_mh_m2p75_0p25_1p00_mh_m0p75_0p05_0p75_GaiaEDR3_2MASS.fits')
-file = open('../auxiliary_information/parsec_isochrones/isochrone_kdtree_Teff_logg_M_H.pickle','rb')
-parsec_kdtree = pickle.load(file)
-file.close()
 
 
 # In[ ]:
@@ -2360,32 +2358,129 @@ def calculate_age_mass(teff, logg, loglum, m_h, e_teff = 100, e_logg = 0.5, e_lo
 # In[ ]:
 
 
-# # Read in BC grid for nearest ebv
-# ebv_grids = np.arange(0,0.721,0.02)
-# ebv_grid = "{:.2f}".format(ebv_grids[np.argmin(np.abs(ebv_grids - spectrum['ebv']))])
-# bc_grid = np.genfromtxt('../auxiliary_information/BC_Tables/grid/STcolors_2MASS_GaiaDR2_EDR3_Rv3.1_EBV_'+ebv_grid+'.dat',names=True)
-
-# file = open('../auxiliary_information/BC_Tables/grid/bc_grid_kdtree_ebv_'+ebv_grid+'.pickle','rb')
-# bc_kdtree = pickle.load(file)
-# file.close()
-
-# Read in BC grid at ebv 0
-bc_grid = np.genfromtxt('../auxiliary_information/BC_Tables/grid/STcolors_2MASS_GaiaDR2_EDR3_Rv3.1_EBV_0.00.dat',names=True)
-file = open('../auxiliary_information/BC_Tables/grid/bc_grid_kdtree_ebv_0.00.pickle','rb')
-bc_kdtree = pickle.load(file)
-file.close()
-
-
-# In[ ]:
-
-
-def calculate_bc(teff, logg, fe_h, alpha_fe):
-
-    bc_distance_matches, bc_closest_matches = bc_kdtree.query(np.array([np.log10(teff),logg,fe_h,alpha_fe]).T,k=8)
-    bc_weights = 1/bc_distance_matches**2
+# bracket by +/-nn values over (irregular) grid. If idx True, then indices 
+# are returned instead
+def bracket(inval,grval,nn,idx=False):
     
-    bc_ks = np.average(bc_grid['mbol'][bc_closest_matches] - bc_grid['Ks'][bc_closest_matches],weights=bc_weights,axis=-1)
+    norep = np.sort(np.array(list(dict.fromkeys(list(grval)))))
     
+    x1    = np.where(norep<=inval)
+    x2    = np.where(norep>inval)
+    
+    if idx==False:
+        lo = norep[x1][-nn::]
+        up = norep[x2][0:nn]        
+    else:
+        lo = x1[0][-nn::]
+        up = x2[0][0:nn]
+        
+    return(lo,up)
+
+# linear interpolation for 2 points, Akima for more. Returns nan if 
+# not possible or if extrapolated. The MARCS grid of BC used here is ordered
+# such that gridt is monotonic. If not, sorting is necessary.
+def mal(val,gridt,gridbc,dset):
+    if len(dset[0])>2:
+        mfun = Akima1DInterpolator(gridt[dset],gridbc[dset])
+        itp  = mfun(val)
+    if len(dset[0])==2:
+        mfun = interp1d(gridt[dset],gridbc[dset],bounds_error=False) 
+        itp  = mfun(val)        
+    if len(dset[0])<2:
+        itp = np.nan
+    return(itp)
+
+
+# read input tables of BCs for several values of E(B-V)
+files = ['../auxiliary_information/BC_Tables/grid/STcolors_2MASS_GaiaDR2_EDR3_Rv3.1_EBV_0.00.dat']
+gebv   = [0.0]
+gri_bc = []
+
+kk=0
+for f in files:
+
+    grid = Table.read(f,format='ascii')
+    if kk==0:
+        gteff, gfeh, glogg = grid['Teff'],grid['feh'],grid['logg']
+
+    bc_g2  = grid['mbol']-grid['G2']
+    bc_bp2 = grid['mbol']-grid['BP2']
+    bc_rp2 = grid['mbol']-grid['RP2']
+
+    bc_g3  = grid['mbol']-grid['G3']
+    bc_bp3 = grid['mbol']-grid['BP3']
+    bc_rp3 = grid['mbol']-grid['RP3']
+
+    bc_j   = grid['mbol']-grid['J']
+    bc_h   = grid['mbol']-grid['H']
+    bc_k   = grid['mbol']-grid['Ks']
+
+    tmp = np.transpose([bc_g2,bc_bp2,bc_rp2,bc_g3,bc_bp3,bc_rp3,bc_j,bc_h,bc_k])
+    gri_bc.append(tmp)
+
+    kk=kk+1
+
+gebv   = np.array(gebv)
+gri_bc = np.array(gri_bc)
+
+
+# compute Bolometric Corrections for stars of known input parameters
+def bcstar(teff,logg,feh,alpha_fe):
+    
+#     teff = np.min([np.max([teff,np.min(grid['Teff'])]),np.max(grid['Teff'])])
+#     if teff < 3900:
+#         logg = np.min([np.max([logg,np.min(grid['logg'])]),5.5])
+#     else:
+#         logg = np.min([np.max([logg,np.min(grid['logg'])]),5.0])
+#     feh = np.min([np.max([feh,np.min(grid['feh'])]),np.max(grid['feh'])])
+    
+    frange = [8]
+    flist = ['BC_Ks']
+    rmi = [8]
+
+    itp_bc = np.nan
+    arr_bc  = np.nan
+
+    fold      = [feh]
+        
+    # take +/-3 steps in [Fe/H] grid
+    snip = np.concatenate(bracket(fold,gfeh,3))
+    itp1 = np.zeros((len(snip)))+np.nan
+    
+    for k in range(len(snip)):
+
+        x0   = np.where((gfeh==snip[k]) & (np.abs(glogg-logg)<1.1))
+        lg0  = np.array(list(dict.fromkeys(list(glogg[x0]))))
+        itp0 = np.zeros((len(lg0)))+np.nan
+
+        # at given logg and feh, range of Teff to interpolate across
+        for j in range(len(lg0)):
+            ok      = np.where((np.abs(gteff-teff)<1000) &                                (gfeh==snip[k]) & (glogg==lg0[j]))
+
+            itp0[j] = mal(teff,gteff,gri_bc[0,:,8],ok)
+
+        # remove any nan, in case. Either of itp[?,:,:] is enough
+        k0 = np.where(np.isnan(itp0[:])==False)
+        # interpolate in logg at correct Teff
+        itp1[k] = mal(logg,lg0,itp0[:],k0)
+        
+    k1  = np.where(np.isnan(itp1[:])==False)
+    
+    bc_ks = mal(fold,snip,itp1[:],k1)
+
+    if np.isnan(bc_ks):
+        
+        bc_grid = np.genfromtxt('../auxiliary_information/BC_Tables/grid/STcolors_2MASS_GaiaDR2_EDR3_Rv3.1_EBV_0.00.dat',names=True)
+        file = open('../auxiliary_information/BC_Tables/grid/bc_grid_kdtree_ebv_0.00.pickle','rb')
+        bc_kdtree = pickle.load(file)
+        file.close()
+        
+        bc_distance_matches, bc_closest_matches = bc_kdtree.query(np.array([np.log10(teff),logg,feh,alpha_fe]).T,k=8)
+        bc_ks = np.average(bc_grid['mbol'][bc_closest_matches] - bc_grid['Ks'][bc_closest_matches],weights=bc_distance_matches,axis=-1)
+        
+    else:
+        bc_ks = bc_ks[0]
+        
     return(bc_ks)
 
 
@@ -2403,7 +2498,7 @@ def calculate_logg_parallax(teff, logg_in, fe_h, e_teff = 100, e_logg = 0.25, e_
     
     m_h = fe_h + np.log10(10**alpha_fe * 0.694 + 0.306)
     
-    bc_ks = calculate_bc(teff, logg_in, fe_h, alpha_fe)
+    bc_ks = bcstar(teff, logg_in, fe_h, alpha_fe)
     
     loglbol = - 0.4 * (extra_info['ks_m'] - 5.0*np.log10(extra_info['r_med']/10.) + bc_ks - extra_info['a_ks'] - 4.75)#[0]
     # Take into account uncertainties of Ks, distance, and adds uncertainties of +- 0.05 mag for A(Ks) and BC(Ks)
@@ -2907,14 +3002,14 @@ output.add_column(col)
 for label in ['gaia_edr3_source_id']:
     col = Table.Column(
         name=label,
-        data = [int(spectrum[label])],
+        data = [np.int32(spectrum[label])],
         description=description[label],
         unit=units[label])
     output.add_column(col)
 
 col = Table.Column(
     name='flag_sp_fit',
-    data = [int(spectrum['flag_sp'])],
+    data = [np.int32(spectrum['flag_sp'])],
     description=description['flag_sp'],
     unit='')
 output.add_column(col)
@@ -2996,7 +3091,7 @@ for label in model_interpolation_labels:
         output.add_column(col)
         col = Table.Column(
             name='flag_'+label,
-            data = [int(flag_x_fe)],
+            data = [np.int32(flag_x_fe)],
             description='Quality flag for '+description[label],
             unit='')
         output.add_column(col)
@@ -3059,7 +3154,7 @@ for label in model_interpolation_labels:
 
             col = Table.Column(
                 name='flag_'+label,
-                data = [int(flag_x_fe)],
+                data = [np.int32(flag_x_fe)],
                 description='Quality flag for '+description[label],
                 unit='')
             output.add_column(col)
@@ -3067,7 +3162,7 @@ for label in model_interpolation_labels:
 for data, label in zip([mass,age,bc_ks,extra_info['a_ks'],lbol,extra_info['r_med'],extra_info['r_lo'],extra_info['r_hi']],['mass','age','bc_ks','a_ks','lbol','r_med','r_lo','r_hi']):
     col = Table.Column(
         name=label,
-        data = data,
+        data = np.float32(data),
         description=label,
         unit='')
     output.add_column(col)
@@ -3107,4 +3202,10 @@ output.add_column(col)
 output.write(file_directory+str(spectrum['sobject_id'])+'_plxcom_fit_results.fits',overwrite=True)
 
 print('Duration: '+str(np.round(end_time,decimals=1))+' for sobject_id '+str(spectrum['sobject_id']))
+
+
+# In[ ]:
+
+
+output
 
