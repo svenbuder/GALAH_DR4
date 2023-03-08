@@ -265,6 +265,12 @@ else:
 #     tmass_id = '21230789-2809562' # late M dwarf
     
 #     tmass_id = '21331854-0051563' # M2 star
+    tmass_id = '06441055-0107407' # 7750_4.00_-0.75
+    
+    tmass_id = '05205367-5903286' # no parallax...
+    tmass_id = '06435057-0131337' # increased RV fitting range to +-2*vsini because of too large vsini
+    
+    tmass_id = '13021059+1057329'
 
 
 # In[ ]:
@@ -289,7 +295,7 @@ for ind_sobject_id in initial_list:
             spectrum['sobject_ids'].remove(ind_sobject_id)
             if sys.argv[1] == '-f':
                 print(str(ind_sobject_id)+' observed at high resolution. Dropping this one for the plxcom setup')
-        elif ind_sobject_id in [141231005201174,140207003801201,140207004801201,140208005101201,140208005101210]: # 140710000801284
+        elif ind_sobject_id in [141231005201174,140207003801201,140207004801201,140208005101201,140208005101210,140209004901151,140209004901160]: # 140710000801284
             spectrum['sobject_ids'].remove(ind_sobject_id)
             if sys.argv[1] == '-f':
                 print('Manually removed spectrum '+str(ind_sobject_id))
@@ -1075,7 +1081,10 @@ for repeat_index, repeat_sobject_id in enumerate(spectrum['sobject_ids'][1:]):
     single_spectrum = read_spectrum(repeat_sobject_id,single_spectrum,init_values_table,neglect_ir_beginning=False)
     
     if single_spectrum['resolution'] != spectrum['resolution']:
-        raise ValueError('ToDo: Implement how to handle different resolutions!')
+
+        print(spectrum['resolution'],spectrum['sobject_id'])
+        print(single_spectrum['sobject_id'],single_spectrum['resolution'])
+        #raise ValueError('ToDo: Implement how to handle different resolutions!')
         
     for ccd in [1,2,3,4]:
 
@@ -2028,7 +2037,7 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
             spectrum['flag_sp'] -= flag_sp_closest_3x3x3_model_not_available
 
     except:
-    
+        
         if sys.argv[1] == '-f':
             print('Could not load 3x3x3 model '+model_teff_logg_feh+' (closest)')
         
@@ -2108,7 +2117,7 @@ def find_best_available_neutral_network_model(teff, logg, fe_h):
 # In[ ]:
 
 
-def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for_rv, model_input_for_rv):
+def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for_rv, model_input_for_rv, small_rv_window = 20):
 
     text = '\n Assessing RVs: Red Pipeline = '
     if np.isfinite(init_values_table['vrad_red'][sobject_id_initial_index]):
@@ -2213,8 +2222,8 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
         ax.axvline(init_values_table['vrad_gaia'][sobject_id_initial_index], c = 'C0', ls='dashed', label = '$Gaia$ DR3 \n '+"{:.2f}".format(init_values_table['vrad_gaia'][sobject_id_initial_index]))
     ax.legend(loc='upper left', handlelength = 1)
 
-    neg_rv_corr = suggested_shift_broad - 20
-    pos_rv_corr = suggested_shift_broad + 20
+    neg_rv_corr = suggested_shift_broad - small_rv_window
+    pos_rv_corr = suggested_shift_broad + small_rv_window
     bin_rv_corr = 1001
     rv_res = (pos_rv_corr-neg_rv_corr)/(bin_rv_corr-1)
 
@@ -2266,7 +2275,7 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
     ax.plot(rv_adjustment_array,gauss(rv_adjustment_array, *gauss_popt), c='orange', label='Fit: '+"{:.2f}".format(gauss_popt[2])+'$ \pm $'+"{:.2f}".format(np.sqrt(np.diag(gauss_pcov)[2])))
     ax.legend(loc='lower center')
     ax.axvline(gauss_popt[2], c = 'orange', label = 'Fit')
-    ax.set_xlim(suggested_shift_fine - 35, suggested_shift_fine + 35)
+    ax.set_xlim(suggested_shift_fine - 1.75 * small_rv_window, suggested_shift_fine + 1.75 * small_rv_window)
 
     file_directory = galah_dr4_directory+'analysis_products/'+str(spectrum['sobject_id'])[:6]+'/'+str(spectrum['sobject_id'])+'/'
     Path(file_directory).mkdir(parents=True, exist_ok=True)
@@ -2821,7 +2830,10 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
         if sys.argv[1] == '-f':
             print('Fitting global RV')
         # Optimise RV based on initial or previous RV
-        spectrum['init_vrad'],spectrum['init_e_vrad'] = adjust_rv(spectrum['init_vrad'], wave_opt, data_opt, sigma2_opt, model_flux_opt)
+        try:
+            spectrum['init_vrad'],spectrum['init_e_vrad'] = adjust_rv(spectrum['init_vrad'], wave_opt, data_opt, sigma2_opt, model_flux_opt,small_rv_window = np.max([20.,2*spectrum['init_vsini']]))
+        except:
+            spectrum['init_vrad'],spectrum['init_e_vrad'] = adjust_rv(spectrum['init_vrad'], wave_opt, data_opt, sigma2_opt, model_flux_opt,small_rv_window = 200.)
     else:
         if sys.argv[1] == '-f':
             print('Keeping global RV fixed at ',spectrum['init_vrad'])
@@ -3207,5 +3219,5 @@ print('Duration: '+str(np.round(end_time,decimals=1))+' for sobject_id '+str(spe
 # In[ ]:
 
 
-output
+# output
 
