@@ -3,3 +3,8 @@
 0 | No flag rasied | 
 1 | Upper limit | 
 2 | No measurement available | 
+4 | No convergence | 
+8 | Measurement above limit: A(Li) > 4; [X/Fe] > 1.5 for C,N,O,Y,Ba,La,Ce,Nd; [X/Fe] > 1.0 for the rest | 
+16 | Measurement below limit: A(Li) < 0; [X/Fe] < -0.5 for Mg, Si, Ti; [X/Fe] < -1.0 for the rest | 
+32 | Measurement issue of CNO | 
+64 | Wavelength issue warning | 

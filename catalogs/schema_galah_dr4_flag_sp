@@ -2,10 +2,17 @@
 :--------------|:--------------|
 0 | No flag rasied | 
 1 | Emission in Halpha/Hbeta detected | 
-2 | Broadening (vsini) warning | 
-4 | Microturbulence (vmic) warning | 
-8 | chi square unusually low/high by 3 sigma | 
-16 | Double line splitting detected (SB2) | 
-32 | Not all 4 CCDs available | 
-64 | Extrapolating spectrum model | 
-128 | No spectroscopic analysis results available | 
+2 | Not all 4 CCDs available | 
+4 | Spectroscopic Binary SB1 (RV changes beyond 2sigma) | 
+8 | Spectroscopic Binary SB2 (Double line splitting) | 
+16 | Chi2 unusually low/high by 3 sigma | 
+32 | Broadening (vsini) warning | 
+64 | Microturbulence (vmic) warning | 
+128 | Double line splitting detected (SB2) | 
+256 | Temperature (teff) warning | 
+512 | Gravity (logg) warning | 
+1024 | [Fe/H] (fe_h) warning | 
+2048 | Signal-to-noise indicates spectra not reliable | 
+4096 | Not converged within 4 iterations | 
+8192 | Extrapolating spectrum model | 
+16384 | No spectroscopic analysis results available | 

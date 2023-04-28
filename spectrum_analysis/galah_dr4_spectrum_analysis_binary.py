@@ -138,6 +138,8 @@ else:
     sobject_id = 131217003901380 # Binary star, testing if better starting RV helps.
     sobject_id = 140822001101367 # Binary star, testing if better starting RV helps.
     sobject_id = 201202001601060
+    sobject_id = 161212004601167 # Binary candidate in Trumpler 20
+    sobject_id = 140211001101378 # Issue with negative resolution profile
     
 #     sobject_id = 210115002201239 # VESTA
 
@@ -170,12 +172,14 @@ try:
     spectrum['gaia_edr3_source_id'] = int(init_values_table['source_id'][sobject_id_initial_index])
 except:
     spectrum['gaia_edr3_source_id'] = int(-1)
-        
+
 spectrum['flag_sp'] = int(0)
 flag_sp_closest_3x3x3_model_not_available = int(1)
 flag_sp_closest_extra6_model_not_available = int(2)
 flag_sp_no_successful_convergence_within_maximum_loops = int(4)
 flag_sp_not_all_ccds_available = int(8)
+flag_sp_negative_fluxes_in_ccds = int(16)
+flag_sp_negative_resolution_profile = int(32)
 
 
 # In[ ]:
@@ -288,6 +292,38 @@ def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=
     return(spectrum)
 
 spectrum = read_spectrum(sobject_id, spectrum, init_values_table)
+
+
+# In[ ]:
+
+
+ccds_with_positive_flux = []
+for ccd in spectrum['available_ccds']:
+    below_0 = spectrum['counts_ccd'+str(ccd)] < 0
+    if len(spectrum['counts_ccd'+str(ccd)][below_0])/len(spectrum['counts_ccd'+str(ccd)]) > 0.05:
+        print('More than 5% of counts below 0 for CCD'+str(ccd)+'. Neglecting this CCD!')
+        if (spectrum['flag_sp'] & flag_sp_negative_fluxes_in_ccds) == 0:
+            spectrum['flag_sp'] += flag_sp_negative_fluxes_in_ccds
+    else:
+        ccds_with_positive_flux.append(ccd)
+spectrum['available_ccds'] = ccds_with_positive_flux
+
+ccds_with_positive_resolution_profile = []
+for ccd in spectrum['available_ccds']:
+    below_0 = np.where(spectrum['lsf_ccd'+str(ccd)] < 0)[0]
+    if len(below_0) > 0:
+        print('Negative resolution profile detected. Neglecting this CCD!')
+        if (spectrum['flag_sp'] & flag_sp_negative_resolution_profile) == 0:
+            spectrum['flag_sp'] += flag_sp_negative_resolution_profile
+    else:
+        ccds_with_positive_resolution_profile.append(ccd)
+spectrum['available_ccds'] = ccds_with_positive_resolution_profile
+
+print('Working with the following CCDs: ',spectrum['available_ccds'])
+
+
+# In[ ]:
+
 
 for ccd in spectrum['available_ccds']:
     spectrum['wave_ccd'+str(ccd)] = spectrum['crval_ccd'+str(ccd)] + spectrum['cdelt_ccd'+str(ccd)]*np.arange(len(spectrum['counts_ccd'+str(ccd)]))
@@ -921,7 +957,7 @@ def get_spectrum_from_neural_net(scaled_labels, NN_coeffs):
 # In[ ]:
 
 
-def create_synthetic_spectrum(model_parameters, model_labels, default_model=None, default_model_name=None, debug=True):
+def create_synthetic_spectrum(model_parameters, model_labels, default_model=None, default_model_name=None, debug=True, apply_zeropoints=False):
     
     model_parameters = np.array(model_parameters)
     
@@ -956,32 +992,44 @@ def create_synthetic_spectrum(model_parameters, model_labels, default_model=None
     if 'c_fe' in model_labels:
         c_fe = model_parameters[model_labels=='c_fe'][0]
     else:
-        c_fe = 0.0
+        c_fe = 0.00
+        if apply_zeropoints:
+            c_fe += 0.03
 
     if 'n_fe' in model_labels:
         n_fe = model_parameters[model_labels=='n_fe'][0]
     else:
-        n_fe = 0.0
+        n_fe = 0.00
+        if apply_zeropoints:
+            n_fe += 0.15
 
     if 'o_fe' in model_labels:
         o_fe = model_parameters[model_labels=='o_fe'][0]
     else:
         o_fe = (-0.4*model_parameters[model_labels=='fe_h'][0]).clip(min=0.0,max=0.4)
+        if apply_zeropoints:
+            o_fe += 0.07
 
     if 'na_fe' in model_labels:
         na_fe = model_parameters[model_labels=='na_fe'][0]
     else:
-        na_fe = 0.0
+        na_fe = 0.00
+        if apply_zeropoints:
+            na_fe += 0.20
 
     if 'mg_fe' in model_labels:
         mg_fe = model_parameters[model_labels=='mg_fe'][0]
     else:
         mg_fe = (-0.4*model_parameters[model_labels=='fe_h'][0]).clip(min=0.0,max=0.4)
+        if apply_zeropoints:
+            mg_fe += 0.07
 
     if 'al_fe' in model_labels:
         al_fe = model_parameters[model_labels=='al_fe'][0]
     else:
-        al_fe = 0.0
+        al_fe = 0.00
+        if apply_zeropoints:
+            al_fe += 0.19
 
     if 'si_fe' in model_labels:
         si_fe = model_parameters[model_labels=='si_fe'][0]
@@ -991,17 +1039,23 @@ def create_synthetic_spectrum(model_parameters, model_labels, default_model=None
     if 'k_fe' in model_labels:
         k_fe = model_parameters[model_labels=='k_fe'][0]
     else:
-        k_fe = 0.0
+        k_fe = 0.00
+        if apply_zeropoints:
+            k_fe -= 0.03
 
     if 'ca_fe' in model_labels:
         ca_fe = model_parameters[model_labels=='ca_fe'][0]
     else:
         ca_fe = (-0.4*model_parameters[model_labels=='fe_h'][0]).clip(min=0.0,max=0.4)
-
+        if apply_zeropoints:
+            ca_fe += 0.03
+            
     if 'sc_fe' in model_labels:
         sc_fe = model_parameters[model_labels=='sc_fe'][0]
     else:
         sc_fe = 0.0
+        if apply_zeropoints:
+            sc_fe -= 0.02
 
     if 'ti_fe' in model_labels:
         ti_fe = model_parameters[model_labels=='ti_fe'][0]
@@ -1012,6 +1066,8 @@ def create_synthetic_spectrum(model_parameters, model_labels, default_model=None
         v_fe = model_parameters[model_labels=='v_fe'][0]
     else:
         v_fe = 0.0
+        if apply_zeropoints:
+            v_fe -= 0.12
 
     if 'cr_fe' in model_labels:
         cr_fe = model_parameters[model_labels=='cr_fe'][0]
@@ -1022,11 +1078,15 @@ def create_synthetic_spectrum(model_parameters, model_labels, default_model=None
         mn_fe = model_parameters[model_labels=='mn_fe'][0]
     else:
         mn_fe = 0.0
+        if apply_zeropoints:
+            mn_fe += 0.10
 
     if 'co_fe' in model_labels:
         co_fe = model_parameters[model_labels=='co_fe'][0]
     else:
         co_fe = 0.0
+        if apply_zeropoints:
+            co_fe -= 0.10
 
     if 'ni_fe' in model_labels:
         ni_fe = model_parameters[model_labels=='ni_fe'][0]
@@ -1037,11 +1097,15 @@ def create_synthetic_spectrum(model_parameters, model_labels, default_model=None
         cu_fe = model_parameters[model_labels=='cu_fe'][0]
     else:
         cu_fe = 0.0
+        if apply_zeropoints:
+            cu_fe -= 0.15
 
     if 'zn_fe' in model_labels:
         zn_fe = model_parameters[model_labels=='zn_fe'][0]
     else:
         zn_fe = 0.0
+        if apply_zeropoints:
+            zn_fe -= 0.05
 
     if 'rb_fe' in model_labels:
         rb_fe = model_parameters[model_labels=='rb_fe'][0]
@@ -1057,11 +1121,15 @@ def create_synthetic_spectrum(model_parameters, model_labels, default_model=None
         y_fe = model_parameters[model_labels=='y_fe'][0]
     else:
         y_fe = 0.0
+        if apply_zeropoints:
+            y_fe -= 0.11
 
     if 'zr_fe' in model_labels:
         zr_fe = model_parameters[model_labels=='zr_fe'][0]
     else:
         zr_fe = 0.0
+        if apply_zeropoints:
+            zr_fe -= 0.30
 
     if 'mo_fe' in model_labels:
         mo_fe = model_parameters[model_labels=='mo_fe'][0]
@@ -1077,6 +1145,8 @@ def create_synthetic_spectrum(model_parameters, model_labels, default_model=None
         ba_fe = model_parameters[model_labels=='ba_fe'][0]
     else:
         ba_fe = 0.0
+        if apply_zeropoints:
+            ba_fe -= 0.07
 
     if 'la_fe' in model_labels:
         la_fe = model_parameters[model_labels=='la_fe'][0]
@@ -1092,16 +1162,22 @@ def create_synthetic_spectrum(model_parameters, model_labels, default_model=None
         nd_fe = model_parameters[model_labels=='nd_fe'][0]
     else:
         nd_fe = 0.0
+        if apply_zeropoints:
+            nd_fe += 0.14
 
     if 'sm_fe' in model_labels:
         sm_fe = model_parameters[model_labels=='sm_fe'][0]
     else:
         sm_fe = 0.0
+        if apply_zeropoints:
+            sm_fe += 0.13
 
     if 'eu_fe' in model_labels:
         eu_fe = model_parameters[model_labels=='eu_fe'][0]
     else:
         eu_fe = 0.0
+        if apply_zeropoints:
+            eu_fe += 0.4
     
     model_labels = np.array([
         teff, logg, fe_h, vmic, vsini, li_fe,

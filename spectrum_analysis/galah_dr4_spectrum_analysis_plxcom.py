@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # GALAH DR4 Spectrum Analysis assuming Single Source - coadded version
+# # GALAH DR4 Spectrum Analysis assuming Single Source - coadded version that includes parallax information
 # 
 # This script is used to find the optimal set of stellar labels for GALAH spectra in combination with non-spectroscopic information
 # 
@@ -155,122 +155,14 @@ else:
 #     tmass_id = '11330013-3151273' # ksi Hya
 #     tmass_id = '12202099+0318453' # HD 107328
 #     tmass_id = '13544106+1823514' # eta Boo
-#     tmass_id = '14153968+1910558' # Arcturus
+    tmass_id = '14153968+1910558' # Arcturus
 #     tmass_id = '15430307-1056009' # HD 140283
 #     tmass_id = '16153726-0822096' # 18 Sco
 #     tmass_id = '17440870-5150027' # mu Ara
 #     tmass_id = 'gam Sge' # gam Sge
 #     tmass_id = '04060261-6430120' # Random star with Teff/logg/fe_h 6000 3.5 -0.25
-    
-#     tmass_id = '05190449-5849304' # new in dr6.1, sobject_id 1
-#     tmass_id = '05194296-5852488' # new in dr6.1, sobject_id 2
-#     tmass_id = '05242175-5855050' # new in dr6.1, sobject_id 3
-#     tmass_id = '16193494-6643050' # Li?
-#     tmass_id = '00261933-7205481' # 47Tuc member
-#     tmass_id = '00250382-7159505' # 47Tuc member
-#     tmass_id = '00245114-7200351' # 47Tuc member
-#     tmass_id = '00271842-7206531' # 47Tuc member
-#     tmass_id = '00261052-7206379' # 47Tuc member
-#     tmass_id = '00254411-7159401' # 47Tuc member
-#     tmass_id = '00271674-7208313' # 47Tuc member
-#     tmass_id = '00251382-7159103' # 47Tuc member
-#     tmass_id = '00245636-7208153' # 47Tuc member
-    
-#     tmass_id = '09204566-7718444' # E_3 member
-#     tmass_id = '09203461-7717030' # E_3 member
-#     tmass_id = '09200285-7718137' # E_3 member
-#     tmass_id = '09202594-7716069' # E_3 member
-#     tmass_id = '12544988-6713017' # BH_140 member
-#     tmass_id = '18184135-5211469' # NGC6584 member
-#     tmass_id = '18590940-3640192' # NGC6723 member, but SNR 2
-#     tmass_id = '21333095-0052154' # M2 member, but SNR 10
-#     tmass_id = '21335076-0051110' # M2 member
-#     tmass_id = '21400088-2315151' # M30 member
-#     tmass_id = '16235946-2627572' # M4 member
-    
-#     tmass_id = '04473784-1839324' # M dwarf
-#     tmass_id = '05120881+2603350' # M dwarf
-#     tmass_id = '05092779-6321483' # M dwarf
-    
-#     tmass_id = '17202455-3547063' # high ebv star
-#     tmass_id = '06451670-0056540' # high ebv star
-    
-#     tmass_id = '13241871-4745067' # OmegaCen Star
-#     tmass_id = '13242154-4738394' # OmegaCen Star
-#     tmass_id = '13251161-4727080' # OmegaCen Star
-#     tmass_id = '13251408-4726367' # OmegaCen Star
-#     tmass_id = '13262962-4737014' # OmegaCen Star with [Al/Fe] > 1
-#     tmass_id = '13273319-4736151' # OmegaCen Star
-#     tmass_id = '13274016-4733244' # OmegaCen Star
-#     tmass_id = '13254363-4727048' # OmegaCen Star
-#     tmass_id = '13275422-4722412' # OmegaCen Star
-#     tmass_id = '13280077-4732469' # OmegaCen star
-#     tmass_id = '13280948-4733329' # OmegaCen Star
-#     tmass_id = '13280245-4738255' # OmegaCen star
-#     tmass_id = '13275252-4733174' # OmegaCen Star
-    
-#     tmass_id = '00261862-7211508' # 47Tuc star
-#     tmass_id = '00261933-7205481' # 47Tuc star
-#     tmass_id = '00233199-7212358' # 47Tuc RC star with high mass?
-#     tmass_id = '00222605-7157057' # 47Tuc star
-    
-#     tmass_id = '16223363-2624465' # M4 star
-#     tmass_id = '16233645-2630433' # M4 star
-#     tmass_id = '16240750-2616356' # M4 star
-#     tmass_id = '16234060-2627301' # M4 star
-    
-#     tmass_id = '17401200-5709147' # recent observation
-    
-#     tmass_id = '07202380-3636124' # Collinder135 candidate
-#     tmass_id = '07175074-3702394' # Collinder135
-#     tmass_id = '07174639-3659294' # Collinder135
-#     tmass_id = '07062750-3430580' # Collinder135
 
-#     tmass_id = '16062337-7659084' # High [N/Fe] Star
-#     tmass_id = '13280673-4720136' # High [N/Fe] Star
-
-#     tmass_id = '00431294-7259585' # High A(Ks) star
-#     tmass_id = '17203092-3548252' # High E(B-V) star
-
-#     tmass_id = '16580724-5327152'
-#     tmass_id = '00055003-2022008'
-#     tmass_id = '05225068-5858001'
-#     tmass_id = '08505923+1146129' # star with HR observation
-#     tmass_id = '05215787-5010031' # CEMP-s candidate
-#     tmass_id = '00370039-7736301'
-
-#     tmass_id = '12544988-6713017' # BH_140
-#     tmass_id = '09200285-7718137' # E_3
-#     tmass_id = '00212932-7153001' # NGC_104_47Tuc
-#     tmass_id = '05134480-4000280' # NGC_1851
-#     tmass_id = '00521548-2641039' # NGC_288
-#     tmass_id = '01040240-7049108' # NGC_362
-#     tmass_id = '12400886-2654061' # NGC_4590_M_68
-#     tmass_id = '13272943-4721273' # NGC_5139_oCen
-#     tmass_id = '15461630-3744468' # NGC_5986
-#     tmass_id = '16235035-2632478' # NGC_6121_M_4
-#     tmass_id = '16272202-2601589' # NGC_6144
-#     tmass_id = '17305453-6703458' # NGC_6362
-#     tmass_id = '17402189-5339177' # NGC_6397
-#     tmass_id = '18075122-4338474' # NGC_6541
-#     tmass_id = '18184135-5211469' # NGC_6584
-#     tmass_id = '18594898-3635401' # NGC_6723
-#     tmass_id = '21333432-0051285' # NGC_7089_M_2
-#     tmass_id = '21400088-2315151' # NGC_7099_M_30
-
-#     tmass_id = '09204429-7717588' # Test case with bad Ks
-
-#     tmass_id = '04575363+2501101' # late K dwarf with upturning logg
-#     tmass_id = '04184330-6900335' # early M dwarf
-#     tmass_id = '21230789-2809562' # late M dwarf
-    
-#     tmass_id = '21331854-0051563' # M2 star
-    tmass_id = '06441055-0107407' # 7750_4.00_-0.75
-    
-    tmass_id = '05205367-5903286' # no parallax...
-    tmass_id = '06435057-0131337' # increased RV fitting range to +-2*vsini because of too large vsini
-    
-    tmass_id = '13021059+1057329'
+    tmass_id = '07372740-5815503'
 
 
 # In[ ]:
@@ -280,6 +172,7 @@ spectrum = dict()
 spectrum['tmass_id'] = tmass_id
 
 spectrum['sobject_ids'] = list(repeat_table['sobject_id'][np.where(repeat_table['tmass_id'] == spectrum['tmass_id'])[0]])
+spectrum['sobject_id'] = spectrum['sobject_ids'][0]
 
 
 # In[ ]:
@@ -295,7 +188,7 @@ for ind_sobject_id in initial_list:
             spectrum['sobject_ids'].remove(ind_sobject_id)
             if sys.argv[1] == '-f':
                 print(str(ind_sobject_id)+' observed at high resolution. Dropping this one for the plxcom setup')
-        elif ind_sobject_id in [141231005201174,140207003801201,140207004801201,140208005101201,140208005101210,140209004901151,140209004901160]: # 140710000801284
+        elif ind_sobject_id in [131217003901033,141231005201174,140207003801201,140207004801201,140208005101201,140208005101210,140209004901151,140209004901160,140314005201099,140315002501099]: # 140710000801284
             spectrum['sobject_ids'].remove(ind_sobject_id)
             if sys.argv[1] == '-f':
                 print('Manually removed spectrum '+str(ind_sobject_id))
@@ -341,13 +234,12 @@ if len(sobject_id_initial_index) > 0:
 else:
     if sys.argv[1] == '-f':
         print('No initial values found in 230101_lite catalogue.')
-    
-spectrum['sobject_id'] = spectrum['sobject_ids'][0]
+
 try:
-    spectrum['gaia_edr3_source_id'] = np.int32(init_values_table['source_id'][sobject_id_initial_index])
+    spectrum['gaia_edr3_source_id'] = np.int64(init_values_table['source_id'][sobject_id_initial_index])
 
 except:
-    spectrum['gaia_edr3_source_id'] = np.int32(-1)
+    spectrum['gaia_edr3_source_id'] = np.int64(-1)
 
 spectrum['ebv'] = float(init_values_table['ebv'][sobject_id_initial_index].clip(min=0.0,max=0.72))
 
@@ -426,7 +318,7 @@ if len(extra_info_match) > 0:
         else:
             extra_info['a_ks'] = 0.00 # No measurement, so let's assume 0
     run_star = True
-
+    extra_info['age'] = 4.5
 else:
     if sys.argv[1] == '-f':
         print('Found no extra information for star, should not run this star')
@@ -538,6 +430,8 @@ if len(cantatgaudin2020_match) > 0:
         print('Open cluster entry by Cantat-Gaudin et al. (2020) less precise')
         print(r'Gaia EDR3:                   $'+"{:.3f}".format(extra_info['parallax'])+' \pm '+"{:.3f}".format(extra_info['e_parallax'])+'$')
         print(r'Cantat-Gaudin et al. (2020): $'+"{:.3f}".format(extra_info['parallax_cg2020'])+' \pm '+"{:.3f}".format(extra_info['e_parallax_cg2020'])+'$')
+    extra_info['age'] = np.round(10**(cantatgaudin2020_parallaxes['logAge'][cantatgaudin2020_match[0]]-9),2)
+    print('Open cluster age / Gyr: ',extra_info['age'])
 else:
     print('No entry in Cantat-Gaudin et al. (2020) found')
 
@@ -681,6 +575,8 @@ flag_sp_closest_3x3x3_model_not_available = np.int32(1)
 flag_sp_closest_extra6_model_not_available = np.int32(2)
 flag_sp_no_successful_convergence_within_maximum_loops = np.int32(4)
 flag_sp_not_all_ccds_available = np.int32(8)
+flag_sp_negative_fluxes_in_ccds = np.int32(16)
+flag_sp_negative_resolution_profile = np.int32(32)
 
 
 # In[ ]:
@@ -841,10 +737,34 @@ for label in ['teff','logg','fe_h','vmic','vsini']:
     spectrum['init_'+label] = np.median(single_results[label][use_for_starting_values])
     if label == 'teff':
         spectrum['init_'+label] /= 1000.
+    if label == 'fe_h':
+        if spectrum['init_'+label] > 0.8:
+            spectrum['init_'+label] = np.float32(-0.07)
+            print('[Fe/H] > 0.8, nulling.')
 
+if spectrum['sobject_id'] in [140414004601184,140309003101001,140113002401230]:
+    spectrum['init_teff'] = np.float32(3.2)
+if spectrum['tmass_id'] == '13255577-4717440':
+    spectrum['init_teff'] = np.float32(4.5)
+    spectrum['init_logg'] = np.float32(1.5)
+    spectrum['init_fe_h'] = np.float32(-1.8)
+    spectrum['init_vsini'] = np.float32(5.)
+            
 spectrum['init_teff'] = spectrum['init_teff'].clip(min=3.01,max=7.99)
-spectrum['init_logg'] = spectrum['init_logg'].clip(min=-0.4,max=5.4) + 0.1
-spectrum['init_fe_h'] = spectrum['init_fe_h'].clip(min=-3.9,max=0.9) + 0.07
+
+# We know if a bias for low [Fe/H] for giants
+if (spectrum['init_teff'] >= 4.0) & (spectrum['init_teff'] <= 5.0) & (spectrum['init_teff'] <= 5.0) & (spectrum['init_logg'] <= 2.5):
+    spectrum['init_logg'] += 0.1 - 0.3 * (spectrum['init_teff'] - 5.)
+    spectrum['init_fe_h'] += 0.07 - 0.15 * (spectrum['init_teff'] - 5.)
+    print('Identified giant with 4000-5000K: logg increased by '+"{:.2f}".format(0.1 - 0.3 * (spectrum['init_teff'] - 5.))+', [Fe/H] increased by '+"{:.2f}".format(0.07 - 0.15 * (spectrum['init_teff'] - 5.))+'\n')
+else:
+    print('Applying usual offset for logg and [Fe/H] of +0.1 and +0.07\n')
+    spectrum['init_logg'] = spectrum['init_logg'] + 0.1
+    spectrum['init_fe_h'] = spectrum['init_fe_h'] + 0.07
+
+spectrum['init_logg'] = spectrum['init_logg'].clip(min=-0.4,max=5.3)
+spectrum['init_fe_h'] = spectrum['init_fe_h'].clip(min=-3.9,max=0.7)
+
 spectrum['init_vmic'] = spectrum['init_vmic'].clip(min=0.35,max=3.9)
 if (spectrum['init_teff'] < 4.5) & (spectrum['init_logg'] > 4.0):
     spectrum['init_vmic'] = spectrum['init_vmic'].clip(min=0.35,max=1.5)
@@ -863,6 +783,82 @@ alpha_fe = np.max([0.0,np.min([0.4,-0.4*spectrum['init_fe_h']])])
 for each_alpha in ['o','mg','si','ca','ti']:
     spectrum['init_'+each_alpha+'_fe'] = alpha_fe
 if sys.argv[1] == '-f': print('Enhancing [X/Fe] to '+"{:.2f}".format(alpha_fe)+' based on [Fe/H] for O, Mg, Si, Ca, and Ti ▔\▁') 
+
+
+# In[ ]:
+
+
+# Test if we should also include younger isocheones < 100 Myr
+
+parsec = Table.read('../auxiliary_information/parsec_isochrones/parsec_isochrones_logt_8p00_0p01_10p17_mh_m2p75_0p25_m0p75_mh_m0p60_0p10_0p70_GaiaEDR3_2MASS.fits')
+cooler = False
+more_luminous = False
+if extra_info['age'] > 1:
+    unique_m_h = np.unique(parsec['m_h'])
+    old_isochrone_same_m_h = (parsec['logg'] > 2.3) & (parsec['label'] < 4) & (parsec['logAge'] == np.max(parsec['logAge'])) & (parsec['m_h'] == unique_m_h[np.argmin(np.abs(spectrum['init_fe_h'] + 0.25 - unique_m_h))])
+
+    # Where is the turnoff point for this isochrone?
+    turn_off_index = np.argmax(parsec['logT'][old_isochrone_same_m_h])
+    turn_off_logg = parsec['logg'][old_isochrone_same_m_h][turn_off_index]
+    turn_off_teff = 10**parsec['logT'][old_isochrone_same_m_h][turn_off_index]
+    
+    # Test if star is cool enough and has high enough surface gravity:
+    if (spectrum['init_logg'] > 2.5) & (spectrum['init_teff']*1000. < turn_off_teff):
+        
+        # Is star cooler than evolved giant stars?
+        if spectrum['init_logg'] < turn_off_logg + 0.2:
+            
+            # let's interpolate the LOGG for more evolved stars and shift by -100K and +0.2 dex (reasonable uncertainties)
+            iso_teff = np.interp(spectrum['init_logg'], parsec['logg'][old_isochrone_same_m_h][turn_off_index:][::-1]+0.2, 10**parsec['logT'][old_isochrone_same_m_h][turn_off_index:][::-1]-100)
+
+#             plt.scatter(
+#                 iso_teff,
+#                 spectrum['init_logg']
+#             )
+            
+            if spectrum['init_teff']*1000. < iso_teff:
+                print('Star luminous, but cooler than evolved giant stars')
+                cooler = True
+            else:
+                print('Star luminous, but consistent with evolved giant stars ',spectrum['init_teff']*1000.,iso_teff)
+        else:
+            cooler = True
+
+        # Is star more luminous than old stars on MS?
+
+        # let's interpolate the LOGG for the part up until the turnoff point
+        iso_logg = np.interp(spectrum['init_teff']*1000., 10**parsec['logT'][old_isochrone_same_m_h][:turn_off_index], parsec['logg'][old_isochrone_same_m_h][:turn_off_index])
+        if spectrum['init_logg'] < iso_logg:
+            print('Star more luminous than old MS star could be')
+            more_luminous = True
+        else:
+            print('Star consistent with old MS star')
+            more_luminous = False
+            
+#         plt.plot(
+#             10**parsec['logT'][old_isochrone_same_m_h][turn_off_index:]-100,
+#             parsec['logg'][old_isochrone_same_m_h][turn_off_index:]+0.2
+#         )
+#         plt.plot(
+#             10**parsec['logT'][old_isochrone_same_m_h][:turn_off_index],
+#             parsec['logg'][old_isochrone_same_m_h][:turn_off_index]
+#         )
+#         plt.scatter(
+#             spectrum['init_teff']*1000.,
+#             spectrum['init_logg']
+#         )
+    else:
+        print('Star not in young MS region')
+        
+    if cooler & more_luminous:
+        print('Assuming Young star.')
+        print('Using Parsec grid starting from 1.5 Myr instead of only 100 Myr.')
+        parsec = Table.read('../auxiliary_information/parsec_isochrones/parsec_isochrones_logt_6p19_0p01_10p17_mh_m2p75_0p25_m0p75_mh_m0p60_0p10_0p70_GaiaEDR3_2MASS.fits')   
+    else:
+        print('Assuming Old star with Parsec grid starting from 100 Myr')
+else:
+    print('Assuming Young star because this star is within a young open cluster with age < 1 Gyr.')
+    print('Using Parsec grid starting from 1.5 Myr instead of only 100 Myr')
 
 
 # # Read each spectrum
@@ -1172,6 +1168,34 @@ for ccd in spectrum['available_ccds']:
 #     print('ToDo: Implement LSF handling. Currently ignoring all but first LSF!')
 #     print('ToDo: Implement sigma clipping for co-adding!')
 #     print('ToDo: Implement how to handle different resolutions!')
+
+
+# In[ ]:
+
+
+ccds_with_positive_flux = []
+for ccd in spectrum['available_ccds']:
+    below_0 = (spectrum['counts_ccd'+str(ccd)] < 0) | (spectrum['counts_ccd'+str(ccd)]/spectrum['counts_unc_ccd'+str(ccd)] < 1)
+    if len(spectrum['counts_ccd'+str(ccd)][below_0])/len(spectrum['counts_ccd'+str(ccd)]) > 0.05:
+        print('More than 5% of counts below 0 for CCD'+str(ccd)+' or below SNR=1. Neglecting this CCD!')
+        if (spectrum['flag_sp'] & flag_sp_negative_fluxes_in_ccds) == 0:
+            spectrum['flag_sp'] += flag_sp_negative_fluxes_in_ccds
+    else:
+        ccds_with_positive_flux.append(ccd)
+spectrum['available_ccds'] = ccds_with_positive_flux
+
+ccds_with_positive_resolution_profile = []
+for ccd in spectrum['available_ccds']:
+    below_0 = np.where(spectrum['lsf_ccd'+str(ccd)] < 0)[0]
+    if len(below_0) > 0:
+        print('Negative resolution profile detected. Neglecting this CCD!')
+        if (spectrum['flag_sp'] & flag_sp_negative_resolution_profile) == 0:
+            spectrum['flag_sp'] += flag_sp_negative_resolution_profile
+    else:
+        ccds_with_positive_resolution_profile.append(ccd)
+spectrum['available_ccds'] = ccds_with_positive_resolution_profile
+
+print('Working with the following CCDs: ',spectrum['available_ccds'])
 
 
 # In[ ]:
@@ -1655,7 +1679,7 @@ def synth_resolution_degradation(l, res_map, res_b, synth, synth_res=300000.0, r
     #check if the resolving power is high enough
     sigma_synth=synth[:,0]/synth_res
     if max(sigma_synth)>=min(res_map)*0.95: logging.error('Resolving power of the synthetic spectrum must be higher.')
-        
+
     #check if wavelength calibration of the synthetic spectrum is linear:
     if not (synth[:,0][1]-synth[:,0][0])==(synth[:,0][-1]-synth[:,0][-2]):
         logging.error('Synthetic spectrum must have linear (equidistant) sampling.')		
@@ -2263,12 +2287,12 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
     plt.tight_layout(w_pad=0)
 
     def gauss(x, H, A, x0, sigma):
-        return H + A * np.exp(-(x - x0) ** 2 / (2 * sigma ** 2))
+        return H + abs(A) * np.exp(-(x - x0) ** 2 / (2 * sigma ** 2))
 
     def gauss_fit(x, y):
         mean = sum(x * y) / sum(y)
         sigma = np.sqrt(sum(y * (x - mean) ** 2) / sum(y))
-        popt, pcov = curve_fit(gauss, x, y, p0=[min(y), max(y), mean, sigma])
+        popt, pcov = curve_fit(gauss, x, y, p0=[min(y), 1., mean, sigma])
         return popt, pcov
 
     gauss_popt, gauss_pcov = gauss_fit(rv_adjustment_array, rv_adjustment_chi2)
@@ -2287,18 +2311,17 @@ def adjust_rv(current_rv, wave_input_for_rv, data_input_for_rv, sigma2_input_for
     if sys.argv[1] == '-f':
         print("{:.2f}".format(gauss_popt[2])+' ± '+"{:.2f}".format(np.sqrt(np.diag(gauss_pcov)[2]))+' km/s based on Gaussian fit. Updating to this value')
 
+    if np.isfinite(init_values_table['vrad_gaia'][sobject_id_initial_index]):
+        if abs(gauss_popt[2] - init_values_table['vrad_gaia'][sobject_id_initial_index]) > 500:
+            print('Difference between Gaia and this RV is > 500 km/s. Using Gaia instead')
+            new_rv = init_values_table['vrad_gaia'][sobject_id_initial_index]
+            new_e_rv = 1000.
+        
     # show plot if working interactively
     if sys.argv[1] == '-f': plt.show()
     plt.close()
     
     return(new_rv, new_e_rv)
-
-
-# In[ ]:
-
-
-# Read in isochrone grid
-parsec = Table.read('../auxiliary_information/parsec_isochrones/parsec_isochrones_logt_6p19_0p01_10p17_mh_m2p75_0p25_m0p75_mh_m0p60_0p10_0p70_GaiaEDR3_2MASS.fits')
 
 
 # In[ ]:
@@ -2547,6 +2570,13 @@ def iterate_logg_mass_age_bc_ks_lbol(teff, logg_in, fe_h):
     if sys.argv[1] == '-f':
         print(r'log(lbol), $'+"{:.2f}".format(np.log10(lbol))+'_{-'+"{:.2f}".format(np.log10(lbol)-loglbol_lo)+'}^{+'+"{:.2f}".format(loglbol_hi-np.log10(lbol))+'}$')
 
+    if logg_out < -0.5:
+        logg_out = -0.49
+        print('logg too low. Resetting to -0.5')
+    if logg_out > 5.5 :
+        logg_out = 5.49
+        print('logg too high. Resetting to 5.5')
+        
     return(mass, age, bc_ks, lbol, logg_out)
 
 
@@ -2574,6 +2604,10 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
         if sys.argv[1] == '-f':
             print('Star has Teff > 6000 K, nulling abundances (exepct for Li)')
         # We will actually apply that further down
+    if input_model_parameters[0] > 5.5:
+        if sys.argv[1] == '-f':
+            print('Star has Teff > 5500 K, nulling CNO')
+        # We will actually apply that further down
         
     if input_model_parameters[3] < 0.:
         if sys.argv[1] == '-f':
@@ -2591,6 +2625,10 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
             if input_model_parameters[0] > 6.:
                 if input_model_labels[parameter_index] not in ['li_fe']:
                     # Null abundances (except Li), if Teff > 6000K
+                    input_model_parameters[parameter_index] = 0.0
+            if input_model_parameters[0] > 5.5:
+                if input_model_labels[parameter_index] in ['c_fe','n_fe','o_fe']:
+                    # Null CNO abundances, if Teff > 5500K
                     input_model_parameters[parameter_index] = 0.0
             if input_model_labels[parameter_index] in ['li_fe']:
                 # print('[Li/Fe]',input_model_parameters[parameter_index])
@@ -2650,6 +2688,18 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
             bounds.append((-0.5 - input_model_parameters[2] - 1.05, 4.5 - input_model_parameters[2] - 1.05))
         elif label in ['c_fe','n_fe','o_fe','y_fe','ba_fe','la_fe','ce_fe','nd_fe']:
             bounds.append((-1.5,2.0))
+        elif label in ['al_fe']:
+            if input_model_parameters[2] < -0.5:
+                print('[Fe/H] < -0.75. Allowing [Al/Fe] to go up to 1.5')
+                bounds.append((-1.0,1.5))
+            else:
+                bounds.append((-1.0,1.0))
+        elif label in ['na_fe']:
+            if input_model_parameters[2] < -0.5:
+                print('[Fe/H] < -0.75. Allowing [Na/Fe] to go up to 1.25')
+                bounds.append((-1.0,1.25))
+            else:
+                bounds.append((-1.0,1.0))
         else:
             bounds.append((-1.0,1.0))
     bounds = np.array(bounds)
@@ -2818,8 +2868,11 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
                 # Not in unreliable synthesis region
                 (~np.any(np.array([((wave_opt >= mask_beginning) & (wave_opt <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0))
             ) |
-            # or is in vital line wavelengths
-            np.any(np.array([((wave_opt >= line_beginning) & (wave_opt <= line_end)) for (line_beginning, line_end) in zip(vital_lines['line_begin'],vital_lines['line_end'])]),axis=0)
+            # or is in vital line wavelengths (unless they are > 1 away!)
+            (
+                (np.abs(data_opt-model_flux_opt) < 1.0) &
+                np.any(np.array([((wave_opt >= line_beginning) & (wave_opt <= line_end)) for (line_beginning, line_end) in zip(vital_lines['line_begin'],vital_lines['line_end'])]),axis=0)
+            )
         )
         
         if sys.argv[1] == '-f':
@@ -2847,8 +2900,11 @@ while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
                 # Not in unreliable synthesis region
                 (~np.any(np.array([((wave_opt >= mask_beginning) & (wave_opt <= mask_end)) for (mask_beginning, mask_end) in zip(masks['mask_begin'],masks['mask_end'])]),axis=0))
             ) |
-            # or is in vital line wavelengths
-            np.any(np.array([((wave_opt >= line_beginning) & (wave_opt <= line_end)) for (line_beginning, line_end) in zip(vital_lines['line_begin'],vital_lines['line_end'])]),axis=0)
+            # or is in vital line wavelengths (unless they are > 1 away!)
+            (
+                (np.abs(data_opt-model_flux_opt) < 1.0) &
+                np.any(np.array([((wave_opt >= line_beginning) & (wave_opt <= line_end)) for (line_beginning, line_end) in zip(vital_lines['line_begin'],vital_lines['line_end'])]),axis=0)
+            )
         )
 
     if sys.argv[1] == '-f':
@@ -3014,7 +3070,7 @@ output.add_column(col)
 for label in ['gaia_edr3_source_id']:
     col = Table.Column(
         name=label,
-        data = [np.int32(spectrum[label])],
+        data = [np.int64(spectrum[label])],
         description=description[label],
         unit=units[label])
     output.add_column(col)
@@ -3145,7 +3201,7 @@ for label in model_interpolation_labels:
             (wave_low_xfe,data_low_xfe,data_sigma2_low_xfe,model_low_xfe) = match_observation_and_model(
                 model_parameters_low_xfe, 
                 model_labels_opt, 
-                spectrum, 
+                spectrum,
                 neural_network_model_opt,
                 True, 
                 False
@@ -3219,5 +3275,5 @@ print('Duration: '+str(np.round(end_time,decimals=1))+' for sobject_id '+str(spe
 # In[ ]:
 
 
-# output
+output
 

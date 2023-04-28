@@ -25,7 +25,8 @@ closest_model |  | Neural network model closest for Teff/logg/[Fe/H] combination
 comp_time | s | Computation time spent on spectrum | >f4 | 
 flux_contr |  | Flux contribution of main source | >f4 | 
 e_flux_contr |  | Uncertainty flux_contr | >f4 | 
-rv_comp_nr |  | Number of peaks in RV cross-correlation function (CCF) | >i8 | 
+fit_global_rv |  | Are spectra coadded (without RV shifts) and then a global RV fitted? | bool | 
+rv_comp_nr |  | Number of peaks in RV cross-correlation function (CCF) | >f4 | 
 rv_comp_1 | km s-1 | Radial velocity of primary source | >f4 | 
 e_rv_comp_1 | km s-1 | Uncertainty of rv_comp_1 | >f4 | 
 rv_comp_1_h |  | Height of rv_comp_1 in CCF | >f4 | 
@@ -39,7 +40,7 @@ e_rv_gaia_dr3 | km s-1 | Uncertainty of rv_gaia_dr3 | >f4 |
 v_bary_eff | km s-1 | Barycentric velocity applied to reduced spectra | >f8 | 
 teff | K | Spectroscopic effective temperature (used for fitting) | >f4 | 
 e_teff | K | Uncertainty teff | >f4 | 
-logg | log(cm.s**-2) | Surface gravity adjusted via parallax information | >f8 | 
+logg | log(cm.s**-2) | Surface gravity adjusted via parallax information | >f4 | 
 e_logg | log(cm.s**-2) | Uncertainty logg_plx | >f4 | 
 fe_h | dex | Abundance of Fe and all other elements not fitted in GALAH (Fe: 1D-NLTE) | >f4 | 
 e_fe_h | dex | Uncertainty fe_h | >f4 | 
@@ -152,6 +153,14 @@ flag_sm_fe | dex | Quality bitmask flag of Sm_fe | >i4 |
 eu_fe | dex | Elemental abundance for [Eu/Fe] | >f4 | 
 e_eu_fe | dex | Uncertainty Eu_fe | >f4 | 
 flag_eu_fe | dex | Quality bitmask flag of Eu_fe | >i4 | 
+mass | solMass | Mass used for calculating logg(plx) | >f4 | 
+age | Gyr | Age estimated when calculating mass | >f4 | 
+bc_ks | mag | Bolometric Correction of Ks, BC(Ks), used for calculating logg(plx) | >f4 | 
+a_ks | mag | Attenuation in Ks-band A(Ks) used for calculating logg(plx) | >f4 | 
+lbol | solLum | Bolometric Luminosity used for calculating logg(plx) | >f4 | 
+r_med | pc | Median Distance used for calculating logg(plx) | >f4 | 
+r_lo | pc | Lower Limit Distance used for calculating logg(plx) | >f4 | 
+r_hi | pc | Higher Limit Distance used for calculating logg(plx) | >f4 | 
 sb2_rv_16 | km s-1 | 16th perc. radial velocity of fit to syn-obs residuals | >f4 | 
 sb2_rv_50 | km s-1 | 50th perc. radial velocity of fit to syn-obs residuals | >f4 | 
 sb2_rv_84 | km s-1 | 84th perc. radial velocity of fit to syn-obs residuals | >f4 | 
@@ -169,28 +178,3 @@ rv_dib5797 | km s-1 | Radial velocity of fit to syn-obs residuals around 5797 DI
 ew_dib6613 | Angstroem | Equivalent Width of fit for 6613 Diffiuse Interstellar Band | >f4 | 
 sigma_dib6613 |  | Sigma auf Gaussian fit for 6613 DIB | >f4 | 
 rv_dib6613 | km s-1 | Radial velocity of fit to syn-obs residuals around 6613 DIB | >f4 | 
-logg_spec | log(cm.s**-2) | Spectroscopic surface gravity (used for fitting) | >f4 | 
-e_logg_spec | log(cm.s**-2) | Uncertainty logg_spec | >f4 | 
-phot_g_mean_mag | mag | Mean Gaia DR3 G-band apparent magnitude | >f4 | 
-phot_bp_mean_mag | mag | Mean Gaia DR3 BP-band apparent magnitude | >f4 | 
-bp_rp | mag | Color of BP-RP bands | >f4 | 
-h_m | mag | 2MASS H-band magnitude | >f4 | 
-h_msigcom | mag | Uncertainty of h_m | >f4 | 
-ks_m | mag | 2MASS Ks-band magnitude | >f4 | 
-ks_msigcom | mag | Uncertainty of ks_m | >f4 | 
-W2mag | mag | AllWISE W2-band magnitude | >f4 | 
-e_W2mag | mag | uncertainty of W2mag | >f4 | 
-ebv | mag | Extinction E(B-V) | >f4 | 
-parallax | mas | Astrometric parallax used for GALAH DR4 | >f4 | 
-e_parallax | mas | Uncertainty of astrometric parallax used for GALAH DR4 | >f4 | 
-parallax_gaia_edr3 | mas | Parallax reported with corrections by Gaia EDR3 | >f4 | 
-e_parallax_gaia_edr3 | mas | Uncertainty of parallax reported with corrections by Gaia EDR3 | >f4 | 
-ruwe_gaia_dr3 |  | RUWE reported by Gaia DR3 | >f4 | 
-r_med | pc | Median Distance used for calculating logg(plx) | >f4 | 
-r_lo | pc | Lower Limit Distance used for calculating logg(plx) | >f4 | 
-r_hi | pc | Higher Limit Distance used for calculating logg(plx) | >f4 | 
-a_ks | mag | Attenuation in Ks-band A(Ks) used for calculating logg(plx) | >f4 | 
-mass | solMass | Mass used for calculating logg(plx) | >f4 | 
-age | Gyr | Age estimated when calculating mass | >f4 | 
-bc_ks | mag | Bolometric Correction of Ks, BC(Ks), used for calculating logg(plx) | >f4 | 
-lbol | solLum | Bolometric Luminosity used for calculating logg(plx) | >f4 | 

@@ -217,18 +217,34 @@ else:
     sobject_id = 150204002101256 # test snr
     sobject_id = 140707003601337 # test grid edges
     sobject_id = 140116004301131 # metal-poor star
-    sobject_id = 140308000101003 # Issue in reduction of CCD3
-    sobject_id = 140608001901001 # Issue in reduction of CCD3
-    sobject_id = 150109001001134 # Kevin's target
-#     sobject_id = 150901002401126 # investigate noding
-    sobject_id = 150109001001213 # RV peaks
-    sobject_id = 140113004701397 # HD 43834 to test CNO fitting for dwarfs
-    sobject_id = 140113002401368 # Testing flag_fe_h by rather decreasing [Fe/H] by -0.25
-    sobject_id = 131220001801341 # NGC~104~/~47~Tuc CHeB
-    sobject_id = 140211001101378 # issue with resolution in 140211001101378
-    sobject_id = 131220001801282 # uncertainties infinity, CCD2 missing bit
-    sobject_id = 140117001501344 # also issues with infinite uncertainties
-    sobject_id = 131216001101028 # not calculated
+#     sobject_id = 140308000101003 # Issue in reduction of CCD3
+#     sobject_id = 140608001901001 # Issue in reduction of CCD3
+#     sobject_id = 150109001001134 # Kevin's target
+# #     sobject_id = 150901002401126 # investigate noding
+#     sobject_id = 150109001001213 # RV peaks
+#     sobject_id = 140113004701397 # HD 43834 to test CNO fitting for dwarfs
+#     sobject_id = 140113002401368 # Testing flag_fe_h by rather decreasing [Fe/H] by -0.25
+#     sobject_id = 131220001801341 # NGC~104~/~47~Tuc CHeB
+#     sobject_id = 140211001101378 # issue with resolution in 140211001101378
+#     sobject_id = 131220001801282 # uncertainties infinity, CCD2 missing bit
+#     sobject_id = 140117001501344 # also issues with infinite uncertainties
+#     sobject_id = 131216001101028 # not calculated
+    sobject_id = 180628004801201 # test interpolation
+    sobject_id = 150830005601380 # test grid edge
+    sobject_id = 171208003601224 # CEMP-s
+    sobject_id = 151230002201224 # CEMP-s
+    sobject_id = 171206004101224 # CEMP-s
+    sobject_id = 170515005101325 # CEMP-s
+    sobject_id = 160519003601381 # CEMP-s
+#     sobject_id = 160524004201351 # test interpolation
+
+    sobject_id = 131216001101002 # first star
+    sobject_id = 220816003101399 # last star
+    sobject_id = 150413002601367 # coolest dwarf
+    
+    sobject_id = 170508004301375 # cool dwarf with wrong starting parameters
+    
+    sobject_id = 131216001601330 # low ca_fe maybe because of CCD3 wavelength. rerun with dr6.1 reduction
 
 #     sobject_id = 210115002201239 # VESTA
     
@@ -270,14 +286,15 @@ output.add_column(col)
 spectrum = dict()
 spectrum['sobject_id'] = sobject_id
 
-spectrum['flag_sp'] = int(0)
-flag_sp_closest_3x3x3_model_not_available = int(1)
-flag_sp_closest_extra6_model_not_available = int(2)
-flag_sp_no_successful_convergence_within_maximum_loops = int(4)
-flag_sp_not_all_ccds_available = int(8)
-flag_sp_negative_fluxes_in_ccds = int(16)
-flag_sp_negative_resolution_profile = int(32)
+spectrum['flag_sp'] = np.int32(0)
+flag_sp_closest_3x3x3_model_not_available = np.int32(1)
+flag_sp_closest_extra6_model_not_available = np.int32(2)
+flag_sp_no_successful_convergence_within_maximum_loops = np.int32(4)
+flag_sp_not_all_ccds_available = np.int32(8)
+flag_sp_negative_fluxes_in_ccds = np.int32(16)
+flag_sp_negative_resolution_profile = np.int32(32)
 
+#init_values_table = Table.read('galah_dr4_initial_parameters_220714_lite.fits')
 init_values_table = Table.read('galah_dr4_initial_parameters_230101_lite.fits')
 sobject_id_initial_index = np.where(init_values_table['sobject_id'] == sobject_id)[0]
 
@@ -359,7 +376,12 @@ print('Enhancing [X/Fe] to '+"{:.2f}".format(alpha_fe)+' based on [Fe/H] for O, 
 
 def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=True):
 
-    fits_file = fits.open(galah_dr4_directory+'observations/'+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+'1.fits')
+    try:
+        fits_file = fits.open(galah_dr4_directory+'observations_6p1/'+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+'1.fits')
+        print('Using dr6.1 spectrum')
+    except:
+        fits_file = fits.open(galah_dr4_directory+'observations/'+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+'1.fits')
+        print('Using dr6.0 spectrum')
     if fits_file[0].header['SLITMASK'] in ['IN','IN      ']:
         spectrum['resolution'] = 'high-res'
         print('Warning: Spectrum is high-resolution!')
@@ -1700,7 +1722,7 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
                 if input_model_parameters[parameter_index] + input_model_parameters[2] + 1.05 > 4.0:
                     print('Extreme value of A(Li) > 4 detected, setting back to 3.26')
                     input_model_parameters[parameter_index] = (3.26 - 1.05) - input_model_parameters[2] 
-            elif input_model_labels[parameter_index] in ['n_fe','o_fe','y_fe','ba_fe','la_fe','ce_fe','nd_fe']:
+            elif input_model_labels[parameter_index] in ['c_fe','n_fe','o_fe','y_fe','ba_fe','la_fe','ce_fe','nd_fe']:
                 if input_model_parameters[parameter_index] < -0.5:
                     print('Extreme value for '+input_model_labels[parameter_index]+' < -0.5 detected, setting back to -0.5')
                     input_model_parameters[parameter_index] = -0.5
@@ -1726,12 +1748,33 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
 
         return(model_flux[input_unmasked])
     
+    bounds=[]
+    for label in input_model_labels:
+        if label == 'teff':
+            bounds.append((3.0,8.0))
+        elif label == 'logg':
+            bounds.append((-0.5,5.5))
+        elif label == 'fe_h':
+            bounds.append((-4.0,1.0))
+        elif label == 'vmic':
+            bounds.append((0.25,4.0))
+        elif label == 'vsini':
+            bounds.append((1.0,40.0))
+        elif label == 'li_fe':
+            bounds.append((-0.5 - input_model_parameters[2] - 1.05, 4.5 - input_model_parameters[2] - 1.05))
+        elif label in ['c_fe','n_fe','o_fe','y_fe','ba_fe','la_fe','ce_fe','nd_fe']:
+            bounds.append((-1.5,2.0))
+        else:
+            bounds.append((-1.0,1.0))
+    bounds = np.array(bounds)
+    
     # The MASTERPIECE: CURVE FIT
     output_model_parameters, output_model_covariances = curve_fit(get_flux_only,input_wave[input_unmasked],
         input_data[input_unmasked],
         p0 = input_model_parameters,
         sigma=np.sqrt(input_sigma[input_unmasked]),
         absolute_sigma=True,
+        bounds = tuple([bounds[:,0],bounds[:,1]]),
         maxfev=10000,
         xtol=1e-4
     )
@@ -1750,33 +1793,34 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
     grid_logg = float(input_model_name[5:9])
     grid_fe_h = float(input_model_name[10:])
     if grid_teff <= 4000:
-        teff_low = (1000*output_model_parameters[input_model_labels == 'teff'][0] - grid_teff) > -100/2. * 1.2
+        teff_low = (1000*output_model_parameters[input_model_labels == 'teff'][0] - grid_teff) > -100/2. * 1.1
     else:
-        teff_low = (1000*output_model_parameters[input_model_labels == 'teff'][0] - grid_teff) > -250/2. * 1.2
+        teff_low = (1000*output_model_parameters[input_model_labels == 'teff'][0] - grid_teff) > -250/2. * 1.1
     if grid_teff <= 3900:
-        teff_high = (1000*output_model_parameters[input_model_labels == 'teff'][0] - grid_teff) < 100/2. * 1.2
+        teff_high = (1000*output_model_parameters[input_model_labels == 'teff'][0] - grid_teff) < 100/2. * 1.1
     else:
-        teff_high = (1000*output_model_parameters[input_model_labels == 'teff'][0] - grid_teff) < 250/2. * 1.2
+        teff_high = (1000*output_model_parameters[input_model_labels == 'teff'][0] - grid_teff) < 250/2. * 1.1
         
-    logg_low = (output_model_parameters[input_model_labels == 'logg'][0] - grid_logg) > -0.5/2. * 1.2
-    logg_high = (output_model_parameters[input_model_labels == 'logg'][0] - grid_logg) < 0.5/2. * 1.2
+    logg_low = (output_model_parameters[input_model_labels == 'logg'][0] - grid_logg) > -0.5/2. * 1.1
+    logg_high = (output_model_parameters[input_model_labels == 'logg'][0] - grid_logg) < 0.5/2. * 1.1
     
-    if grid_fe_h <= 1.00:
-        fe_h_low = (output_model_parameters[input_model_labels == 'fe_h'][0] - grid_fe_h) > -0.5/2. * 1.2
+    if grid_fe_h <= -1.00:
+        fe_h_low = (output_model_parameters[input_model_labels == 'fe_h'][0] - grid_fe_h) > -0.5/2. * 1.1
     else:
-        fe_h_low = (output_model_parameters[input_model_labels == 'fe_h'][0] - grid_fe_h) > -0.25/2. * 1.2
-    if grid_fe_h <= 1.5:
-        fe_h_high = (output_model_parameters[input_model_labels == 'fe_h'][0] - grid_fe_h) < 0.5/2. * 1.2
+        fe_h_low = (output_model_parameters[input_model_labels == 'fe_h'][0] - grid_fe_h) > -0.25/2. * 1.1
+    if grid_fe_h <= -1.5:
+        fe_h_high = (output_model_parameters[input_model_labels == 'fe_h'][0] - grid_fe_h) < 0.5/2. * 1.1
     else:
-        fe_h_high = (output_model_parameters[input_model_labels == 'fe_h'][0] - grid_fe_h) < 0.25/2. * 1.2
+        fe_h_high = (output_model_parameters[input_model_labels == 'fe_h'][0] - grid_fe_h) < 0.25/2. * 1.1
 
-    # If yes: we converged on a model within 10% of grid edges or it's the same as before
+    print('Input vs. new: ',input_model_name,new_output_model_name,' for iteration '+str(iteration)+'; Same within 10%? ',np.all([teff_low,teff_high,logg_low,logg_high,fe_h_low,fe_h_high]))
+
+    # If yes: we converged on a model if:
+    # -> it stays the same after at least 1 iterations (iteration >= 1)
+    # -> it is similar within 10% of grid edges after at least 3 iterations (iteration >= 3)
     if (
-        (
-            np.all([teff_low,teff_high,logg_low,logg_high,fe_h_low,fe_h_high]) |
-            (input_model_name == new_output_model_name) 
-        ) & 
-        (iteration != 0)
+        (np.all([teff_low,teff_high,logg_low,logg_high,fe_h_low,fe_h_high]) & (iteration >= 3)) |
+        ((input_model_name == new_output_model_name) & (iteration >= 0))
     ):
         converged = True
     else:
@@ -2064,7 +2108,7 @@ for label in ['gaia_edr3_source_id']:
 
 col = Table.Column(
     name='flag_sp_fit',
-    data = [int(spectrum['flag_sp'])],
+    data = [np.int32(spectrum['flag_sp'])],
     description=description['flag_sp'],
     unit='')
 output.add_column(col)
@@ -2145,7 +2189,7 @@ for label in model_interpolation_labels:
         output.add_column(col)
         col = Table.Column(
             name='flag_'+label,
-            data = [int(flag_x_fe)],
+            data = [np.int32(flag_x_fe)],
             description='Quality flag for '+description[label],
             unit='')
         output.add_column(col)
@@ -2212,7 +2256,7 @@ for label in model_interpolation_labels:
 
             col = Table.Column(
                 name='flag_'+label,
-                data = [int(flag_x_fe)],
+                data = [np.int32(flag_x_fe)],
                 description='Quality flag for '+description[label],
                 unit='')
             output.add_column(col)
@@ -2236,19 +2280,21 @@ end_time = time.time() - start_time
 
 col = Table.Column(
     name='comp_time',
-    data = [float(end_time)],
+    data = [np.float32(end_time)],
     description='Computational time used on this sobject_id',
     unit='s')
 output.add_column(col)
 
+col = Table.Column(
+    name='opt_loop',
+    data = [np.int32(spectrum['opt_loop'])],
+    description='Nr of optimisation loops',
+    unit='')
+output.add_column(col)
+
+
 # And save!
 output.write(file_directory+str(spectrum['sobject_id'])+'_single_fit_results.fits',overwrite=True)
 
-print('Duration: '+str(np.round(end_time,decimals=1))+' for sobject_id '+str(spectrum['sobject_id']))
-
-
-# In[ ]:
-
-
-
+print('Duration: '+str(np.round(end_time,decimals=1))+' for sobject_id '+str(spectrum['sobject_id'])+' within '+str(spectrum['opt_loop'])+' loops')
 
