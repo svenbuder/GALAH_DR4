@@ -68,12 +68,12 @@ if sys.argv[1] != '-f':
         use_setup = 'plxcom'
 else:
 
-    date = '131220' # NGC_104_47Tuc
+#     date = '131220' # NGC_104_47Tuc
 #     date = '140111' # NGC_104_47Tuc
 #     date = '140114' # NGC_288
 #     date = '140115' # NGC_1851
 #     date = '140303' # NGC_5139_oCen
-#     date = '140305' # NGC_5139_oCen
+    date = '140309' # NGC_5139_oCen
 #     date = '140307' # NGC_5139_oCen
 #     date = '140314' # NGC_5139_oCen
 #     date = '140713' # NGC_6362
@@ -166,6 +166,9 @@ masks = Table.read('../spectrum_analysis/spectrum_masks/solar_spectrum_mask.fits
 a_file = open("final_flag_sp_dictionary.pkl", "rb")
 flag_sp_dictionary = pickle.load(a_file)
 a_file.close()
+
+if (flag_sp_dictionary['is_sb1'][0] != 4) | (flag_sp_dictionary['no_results'][0] != 16384):
+    raise ValueError('Using inconsistent Flag Sp Dictionary!')
 
 
 # In[ ]:
@@ -465,7 +468,7 @@ def create_final_dr40_table(setup):
     # Post processed analysis
     for label in [
         'sb2_rv_16','sb2_rv_50','sb2_rv_84',
-        'ew_h_beta','ew_h_alpha',
+        'ew_h_beta','ew_h_alpha','res_h_beta','res_h_alpha',
         'ew_k_is', 'sigma_k_is', 'rv_k_is'
         ]:
         empty_final_dr40_table[label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
@@ -699,8 +702,8 @@ def assess_emission(spectra, debug=False):
     """
 
     emission_indicators = dict()
-    emission_indicators['ew_h_beta'] = 4861.3230
-    emission_indicators['ew_h_alpha'] = 6562.7970   
+    emission_indicators['h_beta'] = 4861.3230
+    emission_indicators['h_alpha'] = 6562.7970   
     
     emission_info = dict()
     
@@ -714,25 +717,29 @@ def assess_emission(spectra, debug=False):
         line = emission_indicators[line_name]
         
         # Let's first test the criterium if the cores of the Balmer lines are in absorption
-        line_core = in_wavelength_bin = np.abs(spectra['wave'] - line) < 0.5
+        line_core = np.abs(spectra['wave'] - line) < 0.5
+
         # now test if the observed flux of the line core is above the continuum flux of 1:
         if np.median(spectra['sob'][line_core]) > 1:
             any_indicator_in_emission = 1
             wavelength_window = 5.0
         else:
-            if line_name == 'ew_h_alpha':
+            if line_name == 'h_alpha':
                 wavelength_window = 1.25
-            if line_name == 'ew_h_beta':
+            if line_name == 'h_beta':
                 wavelength_window = 0.75
 
         in_wavelength_bin = np.abs(spectra['wave'] - line) < wavelength_window
 
         equivalent_width = np.trapz(spectra['smod'][in_wavelength_bin] - spectra['sob'][in_wavelength_bin],x=spectra['wave'][in_wavelength_bin])
-        emission_info[line_name] = np.float32(equivalent_width)
+        equivalent_width_residual = np.trapz(1 - spectra['sob'][in_wavelength_bin],x=spectra['wave'][in_wavelength_bin])
+
+        emission_info['ew_'+line_name] = np.float32(equivalent_width)
+        emission_info['res_'+line_name] = np.float32(equivalent_width_residual)
 
         if debug:
             ax = gs[index]
-            ax.set_title(line_name)
+            ax.set_title(line_name+' '+"{:.2f}".format(equivalent_width)+' '+"{:.2f}".format(equivalent_width_residual))
             ax.plot(
                 spectra['wave'][in_wavelength_bin],
                 spectra['sob'][in_wavelength_bin],
@@ -924,62 +931,15 @@ for (element, zeropoint) in zip(elements, zeropoints):
 # In[ ]:
 
 
-# galah_zeropoints = Table()
-# galah_zeropoints['teff']  = [np.float32(5770.6)]
-# galah_zeropoints['logg']  = [np.float32(4.339)]
-# galah_zeropoints['A_Fe']  = [np.float32(7.45-0.070)]
-# galah_zeropoints['vmic']  = [np.float32(1.07)]
-# galah_zeropoints['vsini'] = [np.float32(5.7)]
+# # Parameter Biases
 
-# galah_zeropoints['A_Li'] = [np.float32(1.05+0.250)] # +0.543 VESTA, GAS07: 1.05, DR3: 1.05
-# galah_zeropoints['A_C']  = [np.float32(8.39+0.035)] # VESTA, GAS07: 8.39, DR3: 8.45
-# galah_zeropoints['A_N']  = [np.float32(7.78+0.150)]  # VESTA: 7.78+0.617, GAS07: 7.78, DR3:
-# galah_zeropoints['A_O']  = [np.float32(8.66+0.070)] # -0.124 VESTA, GAS07: 8.66, DR3: 8.77
-# galah_zeropoints['A_Na'] = [np.float32(6.17+0.204)] # VESTA, GAS07: 6.17, DR3: 6.06
-# galah_zeropoints['A_Mg'] = [np.float32(7.53+0.069)] # +0.164 VESTA, GAS07: 7.53, DR3: 7.60
-# galah_zeropoints['A_Al'] = [np.float32(6.37+0.193)] # +0.205 VESTA, GAS07: 6.37, DR3: 6.41
-# galah_zeropoints['A_Si'] = [np.float32(7.51+0.002)] # VESTA, GAS07: 7.51, DR3: 7.47
-# galah_zeropoints['A_K']  = [np.float32(5.08-0.034)] # VESTA, GAS07: 5.08, DR3: 5.07
-# galah_zeropoints['A_Ca'] = [np.float32(6.31+0.035)] # VESTA, GAS07: 6.31, DR3: 6.18
-# galah_zeropoints['A_Sc'] = [np.float32(3.17-0.016)] # VESTA, GAS07: 3.17, DR3:
-# galah_zeropoints['A_Ti'] = [np.float32(4.90+0.010)] # VESTA, GAS07: 4.90, DR3:
-# galah_zeropoints['A_V']  = [np.float32(4.00-0.116)] # VESTA, GAS07: 4.00, DR3:
-# galah_zeropoints['A_Cr'] = [np.float32(5.64+0.014)] # VESTA, GAS07: 5.64, DR3: 0.132
-# galah_zeropoints['A_Mn'] = [np.float32(5.39+0.097)] # VESTA, GAS07: 5.39, DR3: 0.064
-# galah_zeropoints['A_Co'] = [np.float32(4.92-0.095)] # VESTA, GAS07: 4.92, DR3: 0.072
-# galah_zeropoints['A_Ni'] = [np.float32(6.23-0.005)] # VESTA, GAS07: 6.23, DR3: 6.23
-# galah_zeropoints['A_Cu'] = [np.float32(4.21-0.154)] # VESTA, GAS07: 4.21, DR3: 4.06
-# galah_zeropoints['A_Zn'] = [np.float32(4.60-0.050)] # VESTA, GAS07: 4.60, DR3:
-# galah_zeropoints['A_Rb'] = [np.float32(2.60)] # GAS07: 2.60, DR3: 2.60
-# galah_zeropoints['A_Sr'] = [np.float32(2.92)] # GAS07: 2.92, DR3: 3.30
-# galah_zeropoints['A_Y']  = [np.float32(2.21-0.115)] # VESTA, GAS07: 2.21, DR3: 2.14
-# galah_zeropoints['A_Zr'] = [np.float32(2.58-0.297)] # VESTA, GAS07: 2.58, DR3:
-# galah_zeropoints['A_Mo'] = [np.float32(1.92)] # GAS07: 1.92, DR3:
-# galah_zeropoints['A_Ru'] = [np.float32(1.84)] # GAS07: 1.84, DR3: 2.31
-# galah_zeropoints['A_Ba'] = [np.float32(2.17-0.067)] # VESTA, GAS07: 2.17, DR3: 2.17
-# galah_zeropoints['A_La'] = [np.float32(1.13)] # GAS07: 1.13, DR3:
-# galah_zeropoints['A_Ce'] = [np.float32(1.70)] # GAS07: 1.70, DR3: 2.14
-# galah_zeropoints['A_Nd'] = [np.float32(1.45+0.137)] # VESTA, GAS07: 1.45, DR3:
-# galah_zeropoints['A_Sm'] = [np.float32(1.00+0.130)] # GAS07: 1.00, DR3:
-# galah_zeropoints['A_Eu'] = [np.float32(0.52+0.40)] # GAS07: 0.52, DR3: 0.57
-# galah_zeropoints
-
-# galah_zeropoints.write('galah_dr4_zeropoints.fits',overwrite=True)
-
-galah_zeropoints = Table.read('galah_dr4_zeropoints.fits')
-
-
-# In[ ]:
-
-
-# Parameter Biases
+# We will not apply offsets at this stage!
 parameter_biases = dict()
-
-parameter_biases['teff']  = 5772.0 - galah_zeropoints['teff'][0]
-parameter_biases['logg']  = 4.438 - galah_zeropoints['logg'][0] # DR3: offset without non-spectroscopic information
-parameter_biases['fe_h']  = marcs2014_a_x_sun['Fe'] - galah_zeropoints['A_Fe'][0]  # -0.017 VESTA, GAS07: 7.45, DR3: 7.38
-parameter_biases['vmic']  = 0.
-parameter_biases['vsini'] = 0.
+parameter_biases['teff']  = 0.0 #
+parameter_biases['logg']  = 0.0 # 
+parameter_biases['fe_h']  = 0.0 # marcs2014_a_x_sun['Fe'] - galah_zeropoints['A_Fe'][0]
+parameter_biases['vmic']  = 0.0
+parameter_biases['vsini'] = 0.0
 for element in [
     'Li','C','N','O',
     'Na','Mg','Al','Si',
@@ -987,20 +947,15 @@ for element in [
     'Rb','Sr','Y','Zr','Mo','Ru',
     'Ba','La','Ce','Nd','Sm','Eu'
 ]:
-    parameter_biases[element.lower()+'_fe'] = marcs2014_a_x_sun[element] - galah_zeropoints['A_'+element][0]
-
-
-# In[ ]:
-
-
-parameter_biases
+    parameter_biases[element.lower()+'_fe'] = 0.0 #marcs2014_a_x_sun[element] - galah_zeropoints['A_'+element][0]
 
 
 # In[ ]:
 
 
 list_of_unreliable_sobject_ids = [
-    140209004901160, # SNR negative!
+    140209004901160, 140309002101384, # SNR negative!
+    #131216001601275, 140111002101094, 140111002101186, 140117002101010, 140118002501389 # gamma Dor type stars
 ]
 
 
@@ -1061,21 +1016,26 @@ def process_date(parameter_biases, setup = 'single', debug = True):
             
             if setup in ['single','coadds','plxcom']:
 
-                if ((results['teff'] > 8000) | (results['teff'] < 3000)):
+                if (results['teff'] > 8000):
                     final_table['flag_sp'][dr60_index] += flag_sp_dictionary['teff_warn'][0]
-                    has_results = False
+                    results['teff'] = 8000.
+                if (results['teff'] < 3000):
+                    results['teff'] = 3000.
+                    final_table['flag_sp'][dr60_index] += flag_sp_dictionary['teff_warn'][0]
 
-                if (
-                    (results['logg'] < 0.0) | 
-                    (results['logg'] > 5.5) | 
-                    ((results['logg'] > 5.0) & (results['teff'] > 4200))
-                ):
+                if (results['logg'] < -0.5):
                     final_table['flag_sp'][dr60_index] += flag_sp_dictionary['logg_warn'][0]
-                    has_results = False
+                    results['logg'] = -0.5
+                if (results['logg'] > 5.5):
+                    final_table['flag_sp'][dr60_index] += flag_sp_dictionary['logg_warn'][0]
+                    results['logg'] = 5.5
+                if ((results['logg'] > 5.0) & (results['teff'] > 4200)):
+                    final_table['flag_sp'][dr60_index] += flag_sp_dictionary['logg_warn'][0]
+                    results['logg'] = 5.0
 
             if (results['fe_h'] > 1.0):
                 final_table['flag_sp'][dr60_index] += flag_sp_dictionary['fe_h_warn'][0]
-                has_results = False
+                results['fe_h'] = 1.0
 
             if (results['fe_h'] < -3.0):
                 if final_table['sobject_id'][dr60_index] in [140118002501329,140310002701332,140310004301182]:
@@ -1268,7 +1228,7 @@ def process_date(parameter_biases, setup = 'single', debug = True):
             try:
                 emission_information = assess_emission(spectra, debug=debug)
                 for key in emission_information.keys():
-                    if key[:3] == 'ew_':
+                    if key[:3] in ['ew_','res']:
                         final_table[key][dr60_index] = emission_information[key]
             except:
                 pass
@@ -1321,10 +1281,15 @@ if use_setup in ['plxcom']:
 # In[ ]:
 
 
-s = plt.scatter(
-    final_table_plxcom['teff'],
-    final_table_plxcom['logg'],
-    c = final_table_plxcom['fe_h']
-)
-plt.colorbar(s)
+# final_table_plxcom[final_table_plxcom['sobject_id']==140309003101001]
+
+
+# In[ ]:
+
+
+# sobject_id = 220518002401217
+# setup = 'plxcom'
+
+# results = Table.read('../analysis_products/'+str(sobject_id)[:6]+'/'+str(sobject_id)+'/'+str(sobject_id)+'_'+setup+'_fit_results.fits')
+# results
 

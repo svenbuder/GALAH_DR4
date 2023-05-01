@@ -80,10 +80,10 @@ if sys.argv[1] != '-f':
     else:
         use_setup = 'single'
 else:
-#     date = '131216'
+    date = '140112'
 #     date = '131217'
 #     date = '131220'
-    date = '140117'
+#     date = '140117'
 #     date = '140211'
 #     date = '140304'
 #     date = '140305' # OmegaCen
@@ -93,9 +93,9 @@ else:
 #     date = '140316' # OmegaCen
 #     date = '140808'
 #     date = '150901' # M30
-    date = '170510'
+#     date = '170510'
 #     date = '210115'
-    date = '220808'
+#     date = '220808'
 
     use_setup = 'single'
 
@@ -124,19 +124,20 @@ masks = Table.read('../spectrum_analysis/spectrum_masks/solar_spectrum_mask.fits
 # flag_sp_dictionary['emission']       = [1,'Emission in Halpha/Hbeta detected']
 # flag_sp_dictionary['ccd_missing']    = [2,'Not all 4 CCDs available']
 
-# flag_sp_dictionary['is_sb2']         = [4,'Double line splitting detected (SB2)']
-# flag_sp_dictionary['chi2_3sigma']    = [8,'chi square unusually low/high by 3 sigma']
-# flag_sp_dictionary['vsini_warn']     = [16,'Broadening (vsini) warning']
-# flag_sp_dictionary['vmic_warn']      = [32,'Microturbulence (vmic) warning']
+# flag_sp_dictionary['is_sb1']         = [4,'Spectroscopic Binary SB1 (RV changes beyond 2sigma)']
+# flag_sp_dictionary['is_sb2']         = [8,'Spectroscopic Binary SB2 (Double line splitting)']
+# flag_sp_dictionary['chi2_3sigma']    = [16,'Chi2 unusually low/high by 3 sigma']
+# flag_sp_dictionary['vsini_warn']     = [32,'Broadening (vsini) warning']
+# flag_sp_dictionary['vmic_warn']      = [64,'Microturbulence (vmic) warning']
 
-# flag_sp_dictionary['sb_triple_warn'] = [64,'Double line splitting detected (SB2)']
-# flag_sp_dictionary['teff_warn']      = [128,'Temperature (teff) warning']
-# flag_sp_dictionary['logg_warn']      = [256,'Gravity (logg) warning']
-# flag_sp_dictionary['fe_h_warn']      = [512,'[Fe/H] (fe_h) warning']
-# flag_sp_dictionary['snr_warn']       = [1024,'Signal-to-noise indicates spectra not reliable']
-# flag_sp_dictionary['not_converged']  = [2048,'Not converged within 4 iterations']
-# flag_sp_dictionary['no_model']       = [4096,'Extrapolating spectrum model']
-# flag_sp_dictionary['no_results']     = [8192,'No spectroscopic analysis results available']
+# flag_sp_dictionary['sb_triple_warn'] = [128,'Double line splitting detected (SB2)']
+# flag_sp_dictionary['teff_warn']      = [256,'Temperature (teff) warning']
+# flag_sp_dictionary['logg_warn']      = [512,'Gravity (logg) warning']
+# flag_sp_dictionary['fe_h_warn']      = [1024,'[Fe/H] (fe_h) warning']
+# flag_sp_dictionary['snr_warn']       = [2048,'Signal-to-noise indicates spectra not reliable']
+# flag_sp_dictionary['not_converged']  = [4096,'Not converged within 4 iterations']
+# flag_sp_dictionary['no_model']       = [8192,'Extrapolating spectrum model']
+# flag_sp_dictionary['no_results']     = [16384,'No spectroscopic analysis results available']
 
 # a_file = open("final_flag_sp_dictionary.pkl", "wb")
 # pickle.dump(flag_sp_dictionary,a_file)
@@ -145,6 +146,9 @@ masks = Table.read('../spectrum_analysis/spectrum_masks/solar_spectrum_mask.fits
 a_file = open("final_flag_sp_dictionary.pkl", "rb")
 flag_sp_dictionary = pickle.load(a_file)
 a_file.close()
+
+if (flag_sp_dictionary['is_sb1'][0] != 4) | (flag_sp_dictionary['no_results'][0] != 16384):
+    raise ValueError('Using inconsistent Flag Sp Dictionary!')
 
 
 # In[ ]:
@@ -431,7 +435,7 @@ def create_final_dr40_table(setup):
     # Post processed analysis
     for label in [
         'sb2_rv_16','sb2_rv_50','sb2_rv_84',
-        'ew_h_beta','ew_h_alpha',
+        'ew_h_beta','ew_h_alpha','res_h_beta','res_h_alpha',
         'ew_k_is', 'sigma_k_is', 'rv_k_is'
         ]:
         empty_final_dr40_table[label] = np.zeros(table_length, dtype=np.float32); empty_final_dr40_table[label][:] = np.NaN
@@ -665,8 +669,8 @@ def assess_emission(spectra, debug=False):
     """
 
     emission_indicators = dict()
-    emission_indicators['ew_h_beta'] = 4861.3230
-    emission_indicators['ew_h_alpha'] = 6562.7970   
+    emission_indicators['h_beta'] = 4861.3230
+    emission_indicators['h_alpha'] = 6562.7970   
     
     emission_info = dict()
     
@@ -680,25 +684,29 @@ def assess_emission(spectra, debug=False):
         line = emission_indicators[line_name]
         
         # Let's first test the criterium if the cores of the Balmer lines are in absorption
-        line_core = in_wavelength_bin = np.abs(spectra['wave'] - line) < 0.5
+        line_core = np.abs(spectra['wave'] - line) < 0.5
+
         # now test if the observed flux of the line core is above the continuum flux of 1:
         if np.median(spectra['sob'][line_core]) > 1:
             any_indicator_in_emission = 1
             wavelength_window = 5.0
         else:
-            if line_name == 'ew_h_alpha':
+            if line_name == 'h_alpha':
                 wavelength_window = 1.25
-            if line_name == 'ew_h_beta':
+            if line_name == 'h_beta':
                 wavelength_window = 0.75
 
         in_wavelength_bin = np.abs(spectra['wave'] - line) < wavelength_window
 
         equivalent_width = np.trapz(spectra['smod'][in_wavelength_bin] - spectra['sob'][in_wavelength_bin],x=spectra['wave'][in_wavelength_bin])
-        emission_info[line_name] = np.float32(equivalent_width)
+        equivalent_width_residual = np.trapz(1 - spectra['sob'][in_wavelength_bin],x=spectra['wave'][in_wavelength_bin])
+
+        emission_info['ew_'+line_name] = np.float32(equivalent_width)
+        emission_info['res_'+line_name] = np.float32(equivalent_width_residual)
 
         if debug:
             ax = gs[index]
-            ax.set_title(line_name)
+            ax.set_title(line_name+' '+"{:.2f}".format(equivalent_width)+' '+"{:.2f}".format(equivalent_width_residual))
             ax.plot(
                 spectra['wave'][in_wavelength_bin],
                 spectra['sob'][in_wavelength_bin],
@@ -930,9 +938,9 @@ for (element, zeropoint) in zip(elements, zeropoints):
 # galah_zeropoints['A_Eu'] = [np.float32(0.52+0.40)] # GAS07: 0.52, DR3: 0.57
 # galah_zeropoints
 
-# galah_zeropoints.write('galah_dr4_zeropoints.fits',overwrite=True)
+# galah_zeropoints.write('galah_dr4_zeropoints_allspec.fits',overwrite=True)
 
-galah_zeropoints = Table.read('galah_dr4_zeropoints.fits')
+galah_zeropoints = Table.read('galah_dr4_zeropoints_allspec.fits')
 
 
 # In[ ]:
@@ -959,7 +967,7 @@ for element in [
 # In[ ]:
 
 
-parameter_biases
+# parameter_biases
 
 
 # In[ ]:
@@ -1030,21 +1038,26 @@ def process_date(parameter_biases, setup = 'single', debug = True):
             
             if setup in ['single','coadds']:
 
-                if ((results['teff'] > 8000) | (results['teff'] < 3000)):
+                if (results['teff'] > 8000):
                     final_table['flag_sp'][dr60_index] += flag_sp_dictionary['teff_warn'][0]
-                    has_results = False
+                    results['teff'] = 8000.
+                if (results['teff'] < 3000):
+                    results['teff'] = 3000.
+                    final_table['flag_sp'][dr60_index] += flag_sp_dictionary['teff_warn'][0]
 
-                if (
-                    (results['logg'] < 0.0) | 
-                    (results['logg'] > 5.5) | 
-                    ((results['logg'] > 5.0) & (results['teff'] > 4200))
-                ):
+                if (results['logg'] < -0.5):
                     final_table['flag_sp'][dr60_index] += flag_sp_dictionary['logg_warn'][0]
-                    has_results = False
+                    results['logg'] = -0.5
+                if (results['logg'] > 5.5):
+                    final_table['flag_sp'][dr60_index] += flag_sp_dictionary['logg_warn'][0]
+                    results['logg'] = 5.5
+                if ((results['logg'] > 5.0) & (results['teff'] > 4200)):
+                    final_table['flag_sp'][dr60_index] += flag_sp_dictionary['logg_warn'][0]
+                    results['logg'] = 5.0
 
             if (results['fe_h'] > 1.0):
                 final_table['flag_sp'][dr60_index] += flag_sp_dictionary['fe_h_warn'][0]
-                has_results = False
+                results['fe_h'] = 1.0
 
             if (results['fe_h'] < -3.0):
                 if final_table['sobject_id'][dr60_index] in [140118002501329,140310002701332,140310004301182]:
@@ -1223,7 +1236,7 @@ def process_date(parameter_biases, setup = 'single', debug = True):
             try:
                 emission_information = assess_emission(spectra, debug=debug)
                 for key in emission_information.keys():
-                    if key[:3] == 'ew_':
+                    if key[:3] in ['ew_','res']:
                         final_table[key][dr60_index] = emission_information[key]
             except:
                 pass
