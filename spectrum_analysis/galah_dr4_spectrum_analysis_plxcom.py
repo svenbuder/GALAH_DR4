@@ -165,7 +165,7 @@ else:
 #     tmass_id = 'gam Sge' # gam Sge
 #     tmass_id = '04060261-6430120' # Random star with Teff/logg/fe_h 6000 3.5 -0.25
 
-    tmass_id = '12011847-4014030'
+    tmass_id = '09585325-4054079'
 
 
 # In[ ]:
@@ -1115,7 +1115,7 @@ for repeat_index, repeat_sobject_id in enumerate(spectrum['sobject_ids'][1:]):
     for ccd in [1,2,3,4]:
 
         # If the first spectrum already had a useful CCD 
-        if ccd in single_spectrum['available_ccds']:
+        if ccd in spectrum['available_ccds']:
             wave_observed_next = single_spectrum['crval_ccd'+str(ccd)] + single_spectrum['cdelt_ccd'+str(ccd)] * np.arange(len(single_spectrum['counts_ccd'+str(ccd)]))
             if spectrum['fit_global_rv'] == True:
                 wave_shifted_next = wave_observed_next
