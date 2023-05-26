@@ -165,7 +165,7 @@ else:
 #     tmass_id = 'gam Sge' # gam Sge
 #     tmass_id = '04060261-6430120' # Random star with Teff/logg/fe_h 6000 3.5 -0.25
 
-    tmass_id = '09585325-4054079'
+    tmass_id = '10471495-5351140'
 
 
 # In[ ]:
@@ -961,6 +961,10 @@ def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=
 
                 if len(spectrum['counts_ccd'+str(ccd)][below_0])/len(spectrum['counts_ccd'+str(ccd)]) > 0.05:
                     print('More than 5% of counts <= 0 for CCD'+str(ccd)+' or below SNR=1. Neglecting this CCD!')
+                    
+                elif len(counts_relative_uncertainty[counts_relative_uncertainty > 0])/len(counts_relative_uncertainty) < 0.95:
+                    print('More than 5% of the count uncertainties are negative. Neglecting CCD'+str(ccd))
+
                 elif len(bad_counts_unc) > 0:
                     if sys.argv[1] == '-f': print('Relative counts uncertainties <= 0 detected for '+str(len(bad_counts_unc))+' pixels in CCD'+str(ccd)+', setting to median flux with SNR 1')
                     counts_relative_uncertainty[bad_counts_unc] = 1.0
@@ -1293,6 +1297,8 @@ def load_dr3_lines(mode_dr3_path = './spectrum_masks/important_lines'):
                 important_lines.append([float(wave[each_index]), line[each_index], line[each_index]])
             else:
                 important_lines.append([float(wave[each_index]), line[each_index][:-4], line[each_index]])
+        
+    important_lines.sort()
         
     return(important_lines,important_molecules)
 
