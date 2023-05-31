@@ -32,14 +32,30 @@ try:
     sobject_id = int(sys.argv[1])
     try:
         if int(sys.argv[2]) == 0:
-            save_fig = False
+            rv_shifting = False
         if sys.argv[2] == 'False':
+            rv_shifting = False
+    except:
+        rv_shifting = True
+    try:
+        if int(sys.argv[3]) == 0:
+            save_fig = False
+        if sys.argv[3] == 'False':
             save_fig = False
     except:
         save_fig = True
+    try:
+        if int(sys.argv[3]) == 0:
+            plot_lines = False
+        if sys.argv[3] == 'False':
+            plot_lines = False
+    except:
+        plot_lines = True
 except:
-    sobject_id = 140305003201249
+    sobject_id = 220808002701394 # 140209002701031 # 140111002101186 # 140111002101094 # 131216001601275 # 140117002101010
+    rv_shifting = False
     save_fig = True
+    plot_lines = False
 
 galah_dr4_directory = os.path.abspath(os.getcwd()+'/../')+'/'
 
@@ -50,10 +66,27 @@ print('Files will be read in relative to '+galah_dr4_directory)
 print('\nTo prepare for cases of missing line-spread functions (LSF),')
 print('we will also need to read in the initial values table to find the next-best LSF.')
 print('Assuming galah_dr4_initial_parameters_220714_lite.fits to be at spectrum_analysis/')
-init_values_table = Table.read(galah_dr4_directory+'spectrum_analysis/galah_dr4_initial_parameters_220714_lite.fits')
+
+init_values_table = Table.read('../spectrum_analysis/galah_dr4_initial_parameters_230101_lite.fits')
 sobject_id_initial_index = np.where(init_values_table['sobject_id'] == sobject_id)[0]
 if len(sobject_id_initial_index) == 0:
-    print('\nNo entry in initial catalogue found!')
+    print('\nNo entry in initial catalogue found! Populating placeholders')
+    values_table = Table()
+    for key in init_values_table.keys():
+        if key == 'sobject_id':
+            values_table[key] = [sobject_id]
+        elif type(init_values_table[key][0]) == str:
+            values_table[key] = ['None']
+        elif type(init_values_table[key][0]) in [np.int64,np.int32,np.int16,int]:
+            values_table[key] = -1
+        elif type(init_values_table[key][0]) in [np.float64,np.float32,float]:
+            values_table[key] = -1
+        elif key == 'res':
+            pass
+        else:
+            print(key)
+    sobject_id_initial_index = 0
+    init_values_table = values_table
 else:
     if len(sobject_id_initial_index) > 1:
         print('\nMultiple entries in initial catalogue found!')
@@ -333,7 +366,10 @@ def plot_reduced_spectrum(wave_not_shifted,flux,flux_uncertainty,rv_value,text_l
     except:
         flux_array_indices = 1
         
-    wave_rv_shifted = rv_shift(rv_value, wave_not_shifted)
+    if rv_shifting:
+        wave_rv_shifted = rv_shift(rv_value, wave_not_shifted)
+    else:
+        wave_rv_shifted = wave_not_shifted
 
     # Let's loop over the subplots
     for subplot in range(nr_subplots):
@@ -380,22 +416,23 @@ def plot_reduced_spectrum(wave_not_shifted,flux,flux_uncertainty,rv_value,text_l
         ax.set_ylim(ylim)
 
         each_index = 0 
-        for each_element in important_lines:
-            if (each_element[0] > subplot_wavelengths[subplot,0]) & (each_element[0] < subplot_wavelengths[subplot,1]):
+        if plot_lines:
+            for each_element in important_lines:
+                if (each_element[0] > subplot_wavelengths[subplot,0]) & (each_element[0] < subplot_wavelengths[subplot,1]):
 
-                offset = -0.05+0.1*(each_index%3)
-                each_index+=1
-                ax.axvline(each_element[0],lw=0.2,ls='dashed',c='r')
-                if each_element[1] in ['Li','C','O']:
-                    ax.text(each_element[0],ylim[0]+offset*(ylim[1]-ylim[0]),each_element[1],fontsize=10,ha='center',color='pink')
-                elif each_element[1] in ['Mg','Si','Ca','Ti','Ti2']:
-                    ax.text(each_element[0],ylim[0]+offset*(ylim[1]-ylim[0]),each_element[1],fontsize=10,ha='center',color='b')
-                elif each_element[1] in ['Na','Al','K']:
-                    ax.text(each_element[0],ylim[0]+offset*(ylim[1]-ylim[0]),each_element[1],fontsize=10,ha='center',color='orange')
-                elif each_element[1] in ['Sc','V', 'Cr','Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn']:
-                    ax.text(each_element[0],ylim[0]+offset*(ylim[1]-ylim[0]),each_element[1],fontsize=10,ha='center',color='brown')
-                elif each_element[1] in ['Rb', 'Sr', 'Y', 'Zr', 'Ba', 'La', 'Ce','Mo','Ru', 'Nd', 'Sm','Eu']:
-                    ax.text(each_element[0],ylim[0]+offset*(ylim[1]-ylim[0]),each_element[1],fontsize=10,ha='center',color='purple')
+                    offset = -0.05+0.1*(each_index%3)
+                    each_index+=1
+                    ax.axvline(each_element[0],lw=0.2,ls='dashed',c='r')
+                    if each_element[1] in ['Li','C','O']:
+                        ax.text(each_element[0],ylim[0]+offset*(ylim[1]-ylim[0]),each_element[1],fontsize=10,ha='center',color='pink')
+                    elif each_element[1] in ['Mg','Si','Ca','Ti','Ti2']:
+                        ax.text(each_element[0],ylim[0]+offset*(ylim[1]-ylim[0]),each_element[1],fontsize=10,ha='center',color='b')
+                    elif each_element[1] in ['Na','Al','K']:
+                        ax.text(each_element[0],ylim[0]+offset*(ylim[1]-ylim[0]),each_element[1],fontsize=10,ha='center',color='orange')
+                    elif each_element[1] in ['Sc','V', 'Cr','Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn']:
+                        ax.text(each_element[0],ylim[0]+offset*(ylim[1]-ylim[0]),each_element[1],fontsize=10,ha='center',color='brown')
+                    elif each_element[1] in ['Rb', 'Sr', 'Y', 'Zr', 'Ba', 'La', 'Ce','Mo','Ru', 'Nd', 'Sm','Eu']:
+                        ax.text(each_element[0],ylim[0]+offset*(ylim[1]-ylim[0]),each_element[1],fontsize=10,ha='center',color='purple')
 
         if subplot == 0:
             color = 'k'
@@ -454,7 +491,10 @@ info_line_1 = str(sobject_id)+' red_flag: '+str(int(init_values_table['reduction
 
 info_line_2 = 'Teff='+str(int(init_values_table['teff'][sobject_id_initial_index]))+'K, '+     'logg='+str(np.round(init_values_table['logg'][sobject_id_initial_index],decimals=2))+', '+     '[Fe/H]='+str(np.round(init_values_table['fe_h'][sobject_id_initial_index],decimals=2))+', '+     'vmic='+str(np.round(init_values_table['vmic'][sobject_id_initial_index],decimals=2))+'km/s, '+     'vsini='+str(np.round(init_values_table['vsini'][sobject_id_initial_index],decimals=1))+'km/s'
 
-info_line_3 = 'Starting RV: '+str(np.round(init_values_table['vrad'][sobject_id_initial_index],decimals=2))+'km/s'
+if not rv_shifting:
+    info_line_3 = 'Used RV: 0 km/s'
+else:
+    info_line_3 = 'Used RV: '+str(np.round(init_values_table['vrad'][sobject_id_initial_index],decimals=2))+'km/s'
 info_line_3 = info_line_3+', Red Pipe. = '
 if np.isfinite(init_values_table['vrad_red'][sobject_id_initial_index]):
     info_line_3 = info_line_3+"{:.2f}".format(init_values_table['vrad_red'][sobject_id_initial_index])
@@ -482,7 +522,7 @@ fig = plot_reduced_spectrum(
 if save_fig:
     file_directory = galah_dr4_directory+'/analysis_products/'+str(sobject_id)[:6]+'/'+str(sobject_id)+'/'
     Path(file_directory).mkdir(parents=True, exist_ok=True)
-    fig.savefig(file_directory+str(spectrum['sobject_id'])+'_single_fit_reduction_inspect.pdf',bbox_inches='tight')
+    fig.savefig(file_directory+str(spectrum['sobject_id'])+'_single_fit_reduction_inspect.png',dpi=200,bbox_inches='tight')
 if sys.argv[1] == '-f':
     plt.show()
 plt.close()
