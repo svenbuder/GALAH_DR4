@@ -164,8 +164,10 @@ else:
 #     tmass_id = '17440870-5150027' # mu Ara
 #     tmass_id = 'gam Sge' # gam Sge
 #     tmass_id = '04060261-6430120' # Random star with Teff/logg/fe_h 6000 3.5 -0.25
+#     tmass_id = '06152138-6015277' # star without parallax
+    tmass_id = '13321184-7706583' # issue with missing spectrum
 
-    tmass_id = '10471495-5351140'
+    tmass_id = '13574939-4956415'
 
 
 # In[ ]:
@@ -299,6 +301,10 @@ if len(extra_info_match) > 0:
         extra_info['r_med'] = 1000. /extra_info['parallax']
         extra_info['r_lo'] = 1000. /(extra_info['parallax']+extra_info['e_parallax'])
         extra_info['r_hi'] = 1000. /(extra_info['parallax']-extra_info['e_parallax'])
+    else:
+        extra_info['r_med'] = np.nan
+        extra_info['r_lo'] = np.nan
+        extra_info['r_hi'] = np.nan
 
     if (np.isfinite(extra_info['h_m']) & np.isfinite(extra_info['W2mag'])):
         extra_info['a_ks'] = (0.918 * (extra_info['h_m'] - extra_info['W2mag'] - 0.08)).clip(min=0.00,max=0.50)
@@ -324,12 +330,17 @@ if len(extra_info_match) > 0:
                 extra_info['a_ks'] = 0.5
         else:
             extra_info['a_ks'] = 0.00 # No measurement, so let's assume 0
-    run_star = True
+
 else:
     if sys.argv[1] == '-f':
         print('Found no extra information for star, should not run this star')
-    run_star = False
-    
+    extra_info['r_med'] = np.nan
+    extra_info['r_lo'] = np.nan
+    extra_info['r_hi'] = np.nan
+
+if np.isnan(extra_info['r_med']):
+    print('No finite distance available!')
+
 if spectrum['sobject_id'] in [140710008301032,131220004401099,140207004801201]:
     if sys.argv[1] == '-f':
         print('Adjusting Ks magnitude')
@@ -396,8 +407,6 @@ if spectrum['sobject_id'] in [210115002201239,150210005801171,140710006601104,14
     
     for key in ['rv_gaia_dr3','e_rv_gaia_dr3','ebv','ruwe_gaia_dr3']:
         extra_info[key] = np.NaN
-        
-    run_star = True
 
 if extra_info['parallax'] > 10.:
     if sys.argv[1] == '-f':
@@ -890,10 +899,15 @@ def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=
 
     try:
         fits_file = fits.open(galah_dr4_directory+'observations_6p1/'+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+'1.fits')
-        print('Using dr6.1 spectrum')
+        print('Using dr6.1 spectrum for '+str(sobject_id))
     except:
-        fits_file = fits.open(galah_dr4_directory+'observations/'+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+'1.fits')
-        print('Using dr6.0 spectrum')
+        try:
+            fits_file = fits.open(galah_dr4_directory+'observations/'+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+'1.fits')
+            print('Using dr6.0 spectrum for '+str(sobject_id))
+        except:
+            spectrum['available_ccds'] = []
+            print('Could not find spectrum '+galah_dr4_directory+'observations/'+str(sobject_id)[:6]+'/spectra/com/'+str(sobject_id)+'1.fits')
+            return(spectrum)
     if fits_file[0].header['SLITMASK'] in ['IN','IN      ']:
         spectrum['resolution'] = 'high-res'
         if sys.argv[1] == '-f':
@@ -959,8 +973,8 @@ def read_spectrum(sobject_id, spectrum, init_values_table, neglect_ir_beginning=
                 bad_counts_unc = np.where(~(counts_relative_uncertainty > 0) == True)[0]
                 below_0 = (spectrum['counts_ccd'+str(ccd)] <= 0.) | (spectrum['counts_ccd'+str(ccd)]/spectrum['counts_unc_ccd'+str(ccd)] < 1)
 
-                if len(spectrum['counts_ccd'+str(ccd)][below_0])/len(spectrum['counts_ccd'+str(ccd)]) > 0.05:
-                    print('More than 5% of counts <= 0 for CCD'+str(ccd)+' or below SNR=1. Neglecting this CCD!')
+                if len(spectrum['counts_ccd'+str(ccd)][below_0])/len(spectrum['counts_ccd'+str(ccd)]) > 0.25:
+                    print('More than 25% of counts <= 0 for CCD'+str(ccd)+' or below SNR=1. Median Flux: '+"{:.0f}".format(np.median(spectrum['counts_ccd'+str(ccd)]))+' Neglecting this CCD!')
                     
                 elif len(counts_relative_uncertainty[counts_relative_uncertainty > 0])/len(counts_relative_uncertainty) < 0.95:
                     print('More than 5% of the count uncertainties are negative. Neglecting CCD'+str(ccd))
@@ -1082,7 +1096,8 @@ exclude_pixels['ccd4'] = []
 first_spectrum = dict()
 first_spectrum['sobject_id'] = spectrum['sobject_ids'][0]
 first_spectrum = read_spectrum(first_spectrum['sobject_id'],first_spectrum,init_values_table,neglect_ir_beginning=False)
-spectrum['resolution'] = first_spectrum['resolution']
+if len(first_spectrum['available_ccds']) > 0:
+    spectrum['resolution'] = first_spectrum['resolution']
 spectrum['available_ccds'] = first_spectrum['available_ccds']
 
 for ccd in [1,2,3,4]:
@@ -1119,7 +1134,7 @@ for repeat_index, repeat_sobject_id in enumerate(spectrum['sobject_ids'][1:]):
     for ccd in [1,2,3,4]:
 
         # If the first spectrum already had a useful CCD 
-        if ccd in spectrum['available_ccds']:
+        if ((ccd in spectrum['available_ccds']) & (ccd in single_spectrum['available_ccds'])):
             wave_observed_next = single_spectrum['crval_ccd'+str(ccd)] + single_spectrum['cdelt_ccd'+str(ccd)] * np.arange(len(single_spectrum['counts_ccd'+str(ccd)]))
             if spectrum['fit_global_rv'] == True:
                 wave_shifted_next = wave_observed_next
@@ -1146,12 +1161,20 @@ for repeat_index, repeat_sobject_id in enumerate(spectrum['sobject_ids'][1:]):
             spectrum['available_ccds'].append(ccd)
             spectrum['available_ccds'].sort()
             
+            wave_observed_1 = single_spectrum['crval_ccd'+str(ccd)] + single_spectrum['cdelt_ccd'+str(ccd)] * np.arange(len(single_spectrum['counts_ccd'+str(ccd)]))
+            if spectrum['fit_global_rv'] == True:
+                spectrum['wave_ccd'+str(ccd)] = wave_observed_1
+            else:
+                spectrum['wave_ccd'+str(ccd)] = rv_shift(single_results['rv_gauss'][0],wave_observed_1)
+                spectrum['crval_ccd'+str(ccd)] = spectrum['wave_ccd'+str(ccd)][0]
+                spectrum['cdelt_ccd'+str(ccd)] = spectrum['wave_ccd'+str(ccd)][1] - spectrum['wave_ccd'+str(ccd)][0]
+            
             wave_observed_next = single_spectrum['crval_ccd'+str(ccd)] + single_spectrum['cdelt_ccd'+str(ccd)] * np.arange(len(single_spectrum['counts_ccd'+str(ccd)]))
             if spectrum['fit_global_rv'] == True:
                 wave_shifted_next = wave_observed_next
             else:
                 wave_shifted_next = rv_shift(single_results['rv_gauss'][repeat_index],wave_observed_next)
-
+                
             for label in [
                 'crval','cdelt','counts','lsf_b','lsf'
             ]:
@@ -2861,7 +2884,7 @@ def optimise_labels(input_model_parameters, input_model, input_model_name, input
 # In[ ]:
 
 
-if len(spectrum['available_ccds']) > 0:
+if ((len(spectrum['available_ccds']) > 0) & np.isfinite(extra_info['r_med'])):
 
     # We loop up to maximum_loops times over the major iteration step
     while (spectrum['opt_loop'] < maximum_loops) & (converged == False):
@@ -2985,7 +3008,7 @@ else:
 # In[ ]:
 
 
-if len(spectrum['available_ccds']) > 0:
+if ((len(spectrum['available_ccds']) > 0) & np.isfinite(extra_info['r_med'])):
 
     if success:
         info_line_1 = str(spectrum['sobject_id'])+': successful in '+str(spectrum['opt_loop'])+' loops, Model '+model_name_opt
@@ -3048,7 +3071,7 @@ if len(spectrum['available_ccds']) > 0:
 # In[ ]:
 
 
-if len(spectrum['available_ccds']) > 0:
+if ((len(spectrum['available_ccds']) > 0) & np.isfinite(extra_info['r_med'])):
     # Save spectrum
     save_spectrum = Table()
     save_spectrum['wave'] = wave_opt
@@ -3066,7 +3089,7 @@ if len(spectrum['available_ccds']) > 0:
 # In[ ]:
 
 
-if len(spectrum['available_ccds']) > 0:
+if ((len(spectrum['available_ccds']) > 0) & np.isfinite(extra_info['r_med'])):
     # Save covariances
     np.savez(
         file_directory+str(spectrum['sobject_id'])+'_plxcom_fit_covariances.npz',
@@ -3149,7 +3172,7 @@ col = Table.Column(
     unit=units['rv_gauss'])
 output.add_column(col)
 
-if len(spectrum['available_ccds']) > 0:
+if ((len(spectrum['available_ccds']) > 0) & np.isfinite(extra_info['r_med'])):
     diagonal_covariance_entries_sqrt = np.sqrt(np.diag(model_covariances_opt))
 
 # These are the labels that our interpolation routine was trained on
@@ -3160,7 +3183,7 @@ flag_x_fe_value_no_detection = 1
 flag_x_fe_value_not_measured = 2
 flag_x_fe_value_no_success = 4
 
-if len(spectrum['available_ccds']) == 0:
+if not ((len(spectrum['available_ccds']) > 0) & np.isfinite(extra_info['r_med'])):
     spectrum['init_logg'] = np.nan
     model_labels_opt = []
     mass = np.nan
