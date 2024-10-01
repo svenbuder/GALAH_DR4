@@ -6,7 +6,7 @@ GALAH is a stellar spectroscopic survey of a million stars in the Milky Way. It'
 
 ## Quick Links
 
-**Data Release Paper:** https://ui.adsabs.harvard.edu/abs/2024arXiv241012345B or https://arxiv.org/abs/2410.12345/  
+**Data Release Paper:** https://ui.adsabs.harvard.edu/abs/2024arXiv240919858B or https://arxiv.org/abs/2409.19858/  
 **Catalogue Access:** https://cloud.datacentral.org.au/teamdata/GALAH/public/GALAH_DR4/  (including main catalogues for all spectra and all stars as well as value-added-catalogues)  
 **Interactive Visualisation:** https://docs.datacentral.org.au/galah/  
 
@@ -255,14 +255,15 @@ Please cite this work as follows:
     author = {{Buder}, S., {Kos}, J., {Wang}, E.~X., {McKenzie}, M., {Howell}, M., {Martell}, S.~L., {Hayden}, M.~R., {Zucker}, D.~B., {Nordlander}, T., {Montet}, B.~T., {Traven}, G., {Bland-Hawthorn}, J., {De~Silva}, G.~M., {Freeman}, K.~C., {Lewis}, G.~F., {Lind}, K., {Sharma}, S., {Simpson}, J.~D., {Stello}, D., {Zwitter}, T., {Amarsi}, A.~M., {Armstrong}, J.~J., {Banks}, K., {Beavis}, M.~A., {Beeson}, K., {Chen}, B., {Ciuc{\u{a}}}, I., {Da~Costa}, G.~S., {de~Grijs}, R., {Martin}, B., {Nataf}, D.~M., {Ness}, M.~K., {Rains}, A.~D., {Scarr}, T., {Vogrin{\v{c}}i{\v{c}}}, R., {Wang}, Z., {Wittenmyer}, R.~A., {Xie}, Y., {The GALAH Collaboration}},
     title = {The GALAH Survey: Data Release 4},
     journal = {arXiv e-prints},
-    volume = {abs/2410.12345)},
+    volume = {abs/2409.19858)},
     month = apr,
-    pages = {arXiv:2410.12345},
+    pages = {arXiv:2409.19858},
     year = {2024},
     archivePrefix = {arXiv},
-    eprint = {2410.12345},
+    eprint = {2409.19858},
     keywords = {Surveys -- the Galaxy -- methods: observational -- methods: data analysis -- stars: fundamental parameters -- stars: abundances},
-    doi = {10.48550/arXiv.2410.12345},
+    doi = {10.48550/arXiv.2409.19858},
     primaryClass = {astro-ph.GA},
-    adsurl = {https://ui.adsabs.harvard.edu/abs/2024arXiv241012345B},
+    adsurl = {https://ui.adsabs.harvard.edu/abs/2024arXiv240919858B},
 }
+```
