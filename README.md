@@ -1,86 +1,78 @@
-# GALAH_DR4
+# GALAH_DR4 - Data Analysis Repository
 
-This repository accompanies the Data Release 4 (DR4) of the Galactic Archaeology with HERMES (GALAH) Survey.
-
-## About Galactic Archaeology with HERMES (GALAH)
+This data analysis repository accompanies the Data Release 4 (DR4) of the Galactic Archaeology with HERMES (GALAH) Survey.
 
 GALAH is a stellar spectroscopic survey of a million stars in the Milky Way. It's scientific motivation is described by [De Silva et al. (2015)](http://adsabs.harvard.edu/abs/2015MNRAS.449.2604D). GALAH had three previous data releases: DR1 [(Martell et al. 2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.465.3203M), DR2 [Buder et al. 2018)](https://ui.adsabs.harvard.edu/abs/2018MNRAS.478.4513B), and DR3 [(Buder et al. 2021)](https://ui.adsabs.harvard.edu/abs/2021MNRAS.506..150B). For more information see [the GALAH survey website](https://www.galah-survey.org).
 
-## Where to find and how to use the data release catalogs
+## Quick Links
 
-The catalogs will be released publicly on the datacentral website: [http://datacentral.org.au/teamdata/GALAH/public/](http://datacentral.org.au/teamdata/GALAH/public/).
-
-The inofficial releases can be downloaded by logging into the internal GALAH website: [https://internal.galah-survey.org/node/131052](https://internal.galah-survey.org/node/131052)
-
-Use flag_sp == 0 and flag_x_fe == 0 for best results!
-
-## Overview of this repository as a way to reproduce results and understand the analysis
-
-In this repository, you find the relevant code and example spectra (excluding large files) for reproducing the GALAH data analysis. Input files are provided by the reduction pipeline of GALAH, which is also published on a [github repository](https://github.com/sheliak/galah_reduction).
+**Data Release Paper:** https://ui.adsabs.harvard.edu/abs/2024arXiv240919858B or https://arxiv.org/abs/2409.19858/  
+**Catalogue Access:** https://cloud.datacentral.org.au/teamdata/GALAH/public/GALAH_DR4/  (including main catalogues for all spectra and all stars as well as value-added-catalogues)  
+**Interactive Visualisation:** https://docs.datacentral.org.au/galah/  
 
 GALAH operates with unique *sobject_id* as identifier of spectra for dates (first 6 digits), runs (next 4 digits), and repeats (next 2 digits), fibres (next 3 digits), and CCDs (last digit).
 
-Code/Files are accessed in the following order:
-1. observations (reduced spectra for each sobject_id in subdirectories of date/sobject_id from the reduction pipeline),
-2. auxiliary_information (information to aid the spectroscopic analysis, e.g. cross matches with Gaia and other catalogs/literature),
-3. spectrum_grids (code used to create the synthetic spectra with SME, including IDL scripts with SME580),
-4. spectrum_interpolation (spectrum interpolation models/code used to train them with neural networks based on the synthetic spectra), 
-5. spectrum_analysis (code used to analyse the reduced spectra),
-6. analysis_products (directory where the analysis products are saved, including the synthetic spectra and renormalised observations),
-7. spectrum_post_processing (directory where the post processing code and processed data products are stored),
-8. validation (directory with validation codes and diagnostic figures), and
-9. catalogs (final catalogs to be published).
+We also include matches to both *Gaia* DR3 (as *gaiadr3_source_id*) and 2MASS (as *tmass_id*) for all sources.
 
-## Overview of the data release products as of 13 July 2022
+## Which Flags to Use?
 
-This is a trial of the analysis pipeline. While the pipeline is still under development, only a subset of stars has been run, which led to the analysis of 252,373 spectra without raising quality flags for the main parameters.
+- **flag_sp**: We recommend to use lower values (with 0 meaning no significant issue found).
+- **flag_fe_h**: We recommend to neglect this flag
+- **flag_x_fe**: Use *flag_x_fe* == 0 for all considered elements of the science case
 
-![Overview of the fourth data release as of 13 July 2022 with density plots of unflagged stellar parameters and abundances](spectrum_post_processing/figures/galah_dr4_overview.png)
+## Abstract
+
+The stars of the Milky Way carry the chemical history of our Galaxy in their atmospheres as they journey through its vast expanse. Like barcodes, we can extract the chemical fingerprints of stars from high-resolution spectroscopy. The fourth data release (DR4) of the Galactic Archaeology with HERMES (GALAH) Survey, based on a decade of observations, provides the chemical abundances of up to 32 elements for 917,588 stars that also have exquisite astrometric data from the $Gaia$ satellite. For the first time, these elements include life-essential nitrogen to complement carbon, and oxygen as well as more measurements of rare-earth elements critical to modern-life electronics, offering unparalleled insights into the chemical composition of the Milky Way.
+
+For this release, we use neural networks to simultaneously fit stellar parameters and abundances across the full spectrum, leveraging synthetic grids computed with Spectroscopy Made Easy. These grids account for atomic line formation in non-local thermodynamic equilibrium for 14 elements. In a two-iteration process, we first fit stellar labels for all 1,085,520 spectra, then co-add repeated observations and refine these labels using astrometric data from $Gaia$ and 2MASS photometry, improving the accuracy and precision of stellar parameters and abundances. Our validation thoroughly assesses the reliability of spectroscopic measurements and highlights key caveats for catalogue users.
+
+GALAH DR4 represents yet another milestone in Galactic archaeology, combining detailed chemical compositions from multiple nucleosynthetic channels with kinematic information and age estimates. The resulting dataset, covering nearly a million stars, opens new avenues for understanding not only the chemical and dynamical history of the Milky Way, but also the broader questions of the origin of elements and the evolution of planets, stars, and galaxies.
+
+## Contents of this repository
+
+In this repository, you find the relevant code and example spectra (excluding large files) for reproducing the GALAH data analysis.
+Input files are provided by the reduction pipeline of GALAH, which is also published on a [github repository](https://github.com/sheliak/galah_reduction).
+
+
+This repository contains the analysis code, products, and necessary scripts to reproduce the GALAH DR4 analysis pipeline. Below is a brief description of the directory structure:
+
+```bash
+├── analysis_products_allstar/       # Analysis results for all observed stars, grouped by observation date and star IDs
+│   └── 210115/                      # Reference (first) observation date
+│       └── 210115002201239/         # Star-specific analysis products (one for each star based on co-added repeat observations)
+├── analysis_products_single/        # Analysis results for individual observations
+│   └── 210115/                      # Specific observation date
+│       └── 210115002201239/         # Spectrum-specific analysis products (one for each visit of a star)
+├── auxiliary_information/           # Cross-matches with other catalogs (e.g., Gaia, 2MASS) and additional literature
+├── catalogs/                        # Final catalog products for publication
+├── observations/                    # Reduced spectra from the observation pipeline, organized by observation date and star ID
+│   └── 210115/                      # Observation date
+│       └── spectra/                 # 
+│           └── com/                 # 
+│               └── 210115002201239* # Reduced spectra FITS files with * being a placeholder for CCDs (e.g. *1.fits)
+├── spectrum_analysis/               # Code and tools for analyzing spectra to derive stellar parameters and chemical abundances
+├── spectrum_grids/                  # Scripts and models for synthetic spectral grids using Spectroscopy Made Easy
+├── spectrum_interpolation/          # Tools for interpolating synthetic spectra using trained neural networks
+├── spectrum_post_processing/        # Code for post-processing analyzed spectra, including final adjustments and corrections
+├── tutorials/                       # Tutorials for plotting reduced spectra - more tutorials are available at [DataCentral](https://docs.datacentral.org.au/galah/)
+├── validation/                      # Scripts and figures for validating the analysis against benchmark stars and other surveys like APOGEE
+```
+
+## Overview of GALAH DR4
 
 ### What's new? Fastly interpolated synthetic spectra for the whole wavelength range
 
 To allow the simultanious fitting of stellar parameters and abundances (a shortcoming of the previous data releases affecting especially blended regions), we have changed our fitting approach. We are now producing synthetic spectra for a limited random selection and train neural networks on them. This allows to fit all 5 stellar parameters (Teff, logg, [Fe/H], vmic, vsini) and up to 31 elemental abundances at the same time.
+
 <p align=center>
-    <img src="analysis_products/210115/210115002201239/210115002201239_single_fit_comparison.png" alt="Observed and synthetic spectrum for VESTA" width="50%"/>
+    <img src="analysis_products_allstar/210115/210115002201239/210115002201239_allstar_fit_comparison.png" alt="Observed and synthetic spectrum for VESTA" width="50%"/>
 </p>
 
 ### What's new? CNO Abundances
 
 We are fitting CNO abundances now! Thanks to the enhanced creation of synthetic stellar spectra, we are now also producing synthetic spectra for regions with strong molecular absorption features, like C2 (C12-C12 Swan bands before 4738Å) and CN (beyond 7870Å) as well as an underlying CN feature throughout most of the red and infrared region (most notably in cool giants).
 <p align=center>
-    <img src="spectrum_post_processing/figures/overview_CNO.png" alt="CNO abundance overview" width="50%"/>
-</p>
-
-## Validation
-
-### Gaia FGK Benchmark Stars
-
-<p align=center>
-    <img src="validation/figures/gbs_performance_lbol.png" alt="drawing" width="50%"/>
-</p>
-
-### APOGEE DR17     
-
-#### Comparison of APOGEE DR17 stellar parameters with GALAH DR4, for all stars (top), dwarfs (middle) and giants (bottom).
-
-<p align=center>
-    <img src="validation/figures/galah_dr4_validation_apogeedr17_teffloggfeh_diff_all.png" alt="drawing" width="75%"/>
-    <img src="validation/figures/galah_dr4_validation_apogeedr17_teffloggfeh_diff_dwarfs.png" alt="drawing" width="75%"/>
-    <img src="validation/figures/galah_dr4_validation_apogeedr17_teffloggfeh_diff_giants.png" alt="drawing" width="75%"/>
-</p>
-    
-#### [Fe/H] vs. [Mg/Fe] compared to GALAH DR3 and APOGEE DR17
-    
-<p align=center>
-    <img src="validation/figures/galah_dr4_validation_galah_dr3_mg_fe_density.png" alt="drawing" width="45%"/>
-    <img src="validation/figures/galah_dr4_validation_apogeedr17_mg_fe_density.png" alt="drawing" width="45%"/>
-</p>
-
-#### [Fe/H] vs. [Ni/Fe] compared to GALAH DR3 and APOGEE DR17
-
-<p align=center>
-    <img src="validation/figures/galah_dr4_validation_galah_dr3_ni_fe_density.png" alt="drawing" width="45%"/>
-    <img src="validation/figures/galah_dr4_validation_apogeedr17_ni_fe_density.png" alt="drawing" width="45%"/>
+    <img src="validation/figures/c2_cn_lines_example.png" alt="Example of strong C2 and CN lines" width="50%"/>
 </p>
 
 ## Flag bitmask explanation
@@ -254,16 +246,24 @@ sigma_dib6613 |  | Sigma auf Gaussian fit for 6613 DIB | >f4 |
 rv_dib6613 | km s-1 | Radial velocity of fit to syn-obs residuals around 6613 DIB | >f4 | 
 snr |  | Average signal-to-noise ratio (per pixel) of each CCD | >f4 | 
 
+## How to Cite
 
-## Authors
-- [Sven Buder](https://github.com/svenbuder) (ANU, ASTRO 3D)
+Please cite this work as follows:
 
-## Attribution
-If you make use of this code, please cite the paper::
-
-    @article{Buder2022,
-      url = {https://github.com/svenbuder/GALAH_DR4},
-      year = in prep.,
-      author = {Sven Buder},
-      title = {The GALAH Survey: Data Release 4}
-    }
+```bibtex
+@article{Buder2024b,
+    author = {{Buder}, S., {Kos}, J., {Wang}, E.~X., {McKenzie}, M., {Howell}, M., {Martell}, S.~L., {Hayden}, M.~R., {Zucker}, D.~B., {Nordlander}, T., {Montet}, B.~T., {Traven}, G., {Bland-Hawthorn}, J., {De~Silva}, G.~M., {Freeman}, K.~C., {Lewis}, G.~F., {Lind}, K., {Sharma}, S., {Simpson}, J.~D., {Stello}, D., {Zwitter}, T., {Amarsi}, A.~M., {Armstrong}, J.~J., {Banks}, K., {Beavis}, M.~A., {Beeson}, K., {Chen}, B., {Ciuc{\u{a}}}, I., {Da~Costa}, G.~S., {de~Grijs}, R., {Martin}, B., {Nataf}, D.~M., {Ness}, M.~K., {Rains}, A.~D., {Scarr}, T., {Vogrin{\v{c}}i{\v{c}}}, R., {Wang}, Z., {Wittenmyer}, R.~A., {Xie}, Y., {The GALAH Collaboration}},
+    title = {The GALAH Survey: Data Release 4},
+    journal = {arXiv e-prints},
+    volume = {abs/2409.19858)},
+    month = apr,
+    pages = {arXiv:2409.19858},
+    year = {2024},
+    archivePrefix = {arXiv},
+    eprint = {2409.19858},
+    keywords = {Surveys -- the Galaxy -- methods: observational -- methods: data analysis -- stars: fundamental parameters -- stars: abundances},
+    doi = {10.48550/arXiv.2409.19858},
+    primaryClass = {astro-ph.GA},
+    adsurl = {https://ui.adsabs.harvard.edu/abs/2024arXiv240919858B},
+}
+```
